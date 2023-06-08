@@ -1,0 +1,31 @@
+#ifndef OS_INC_H
+#define OS_INC_H
+
+#if !defined(ArenaImpl_Reserve)
+# define ArenaImpl_Reserve  OS_Reserve
+#endif
+#if !defined(ArenaImpl_Release)
+# define ArenaImpl_Release  OS_Release
+#endif
+#if !defined(ArenaImpl_Commit)
+# define ArenaImpl_Commit   OS_Commit
+#endif
+#if !defined(ArenaImpl_Decommit)
+# define ArenaImpl_Decommit OS_Decommit
+#endif
+
+#include "os_core.h"
+#if defined(OS_FEATURE_GFX)
+#include "os_gfx.h"
+#endif
+
+#if OS_WINDOWS
+#include "win32/os_core_win32.h"
+#if defined(OS_FEATURE_GFX)
+#include "win32/os_gfx_win32.h"
+#endif
+#else
+#error OS layer not implemented.
+#endif
+
+#endif // OS_INC_H

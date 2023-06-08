@@ -1,0 +1,101 @@
+version(2);
+project_name = "HIDDEN GROVE (Basic)";
+
+////////////////////////////////
+//~ rjf: Indentation
+
+indent_width = "1";
+default_tab_width = "1";
+
+////////////////////////////////
+//~ rjf: Code File Extensions
+
+patterns =
+{
+ "*.c",
+ "*.cpp",
+ "*.h",
+ "*.inc",
+ "*.hpp",
+ "*.bat",
+ "*.sh",
+ "*.4coder",
+ "*.glsl",
+ "*.bfs",
+ "*.html",
+ "*.txt",
+ "*.ds",
+ "*.mdesk",
+ "*.asm",
+};
+
+////////////////////////////////
+//~ rjf: Omit Patterns
+
+blacklist_patterns =
+{
+ ".*",
+};
+
+////////////////////////////////
+//~ rjf: Load Paths
+
+paths =
+{
+ { .path = ".",     .recursive = false, .relative = true, },
+ { .path = "code",  .recursive = true , .relative = true, },
+ { .path = "notes", .recursive = true , .relative = true, },
+};
+
+load_paths =
+{
+ .win   = paths,
+ .linux = paths,
+};
+
+////////////////////////////////
+//~ rjf: Commands
+
+commands =
+{
+ //- rjf: app template
+ .build_app_template =
+ {
+  .win              = "build_app_template.bat",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ .run_app_template =
+ {
+  .win              = "pushd build && app_template.exe && popd",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = true,
+ }, 
+};
+
+////////////////////////////////
+//~ rjf: Default F-Keys
+
+fkey_command =
+{
+ .F1 = "build_app_template",
+ .F3 = "run_app_template",
+};
+
+////////////////////////////////
+//~ rjf: Username Overridden F-Keys
+
+fkey_command_override =
+{
+ .rjf =
+ {
+  .F1 = "build_app_template",
+  .F3 = "run_app_template",
+ },
+};

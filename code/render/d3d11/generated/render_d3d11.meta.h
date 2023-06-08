@@ -1,0 +1,24 @@
+typedef enum R_D3D11_CmdGlobalKind
+{
+R_D3D11_CmdGlobalKind_Nil,
+R_D3D11_CmdGlobalKind_Rect2D,
+R_D3D11_CmdGlobalKind_Sprite3D,
+R_D3D11_CmdGlobalKind_DebugLine3D,
+R_D3D11_CmdGlobalKind_COUNT
+}
+R_D3D11_CmdGlobalKind;
+
+typedef enum R_D3D11_ShaderPairKind
+{
+R_D3D11_ShaderPairKind_Nil,
+R_D3D11_ShaderPairKind_Rect2D,
+R_D3D11_ShaderPairKind_Sprite3D,
+R_D3D11_ShaderPairKind_DebugLine3D,
+R_D3D11_ShaderPairKind_COUNT
+}
+R_D3D11_ShaderPairKind;
+
+extern R_D3D11_CmdGlobalKindInfo r_d3d11_g_cmd_global_kind_info_table[4];
+
+extern R_D3D11_ShaderPairKindInfo r_d3d11_g_shader_pair_kind_info_table[4];
+

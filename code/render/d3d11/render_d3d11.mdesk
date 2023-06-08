@@ -1,0 +1,425 @@
+////////////////////////////////
+//~ rjf: Tables
+
+@table(name_upper, name_lower, type)
+R_D3D11_CmdGlobalsTable:
+{
+ {Rect2D       rect2d       R_D3D11_CmdGlobals_Rect2D      }
+ {Sprite3D     sprite3d     R_D3D11_CmdGlobals_Sprite3D    }
+ {DebugLine3D  debugline3d  R_D3D11_CmdGlobals_DebugLine3D }
+}
+
+@table(name_upper, name_lower, shader_blob, element_desc_table)
+R_D3D11_ShaderPairTable:
+{
+ {Rect2D       rect2d        r_d3d11_g_rect2d_shader_src      r_d3d11_g_rect2d_ilay_elements      }
+ {Sprite3D     sprite3d      r_d3d11_g_sprite3d_shader_src    r_d3d11_g_sprite3d_ilay_elements    }
+ {DebugLine3D  debugline3d   r_d3d11_g_debugline3d_shader_src r_d3d11_g_debugline3d_ilay_elements }
+}
+
+////////////////////////////////
+//~ rjf: Table Generators
+
+@table_gen_enum R_D3D11_CmdGlobalKind:
+{
+ `R_D3D11_CmdGlobalKind_Nil,`;
+ @expand(R_D3D11_CmdGlobalsTable a) `R_D3D11_CmdGlobalKind_$(a.name_upper),`;
+ `R_D3D11_CmdGlobalKind_COUNT`;
+}
+
+@table_gen_enum R_D3D11_ShaderPairKind:
+{
+ `R_D3D11_ShaderPairKind_Nil,`;
+ @expand(R_D3D11_ShaderPairTable a) `R_D3D11_ShaderPairKind_$(a.name_upper),`;
+ `R_D3D11_ShaderPairKind_COUNT`;
+}
+
+@table_gen_data(R_D3D11_CmdGlobalKindInfo)
+r_d3d11_g_cmd_global_kind_info_table:
+{
+ `{0},`;
+ @expand(R_D3D11_CmdGlobalsTable a) `{sizeof($(a.type))},`;
+}
+
+@table_gen_data(R_D3D11_ShaderPairKindInfo)
+r_d3d11_g_shader_pair_kind_info_table:
+{
+ `{0},`;
+ @expand(R_D3D11_ShaderPairTable a) `{Str8LitComp("$(a.shader_blob)"), $(a.shader_blob), $(a.element_desc_table), ArrayCount($(a.element_desc_table))},`;
+}
+
+////////////////////////////////
+//~ rjf: Rect Shaders
+
+@embed_string @c r_d3d11_g_rect2d_shader_src:
+"""
+//- rjf: resources
+
+cbuffer CmdGlobals : register(b0)
+{
+ float2 viewport_size_px;
+ float opacity;
+ row_major float4x4 albedo_sample_channel_map;
+ float2 albedo_t2d_size_px;
+ float3x3 xform;
+}
+
+Texture2D albedo_t2d : register(t0);
+SamplerState albedo_t2d_sampler : register(s0);
+
+//- rjf: cpu -> vshad -> pshad types
+
+struct CPU2Vertex
+{
+ float4 dst_rect_px     : POS;
+ float4 src_rect_px     : TEX;
+ float4 color00         : COL0;
+ float4 color01         : COL1;
+ float4 color10         : COL2;
+ float4 color11         : COL3;
+ float4 corner_radii_px : CRAD;
+ float4 style_params    : STY; // x: border_thickness_px, y: softness_px, z: omit_texture, w: unused
+ uint vertex_id         : SV_VertexID;
+};
+
+struct Vertex2Pixel
+{
+ float4 position_clp       : SV_POSITION;
+ float2 rect_center_px     : POS;
+ float2 rect_half_size_px  : PSIZE;
+ float2 texcoord_pct       : TEX;
+ float4 color00            : COL0;
+ float4 color01            : COL1;
+ float4 color10            : COL2;
+ float4 color11            : COL3;
+ float2 colorcoord_pct     : COLC;
+ float corner_radius_px    : CRAD;
+ float border_thickness_px : BTHC;
+ float softness_px         : SFT;
+ float omit_texture        : OTX;
+};
+
+//- rjf: helpers
+
+float RectSDF(float2 sample_pos, float2 rect_center, float2 rect_half_size, float r)
+{
+ float2 d2 = abs(sample_pos - rect_center) - rect_half_size + float2(r, r);
+ return min(max(d2.x, d2.y), 0.0) + length(max(d2, 0.0)) - r;   
+}
+
+//- rjf: vertex shader
+
+Vertex2Pixel
+vs_main(CPU2Vertex cpu2vertex)
+{
+ //- rjf: unpack & xform rectangle src/dst vertices
+ float2 dst_p0_px  = cpu2vertex.dst_rect_px.xy;
+ float2 dst_p1_px  = cpu2vertex.dst_rect_px.zw;
+ float2 src_p0_px  = cpu2vertex.src_rect_px.xy;
+ float2 src_p1_px  = cpu2vertex.src_rect_px.zw;
+ dst_p0_px = mul(xform, float3(dst_p0_px.x, dst_p0_px.y, 1)).xy;
+ dst_p1_px = mul(xform, float3(dst_p1_px.x, dst_p1_px.y, 1)).xy;
+ float2 dst_size_px = abs(dst_p1_px - dst_p0_px);
+ 
+ //- rjf: unpack style params
+ float border_thickness_px = cpu2vertex.style_params.x;
+ float softness_px         = cpu2vertex.style_params.y;
+ float omit_texture        = cpu2vertex.style_params.z;
+ 
+ //- rjf: prep per-vertex arrays to sample from (p: position, t: texcoord, c: colorcoord, r: cornerradius)
+ float2 dst_p_verts_px[] =
+ {
+  float2(dst_p0_px.x, viewport_size_px.y - dst_p1_px.y),
+  float2(dst_p0_px.x, viewport_size_px.y - dst_p0_px.y),
+  float2(dst_p1_px.x, viewport_size_px.y - dst_p1_px.y),
+  float2(dst_p1_px.x, viewport_size_px.y - dst_p0_px.y),
+ };
+ float2 src_p_verts_pct[] =
+ {
+  float2(src_p0_px.x/albedo_t2d_size_px.x, src_p1_px.y/albedo_t2d_size_px.y),
+  float2(src_p0_px.x/albedo_t2d_size_px.x, src_p0_px.y/albedo_t2d_size_px.y),
+  float2(src_p1_px.x/albedo_t2d_size_px.x, src_p1_px.y/albedo_t2d_size_px.y),
+  float2(src_p1_px.x/albedo_t2d_size_px.x, src_p0_px.y/albedo_t2d_size_px.y),
+ };
+ float2 dst_c_verts_pct[] =
+ {
+  float2(0, 1),
+  float2(0, 0),
+  float2(1, 1),
+  float2(1, 0),
+ };
+ float dst_r_verts_px[] =
+ {
+  cpu2vertex.corner_radii_px.y,
+  cpu2vertex.corner_radii_px.x,
+  cpu2vertex.corner_radii_px.w,
+  cpu2vertex.corner_radii_px.z,
+ };
+ 
+ // rjf: fill vertex -> pixel data
+ Vertex2Pixel vertex2pixel;
+ {
+  vertex2pixel.position_clp.x       = 2 * dst_p_verts_px[cpu2vertex.vertex_id].x / viewport_size_px.x - 1.f;
+  vertex2pixel.position_clp.y       = 2 * dst_p_verts_px[cpu2vertex.vertex_id].y / viewport_size_px.y - 1.f;
+  vertex2pixel.position_clp.z       = 0.f;
+  vertex2pixel.position_clp.w       = 1.f;
+  vertex2pixel.rect_center_px       = (dst_p0_px+dst_p1_px)/2;
+  vertex2pixel.rect_half_size_px    = dst_size_px/2 - float2(2*softness_px, 2*softness_px);
+  vertex2pixel.texcoord_pct         = src_p_verts_pct[cpu2vertex.vertex_id];
+  vertex2pixel.color00              = cpu2vertex.color00;
+  vertex2pixel.color01              = cpu2vertex.color01;
+  vertex2pixel.color10              = cpu2vertex.color10;
+  vertex2pixel.color11              = cpu2vertex.color11;
+  vertex2pixel.colorcoord_pct       = dst_c_verts_pct[cpu2vertex.vertex_id];
+  vertex2pixel.corner_radius_px     = dst_r_verts_px[cpu2vertex.vertex_id] * (2*vertex2pixel.rect_half_size_px.x) / dst_size_px.x;
+  vertex2pixel.border_thickness_px  = border_thickness_px;
+  vertex2pixel.softness_px          = softness_px;
+  vertex2pixel.omit_texture         = omit_texture;
+ }
+ return vertex2pixel;
+}
+
+//- rjf: pixel shader
+
+float4
+ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
+{
+ // rjf: blend corner colors to produce final tint
+ float4 top_color   = (1-vertex2pixel.colorcoord_pct.x)*vertex2pixel.color00 + (vertex2pixel.colorcoord_pct.x)*vertex2pixel.color10;
+ float4 bot_color   = (1-vertex2pixel.colorcoord_pct.x)*vertex2pixel.color01 + (vertex2pixel.colorcoord_pct.x)*vertex2pixel.color11;
+ float4 tint        = (1-vertex2pixel.colorcoord_pct.y)*top_color + (vertex2pixel.colorcoord_pct.y)*bot_color;
+ 
+ // rjf: sample albedo
+ float4 albedo_sample = float4(1, 1, 1, 1);
+ if(vertex2pixel.omit_texture < 1)
+ {
+  albedo_sample = mul(albedo_t2d.Sample(albedo_t2d_sampler, vertex2pixel.texcoord_pct), albedo_sample_channel_map);
+ }
+ 
+ // rjf: apply rect corner radius
+ float corner_radius_d_px = RectSDF(vertex2pixel.position_clp.xy, vertex2pixel.rect_center_px, vertex2pixel.rect_half_size_px, vertex2pixel.corner_radius_px);
+ float corner_radius_t = smoothstep(0, 2*vertex2pixel.softness_px, corner_radius_d_px);
+ 
+ // rjf: apply border thickness
+ float border_thickness_d_px = RectSDF(vertex2pixel.position_clp.xy,
+                                       vertex2pixel.rect_center_px,
+                                       vertex2pixel.rect_half_size_px-vertex2pixel.border_thickness_px,
+                                       max(vertex2pixel.corner_radius_px-vertex2pixel.border_thickness_px, 0));
+ float border_thickness_t = smoothstep(0, 2*vertex2pixel.softness_px, border_thickness_d_px);
+ if(vertex2pixel.border_thickness_px == 0)
+ {
+  border_thickness_t = 1;
+ }
+ 
+ // rjf: form+return final color
+ float4 final_color = albedo_sample;
+ final_color *= 1-corner_radius_t;
+ final_color *= border_thickness_t;
+ final_color *= tint;
+ final_color *= opacity;
+ return final_color;
+}
+"""
+
+////////////////////////////////
+//~ rjf: Sprite Shaders
+
+@embed_string @c r_d3d11_g_sprite3d_shader_src:
+"""
+//- rjf: resources
+
+cbuffer CmdGlobals : register(b0)
+{
+ float4x4 xform;
+ row_major float4x4 albedo_sample_channel_map;
+ float2 albedo_t2d_size_px;
+}
+
+Texture2D albedo_t2d : register(t0);
+SamplerState albedo_t2d_sampler : register(s0);
+
+//- rjf: cpu -> vshad -> pshad types
+
+struct CPU2Vertex
+{
+ float4 pos_rs          : POS;
+ float4x4 xform         : XFM;
+ float4 src_rect_px     : TEX;
+ float4 color00         : COL0;
+ float4 color01         : COL1;
+ float4 color10         : COL2;
+ float4 color11         : COL3;
+ float4 omit_texture    : OTX;
+ uint vertex_id         : SV_VertexID;
+};
+
+struct Vertex2Pixel
+{
+ float4 pos_rs          : SV_POSITION;
+ float2 texcoord_px     : TEX;
+ float4 color00         : COL0;
+ float4 color01         : COL1;
+ float4 color10         : COL2;
+ float4 color11         : COL3;
+ float2 colorcoord_pct  : TEX1;
+ float omit_texture     : OTX;
+};
+
+//- rjf: vertex shader
+
+Vertex2Pixel
+vs_main(CPU2Vertex cpu2vertex)
+{
+ //- rjf: unpack instance data
+ float2 src_p0_px  = cpu2vertex.src_rect_px.xy;
+ float2 src_p1_px  = cpu2vertex.src_rect_px.zw;
+ 
+ //- rjf: bundle per-vertex attribute arrays, to sample from via vertex ID
+ float3 dst_p_verts_rs[] =
+ {
+  mul(cpu2vertex.xform, float4(-0.5f, -0.5f, 0.f, 1.f)).xyz,
+  mul(cpu2vertex.xform, float4(-0.5f, +0.5f, 0.f, 1.f)).xyz,
+  mul(cpu2vertex.xform, float4(+0.5f, -0.5f, 0.f, 1.f)).xyz,
+  mul(cpu2vertex.xform, float4(+0.5f, +0.5f, 0.f, 1.f)).xyz,
+ };
+ float2 src_p_verts_px[] =
+ {
+  float2(src_p0_px.x, src_p0_px.y),
+  float2(src_p0_px.x, src_p1_px.y),
+  float2(src_p1_px.x, src_p0_px.y),
+  float2(src_p1_px.x, src_p1_px.y),
+ };
+ float2 dst_c_verts_pct[] =
+ {
+  float2(0, 1),
+  float2(0, 0),
+  float2(1, 1),
+  float2(1, 0),
+ };
+ 
+ //- rjf: produce final vertex position
+ float4 pos_rs = cpu2vertex.pos_rs;
+ pos_rs.x += dst_p_verts_rs[cpu2vertex.vertex_id].x;
+ pos_rs.y += dst_p_verts_rs[cpu2vertex.vertex_id].y;
+ pos_rs.z += dst_p_verts_rs[cpu2vertex.vertex_id].z;
+ pos_rs = mul(xform, pos_rs);
+ 
+ //- rjf: produce final vertex texcoord
+ float2 texcoord_px = src_p_verts_px[cpu2vertex.vertex_id];
+ 
+ //- rjf: produce final vertex colorcoord
+ float2 colorcoord_pct = dst_c_verts_pct[cpu2vertex.vertex_id];
+ 
+ //- rjf: fill vertex -> pixel data
+ Vertex2Pixel vertex2pixel;
+ {
+  vertex2pixel.pos_rs         = pos_rs;
+  vertex2pixel.texcoord_px    = texcoord_px;
+  vertex2pixel.color00        = cpu2vertex.color00;
+  vertex2pixel.color01        = cpu2vertex.color01;
+  vertex2pixel.color10        = cpu2vertex.color10;
+  vertex2pixel.color11        = cpu2vertex.color11;
+  vertex2pixel.colorcoord_pct = colorcoord_pct;
+  vertex2pixel.omit_texture   = cpu2vertex.omit_texture.x;
+ }
+ return vertex2pixel;
+}
+
+//- rjf: pixel shader
+
+float4
+ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
+{
+ // rjf: blend corner colors to get final pixel tint
+ float4 top_color   = (1-vertex2pixel.colorcoord_pct.x)*vertex2pixel.color00 + (vertex2pixel.colorcoord_pct.x)*vertex2pixel.color10;
+ float4 bot_color   = (1-vertex2pixel.colorcoord_pct.x)*vertex2pixel.color01 + (vertex2pixel.colorcoord_pct.x)*vertex2pixel.color11;
+ float4 tint        = (1-vertex2pixel.colorcoord_pct.y)*top_color + (vertex2pixel.colorcoord_pct.y)*bot_color;
+ 
+ // rjf: sample albedo texture
+ float4 albedo_sample = float4(1, 1, 1, 1);
+ if(vertex2pixel.omit_texture < 1)
+ {
+  float2 texcoord_px = floor(vertex2pixel.texcoord_px) + min(frac(vertex2pixel.texcoord_px)/fwidth(vertex2pixel.texcoord_px), 1.f) - 0.5f;
+  albedo_sample = mul(albedo_t2d.Sample(albedo_t2d_sampler, texcoord_px/albedo_t2d_size_px), albedo_sample_channel_map);
+  albedo_sample.xyz /= albedo_sample.w;
+ }
+ 
+ // rjf: alpha test
+ if(albedo_sample.w < 1)
+ {
+  discard;
+ }
+ 
+ // rjf: form+return final color
+ float4 final_color = albedo_sample;
+ final_color *= tint;
+ return final_color;
+}
+
+"""
+
+////////////////////////////////
+//~ rjf: Debug Line (3D) Shaders
+
+@embed_string @c r_d3d11_g_debugline3d_shader_src:
+"""
+//- rjf: resources
+
+cbuffer CmdGlobals : register(b0)
+{
+ float4x4 xform;
+}
+
+//- rjf: cpu -> vshad -> pshad types
+
+struct CPU2Vertex
+{
+ float4 p0_rs   : POS0;
+ float4 p1_rs   : POS1;
+ float4 c0      : COL0;
+ float4 c1      : COL1;
+ uint vertex_id : SV_VertexID;
+};
+
+struct Vertex2Pixel
+{
+ float4 pos_rs : SV_POSITION;
+ float4 color  : COL;
+};
+
+//- rjf: vertex shader
+
+Vertex2Pixel
+vs_main(CPU2Vertex cpu2vertex)
+{
+ float4 p0_rs = cpu2vertex.p0_rs;
+ float4 p1_rs = cpu2vertex.p1_rs;
+ float4 c0 = cpu2vertex.c0;
+ float4 c1 = cpu2vertex.c1;
+ float4 verts_pos[] =
+ {
+  mul(xform, p0_rs),
+  mul(xform, p1_rs),
+ };
+ float4 verts_col[] =
+ {
+  c0,
+  c1,
+ };
+ Vertex2Pixel vertex2pixel;
+ {
+  vertex2pixel.pos_rs = verts_pos[cpu2vertex.vertex_id];
+  vertex2pixel.color  = verts_col[cpu2vertex.vertex_id];
+ }
+ return vertex2pixel;
+}
+
+//- rjf: pixel shader
+
+float4
+ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
+{
+ return vertex2pixel.color;
+}
+
+"""

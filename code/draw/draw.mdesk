@@ -1,0 +1,91 @@
+
+////////////////////////////////
+//~ rjf: Tables
+
+@table(name_upper, name_lower, type, default)
+D_StackTable:
+{
+ {Texture2DSampleKind  texture2d_sample_kind        R_Texture2DSampleKind `R_Texture2DSampleKind_Nearest`                 }
+ {Transform2D          xform2d                      Mat3x3F32             `MakeMat3x3F32(1.f)`                            }
+ {View3D               view3d                       Mat4x4F32             `MakeMat4x4F32(1.f)`                            }
+ {Projection3D         projection3d                 Mat4x4F32             `MakeMat4x4F32(1.f)`                            }
+ {Clip                 clip                         Rng2F32               `R2F32(V2F32(0, 0), V2F32(0, 0))`               }
+ {Opacity              opacity                      F32                   `1.f`                                           }
+ {Flags                flags                        R_CmdFlags            `0`                                             }
+}
+
+////////////////////////////////
+//~ rjf: Table Generators
+
+//- rjf: declaring all stack node types
+
+@table_gen
+{
+ @expand(D_StackTable a) `typedef struct D_$(a.name_upper)Node D_$(a.name_upper)Node; struct D_$(a.name_upper)Node {D_$(a.name_upper)Node *next; $(a.type) v;};`
+}
+
+//- rjf: declaring all default stack tops
+
+@table_gen
+{
+ `#define D_DeclThreadStackTops \\`;
+ `struct\\`;
+ `{\\`;
+  @expand(D_StackTable a) `D_$(a.name_upper)Node $(a.name_lower)_nil_stack_top;\\`;
+  `}`;
+}
+
+//- rjf: initializing all default stack tops
+
+@table_gen
+{
+ `#define D_InitThreadStackTops \\`;
+ @expand(D_StackTable a) `d_thread_ctx->$(a.name_lower)_nil_stack_top.v = $(a.default);\\`;
+ ``;
+}
+
+//- rjf: declaring all bucket stack nodes & free lists
+
+@table_gen
+{
+ `#define D_DeclBucketStacks \\`;
+ `struct\\`;
+ `{\\`;
+  @expand(D_StackTable a) `D_$(a.name_upper)Node *$(a.name_lower)_stack_top; D_$(a.name_upper)Node *$(a.name_lower)_free;\\`;
+  `}`;
+}
+
+//- rjf: initing all bucket stack nodes
+
+@table_gen
+{
+ `#define D_InitBucketStacks(b) \\`;
+ @expand(D_StackTable a) `b.$(a.name_lower)_stack_top = &d_thread_ctx->$(a.name_lower)_nil_stack_top;\\`;
+ ``;
+}
+
+//- rjf: header prototypes for all stack push/pop/top functions
+
+@table_gen
+{
+ `#if 0`;
+ @expand(D_StackTable a) `core_function $(a.type) $(=>30) D_Push$(a.name_upper)($(a.type) v);`;
+ ``;
+ @expand(D_StackTable a) `core_function $(a.type) $(=>30) D_Pop$(a.name_upper)(void);`;
+ ``;
+ @expand(D_StackTable a) `core_function $(a.type) $(=>30) D_Top$(a.name_upper)(void);`;
+ ``;
+ @expand(D_StackTable a) `#define D_$(a.name_upper)(v) $(=>30) DeferLoop(D_Push$(a.name_upper)(v), D_Pop$(a.name_upper)())`;
+ `#endif`;
+}
+
+//- rjf: stack push/pop/top implementations
+
+@table_gen @c
+{
+ @expand(D_StackTable a) `core_function $(a.type) $(=>30) D_Push$(a.name_upper)($(a.type) v) $(=>80) D_StackPush(D_$(a.name_upper)Node, $(a.type), $(a.name_lower), v)`;
+ ``;
+ @expand(D_StackTable a) `core_function $(a.type) $(=>30) D_Pop$(a.name_upper)(void) $(=>80) D_StackPop(D_$(a.name_upper)Node, $(a.type), $(a.name_lower))`;
+ ``;
+ @expand(D_StackTable a) `core_function $(a.type) $(=>30) D_Top$(a.name_upper)(void) $(=>80) D_StackTop(D_$(a.name_upper)Node, $(a.type), $(a.name_lower))`;
+}
