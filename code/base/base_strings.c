@@ -348,6 +348,16 @@ Str8ListPush(Arena *arena, String8List *list, String8 str)
 }
 
 core_function void
+Str8ListPushF(Arena *arena, String8List *list, char *fmt, ...)
+{
+ va_list args;
+ va_start(args, fmt);
+ String8 string = PushStr8FV(arena, fmt, args);
+ va_end(args);
+ Str8ListPush(arena, list, string);
+}
+
+core_function void
 Str8ListPushFront(Arena *arena, String8List *list, String8 str)
 {
  String8Node *n = PushArray(arena, String8Node, 1);

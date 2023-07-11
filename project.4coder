@@ -1,5 +1,5 @@
 version(2);
-project_name = "HIDDEN GROVE (Basic)";
+project_name = "HIDDEN GROVE: Root";
 
 ////////////////////////////////
 //~ rjf: Indentation
@@ -58,25 +58,27 @@ load_paths =
 
 commands =
 {
- //- rjf: app template
- .build_app_template =
+ 
+ //- rjf: app_template
+ .build_app_templates =
  {
-  .win              = "build_app_template.bat",
+  .win              = "build_app_templates.bat",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
   .save_dirty_files = true,
   .cursor_at_end    = false,
  },
- .run_app_template =
+ .run_app_template_basic =
  {
-  .win              = "pushd build && app_template.exe && popd",
+  .win              = "pushd build && app_template_basic.exe && popd",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
   .save_dirty_files = true,
   .cursor_at_end    = true,
- }, 
+ },
+
 };
 
 ////////////////////////////////
@@ -84,8 +86,8 @@ commands =
 
 fkey_command =
 {
- .F1 = "build_app_template",
- .F3 = "run_app_template",
+ .F1 = "build_app_templates",
+ .F3 = "run_app_template_basic",
 };
 
 ////////////////////////////////
@@ -95,7 +97,7 @@ fkey_command_override =
 {
  .rjf =
  {
-  .F1 = "build_app_template",
-  .F3 = "run_app_template",
+  .F1 = "build_g0",
+  .F3 = "run_g0",
  },
 };

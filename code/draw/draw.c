@@ -181,6 +181,7 @@ D_PushCmd(R_CmdKind kind, R_Handle albedo_texture)
   new_cmd.albedo_texture = albedo_texture;
   new_cmd.albedo_texture_sample_kind = bucket->texture2d_sample_kind_stack_top->v;
   new_cmd.flags          = bucket->flags_stack_top->v;
+  new_cmd.viewport       = bucket->viewport_stack_top->v;
   new_cmd.xform2d        = bucket->xform2d_stack_top->v;
   new_cmd.view3d         = bucket->view3d_stack_top->v;
   new_cmd.projection3d   = bucket->projection3d_stack_top->v;

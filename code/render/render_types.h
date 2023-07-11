@@ -131,6 +131,7 @@ struct R_Cmd
  R_CmdBatch *last_batch;
  U64 total_instance_count;
  R_CmdFlags flags;
+ Rng2F32 viewport;
  Mat3x3F32 xform2d;
  Mat4x4F32 view3d;
  Mat4x4F32 projection3d;

@@ -1,3 +1,4 @@
+typedef struct D_ViewportNode D_ViewportNode; struct D_ViewportNode {D_ViewportNode *next; Rng2F32 v;};
 typedef struct D_Texture2DSampleKindNode D_Texture2DSampleKindNode; struct D_Texture2DSampleKindNode {D_Texture2DSampleKindNode *next; R_Texture2DSampleKind v;};
 typedef struct D_Transform2DNode D_Transform2DNode; struct D_Transform2DNode {D_Transform2DNode *next; Mat3x3F32 v;};
 typedef struct D_View3DNode D_View3DNode; struct D_View3DNode {D_View3DNode *next; Mat4x4F32 v;};
@@ -9,6 +10,7 @@ typedef struct D_FlagsNode D_FlagsNode; struct D_FlagsNode {D_FlagsNode *next; R
 #define D_DeclThreadStackTops \
 struct\
 {\
+D_ViewportNode viewport_nil_stack_top;\
 D_Texture2DSampleKindNode texture2d_sample_kind_nil_stack_top;\
 D_Transform2DNode xform2d_nil_stack_top;\
 D_View3DNode view3d_nil_stack_top;\
@@ -19,6 +21,7 @@ D_FlagsNode flags_nil_stack_top;\
 }
 
 #define D_InitThreadStackTops \
+d_thread_ctx->viewport_nil_stack_top.v = R2F32(V2F32(0, 0), V2F32(0, 0));\
 d_thread_ctx->texture2d_sample_kind_nil_stack_top.v = R_Texture2DSampleKind_Nearest;\
 d_thread_ctx->xform2d_nil_stack_top.v = MakeMat3x3F32(1.f);\
 d_thread_ctx->view3d_nil_stack_top.v = MakeMat4x4F32(1.f);\
@@ -31,6 +34,7 @@ d_thread_ctx->flags_nil_stack_top.v = 0;\
 #define D_DeclBucketStacks \
 struct\
 {\
+D_ViewportNode *viewport_stack_top; D_ViewportNode *viewport_free;\
 D_Texture2DSampleKindNode *texture2d_sample_kind_stack_top; D_Texture2DSampleKindNode *texture2d_sample_kind_free;\
 D_Transform2DNode *xform2d_stack_top; D_Transform2DNode *xform2d_free;\
 D_View3DNode *view3d_stack_top; D_View3DNode *view3d_free;\
@@ -41,6 +45,7 @@ D_FlagsNode *flags_stack_top; D_FlagsNode *flags_free;\
 }
 
 #define D_InitBucketStacks(b) \
+b.viewport_stack_top = &d_thread_ctx->viewport_nil_stack_top;\
 b.texture2d_sample_kind_stack_top = &d_thread_ctx->texture2d_sample_kind_nil_stack_top;\
 b.xform2d_stack_top = &d_thread_ctx->xform2d_nil_stack_top;\
 b.view3d_stack_top = &d_thread_ctx->view3d_nil_stack_top;\
@@ -51,6 +56,7 @@ b.flags_stack_top = &d_thread_ctx->flags_nil_stack_top;\
 
 
 #if 0
+core_function Rng2F32          D_PushViewport(Rng2F32 v);
 core_function R_Texture2DSampleKind  D_PushTexture2DSampleKind(R_Texture2DSampleKind v);
 core_function Mat3x3F32        D_PushTransform2D(Mat3x3F32 v);
 core_function Mat4x4F32        D_PushView3D(Mat4x4F32 v);
@@ -59,6 +65,7 @@ core_function Rng2F32          D_PushClip(Rng2F32 v);
 core_function F32              D_PushOpacity(F32 v);
 core_function R_CmdFlags       D_PushFlags(R_CmdFlags v);
 
+core_function Rng2F32          D_PopViewport(void);
 core_function R_Texture2DSampleKind  D_PopTexture2DSampleKind(void);
 core_function Mat3x3F32        D_PopTransform2D(void);
 core_function Mat4x4F32        D_PopView3D(void);
@@ -67,6 +74,7 @@ core_function Rng2F32          D_PopClip(void);
 core_function F32              D_PopOpacity(void);
 core_function R_CmdFlags       D_PopFlags(void);
 
+core_function Rng2F32          D_TopViewport(void);
 core_function R_Texture2DSampleKind  D_TopTexture2DSampleKind(void);
 core_function Mat3x3F32        D_TopTransform2D(void);
 core_function Mat4x4F32        D_TopView3D(void);
@@ -75,6 +83,7 @@ core_function Rng2F32          D_TopClip(void);
 core_function F32              D_TopOpacity(void);
 core_function R_CmdFlags       D_TopFlags(void);
 
+#define D_Viewport(v)          DeferLoop(D_PushViewport(v), D_PopViewport())
 #define D_Texture2DSampleKind(v)  DeferLoop(D_PushTexture2DSampleKind(v), D_PopTexture2DSampleKind())
 #define D_Transform2D(v)       DeferLoop(D_PushTransform2D(v), D_PopTransform2D())
 #define D_View3D(v)            DeferLoop(D_PushView3D(v), D_PopView3D())

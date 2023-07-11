@@ -35,7 +35,8 @@ OS_LoadFile(Arena *arena, String8 path, OS_ErrorList *out_errors)
 {
  String8 result = {0};
  OS_Handle file = OS_FileOpen(arena, OS_AccessFlag_Read, path, out_errors);
- Rng1U64 range = R1U64(0, OS_SizeFromFile(file));
+ OS_FileAttributes atts = OS_AttributesFromFile(file);
+ Rng1U64 range = R1U64(0, atts.size);
  result = OS_FileRead(arena, file, range, out_errors);
  OS_FileClose(file);
  return result;

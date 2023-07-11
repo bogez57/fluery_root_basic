@@ -52,6 +52,17 @@ C_HashMake(U64 a, U64 b)
  return hash;
 }
 
+core_function C_Hash
+C_HashFromString(String8 string)
+{
+ C_Hash hash = {0};
+ {
+  meow_u128 meow_hash = MeowHash(MeowDefaultSeed, string.size, string.str);
+  MemoryCopy(&hash, &meow_hash, Min(sizeof(meow_hash), sizeof(hash)));
+ }
+ return hash;
+}
+
 core_function B32
 C_HashMatch(C_Hash a, C_Hash b)
 {
@@ -62,11 +73,7 @@ core_function C_Hash
 C_SubmitData(Arena **permanent_arena, String8 data)
 {
  //- rjf: produce hash from hash
- C_Hash hash = {0};
- {
-  meow_u128 meow_hash = MeowHash(MeowDefaultSeed, data.size, data.str);
-  MemoryCopy(&hash, &meow_hash, Min(sizeof(meow_hash), sizeof(hash)));
- }
+ C_Hash hash = C_HashFromString(data);
  
  //- rjf: hash -> slot/stripe info
  U64 slot_idx = hash.u64[1] % c_state->tag2data_table_size;

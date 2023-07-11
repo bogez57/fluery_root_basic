@@ -180,6 +180,7 @@ core_function String8 PushStr8FillByte(Arena *arena, U64 size, U8 byte);
 core_function void Str8ListPushNode(String8List *list, String8Node *n);
 core_function void Str8ListPushNodeFront(String8List *list, String8Node *n);
 core_function void Str8ListPush(Arena *arena, String8List *list, String8 str);
+core_function void Str8ListPushF(Arena *arena, String8List *list, char *fmt, ...);
 core_function void Str8ListPushFront(Arena *arena, String8List *list, String8 str);
 core_function void Str8ListConcatInPlace(String8List *list, String8List *to_push);
 core_function String8List StrSplit8(Arena *arena, String8 string, U64 split_count, String8 *splits);

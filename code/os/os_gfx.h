@@ -103,6 +103,7 @@ typedef void OS_RepaintFunction(void);
 //~ rjf: Basic Helpers
 
 core_function String8 OS_StringFromKey(OS_Key key);
+core_function String8 OS_StringFromModifiersKey(Arena *arena, OS_Modifiers modifiers, OS_Key key);
 
 ////////////////////////////////
 //~ rjf: Event Helpers

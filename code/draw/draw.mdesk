@@ -5,6 +5,7 @@
 @table(name_upper, name_lower, type, default)
 D_StackTable:
 {
+ {Viewport             viewport                     Rng2F32               `R2F32(V2F32(0, 0), V2F32(0, 0))`               }
  {Texture2DSampleKind  texture2d_sample_kind        R_Texture2DSampleKind `R_Texture2DSampleKind_Nearest`                 }
  {Transform2D          xform2d                      Mat3x3F32             `MakeMat3x3F32(1.f)`                            }
  {View3D               view3d                       Mat4x4F32             `MakeMat4x4F32(1.f)`                            }

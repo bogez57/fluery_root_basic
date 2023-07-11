@@ -73,6 +73,7 @@ core_function void C_ScopeClose(C_Scope *scope);
 
 core_function C_Hash C_HashZero(void);
 core_function C_Hash C_HashMake(U64 a, U64 b);
+core_function C_Hash C_HashFromString(String8 string);
 core_function B32 C_HashMatch(C_Hash a, C_Hash b);
 
 core_function C_Hash C_SubmitData(Arena **permanent_arena, String8 data);

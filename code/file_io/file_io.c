@@ -269,7 +269,8 @@ FS_LoaderThreadEntryPoint(void *p)
    OS_FileAttributes attributes = OS_FileAttributesFromPath(path);
    last_modified = attributes.last_modified;
    OS_Handle file = OS_FileOpen(scratch.arena, OS_AccessFlag_Read, path, &errors);
-   U64 size = OS_SizeFromFile(file);
+   OS_FileAttributes atts = OS_AttributesFromFile(file);
+   U64 size = atts.size;
    U64 arena_size = size+Kilobytes(64)-1;
    arena_size -= arena_size%Kilobytes(64);
    if(size > 0 && arena_size > 0)

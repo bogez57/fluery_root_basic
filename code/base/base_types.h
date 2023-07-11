@@ -572,4 +572,42 @@ Compare_U64(U64 a, U64 b, Comparison comparison)
  return result;
 }
 
+////////////////////////////////
+//~ rjf: Byte Swaps
+
+inline_function U64
+ByteSwapU64(U64 v)
+{
+ U64 result = 0;
+ result |= (v&0xff00000000000000ull)>>56;
+ result |= (v&0x00ff000000000000ull)>>40;
+ result |= (v&0x0000ff0000000000ull)>>24;
+ result |= (v&0x000000ff00000000ull)>>8;
+ result |= (v&0x00000000ff000000ull)<<8;
+ result |= (v&0x0000000000ff0000ull)<<24;
+ result |= (v&0x000000000000ff00ull)<<40;
+ result |= (v&0x00000000000000ffull)<<56;
+ return result;
+}
+
+inline_function U32
+ByteSwapU32(U32 v)
+{
+ U32 result = 0;
+ result |= (v&0xff000000)>>24;
+ result |= (v&0x00ff0000)>>8;
+ result |= (v&0x0000ff00)<<8;
+ result |= (v&0x000000ff)<<24;
+ return result;
+}
+
+inline_function U16
+ByteSwapU16(U16 v)
+{
+ U16 result = 0;
+ result |= (v&0xff00)>>8;
+ result |= (v&0x00ff)<<8;
+ return result;
+}
+
 #endif // BASE_TYPES_H

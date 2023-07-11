@@ -3,8 +3,10 @@
 
 #pragma push_macro("function")
 #undef function
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <windowsx.h>
+#include <timeapi.h>
 #include <tlhelp32.h>
 #include <Shlobj.h>
 #pragma pop_macro("function")

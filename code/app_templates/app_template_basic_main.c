@@ -3,6 +3,7 @@
 
 //- rjf: os features
 #define OS_FEATURE_GFX 1
+#define OS_FEATURE_NET 1
 
 //- rjf: [h] hidden grove
 #include "base/base_inc.h"
@@ -34,13 +35,17 @@
 ////////////////////////////////
 //~ rjf: Entry Points
 
-core_function void
+function void
 EntryPoint(CmdLine *cmdln)
 {
  //- rjf: initialize dependency layers
  OS_InitReceipt os_init = OS_Init();
  OS_InitGfxReceipt os_init_gfx = OS_InitGfx(os_init);
  R_InitReceipt r_init = R_Init(os_init, os_init_gfx);
+ C_InitReceipt c_init = C_Init(os_init);
+ FP_InitReceipt fp_init = FP_Init(c_init);
+ F_InitReceipt f_init = F_Init(fp_init, r_init, V2S64(1024, 1024));
+ D_InitReceipt d_init = D_Init(r_init, f_init);
  
  //- rjf: open window
  OS_Handle window = OS_WindowOpen(0, V2S64(1280, 720), Str8Lit("Application Template"));

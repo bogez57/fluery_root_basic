@@ -2,6 +2,10 @@
 #undef DeleteFile
 #undef IsMaximized
 #include <dwmapi.h>
+#pragma comment(lib, "gdi32")
+#pragma comment(lib, "dwmapi")
+#pragma comment(lib, "UxTheme")
+#pragma comment(lib, "ole32")
 
 #define OS_W32_GraphicalWindowClassName L"ApplicationWindowClass"
 

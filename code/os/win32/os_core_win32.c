@@ -1,3 +1,7 @@
+#pragma comment(lib, "user32")
+#pragma comment(lib, "winmm")
+#pragma comment(lib, "shell32")
+
 ////////////////////////////////
 //~ rjf: Globals
 
@@ -576,14 +580,18 @@ OS_FileIsValid(OS_Handle file)
  return handle != INVALID_HANDLE_VALUE;
 }
 
-core_function U64
-OS_SizeFromFile(OS_Handle file)
+core_function OS_FileAttributes
+OS_AttributesFromFile(OS_Handle file)
 {
  HANDLE handle = (HANDLE)file.u64[0];
+ OS_FileAttributes atts = {0};
  U32 high_bits = 0;
  U32 low_bits = GetFileSize(handle, (DWORD *)&high_bits);
- U64 size = (U64)low_bits | (((U64)high_bits) << 32);
- return size;
+ FILETIME last_write_time = {0};
+ GetFileTime(handle, 0, 0, &last_write_time);
+ atts.size = (U64)low_bits | (((U64)high_bits) << 32);
+ atts.last_modified = ((U64)last_write_time.dwLowDateTime) | (((U64)last_write_time.dwHighDateTime) << 32);
+ return atts;
 }
 
 //- rjf: whole-file operations

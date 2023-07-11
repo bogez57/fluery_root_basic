@@ -86,13 +86,6 @@ struct OS_FileInfo
  OS_FileAttributes attributes;
 };
 
-typedef struct OS_FileLoadResult OS_FileLoadResult;
-struct OS_FileLoadResult
-{
- B32 success;
- String8 string;
-};
-
 ////////////////////////////////
 //~ rjf: System Path Types
 
@@ -194,7 +187,7 @@ core_function void OS_FileClose(OS_Handle file);
 core_function String8 OS_FileRead(Arena *arena, OS_Handle file, Rng1U64 range, OS_ErrorList *out_errors);
 core_function void OS_FileWrite(Arena *arena, OS_Handle file, U64 off, String8List data, OS_ErrorList *out_errors);
 core_function B32 OS_FileIsValid(OS_Handle file);
-core_function U64 OS_SizeFromFile(OS_Handle file);
+core_function OS_FileAttributes OS_AttributesFromFile(OS_Handle file);
 
 //- rjf: whole-file operations
 core_function void OS_DeleteFile(String8 path);

@@ -12,6 +12,32 @@ OS_StringFromKey(OS_Key key)
  return os_g_key_string_table[key];
 }
 
+core_function String8
+OS_StringFromModifiersKey(Arena *arena, OS_Modifiers modifiers, OS_Key key)
+{
+ ArenaTemp scratch = GetScratch(&arena, 1);
+ String8 key_string = OS_StringFromKey(key);
+ String8List modifiers_strings = {0};
+ if(modifiers & OS_Modifier_Ctrl)
+ {
+  Str8ListPush(scratch.arena, &modifiers_strings, Str8Lit("Ctrl"));
+ }
+ if(modifiers & OS_Modifier_Shift)
+ {
+  Str8ListPush(scratch.arena, &modifiers_strings, Str8Lit("Shift"));
+ }
+ if(modifiers & OS_Modifier_Alt)
+ {
+  Str8ListPush(scratch.arena, &modifiers_strings, Str8Lit("Alt"));
+ }
+ StringJoin join = {0};
+ join.sep = Str8Lit(" + ");
+ String8 modifiers_string = Str8ListJoin(scratch.arena, modifiers_strings, &join);
+ String8 final_string = PushStr8F(arena, "%S%s%S", modifiers_string, modifiers_string.size != 0 ? " + " : "", key_string);
+ ReleaseScratch(scratch);
+ return final_string;
+}
+
 ////////////////////////////////
 //~ rjf: Event Helpers
 

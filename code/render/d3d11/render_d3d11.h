@@ -36,7 +36,8 @@ struct R_D3D11_CmdGlobals_Rect2D
  Mat4x4F32 albedo_sample_channel_map;
  Vec2F32 albedo_t2d_size;
  Vec2F32 _padding1_;
- Vec4F32 xform2d[3];
+ Vec4F32 xform[3];
+ Vec2F32 xform_scale;
 };
 
 struct R_D3D11_CmdGlobals_Sprite3D

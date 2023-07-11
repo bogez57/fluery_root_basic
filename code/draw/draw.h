@@ -192,6 +192,7 @@ core_function void D_BucketDeepCopy(D_Bucket *src);
 ////////////////////////////////
 //~ rjf: Stacks
 
+core_function Rng2F32          D_PushViewport(Rng2F32 v);
 core_function R_Texture2DSampleKind  D_PushTexture2DSampleKind(R_Texture2DSampleKind v);
 core_function Mat3x3F32        D_PushTransform2D(Mat3x3F32 v);
 core_function Mat4x4F32        D_PushView3D(Mat4x4F32 v);
@@ -200,6 +201,7 @@ core_function Rng2F32          D_PushClip(Rng2F32 v);
 core_function F32              D_PushOpacity(F32 v);
 core_function R_CmdFlags       D_PushFlags(R_CmdFlags v);
 
+core_function Rng2F32          D_PopViewport(void);
 core_function R_Texture2DSampleKind  D_PopTexture2DSampleKind(void);
 core_function Mat3x3F32        D_PopTransform2D(void);
 core_function Mat4x4F32        D_PopView3D(void);
@@ -208,6 +210,7 @@ core_function Rng2F32          D_PopClip(void);
 core_function F32              D_PopOpacity(void);
 core_function R_CmdFlags       D_PopFlags(void);
 
+core_function Rng2F32          D_TopViewport(void);
 core_function R_Texture2DSampleKind  D_TopTexture2DSampleKind(void);
 core_function Mat3x3F32        D_TopTransform2D(void);
 core_function Mat4x4F32        D_TopView3D(void);
@@ -216,6 +219,7 @@ core_function Rng2F32          D_TopClip(void);
 core_function F32              D_TopOpacity(void);
 core_function R_CmdFlags       D_TopFlags(void);
 
+#define D_Viewport(v)          DeferLoop(D_PushViewport(v), D_PopViewport())
 #define D_Texture2DSampleKind(v)  DeferLoop(D_PushTexture2DSampleKind(v), D_PopTexture2DSampleKind())
 #define D_Transform2D(v)       DeferLoop(D_PushTransform2D(v), D_PopTransform2D())
 #define D_View3D(v)            DeferLoop(D_PushView3D(v), D_PopView3D())

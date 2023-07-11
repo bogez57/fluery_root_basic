@@ -18,14 +18,20 @@
 #if defined(OS_FEATURE_GFX)
 #include "os_gfx.h"
 #endif
+#if defined(OS_FEATURE_NET)
+#include "os_net.h"
+#endif
 
 #if OS_WINDOWS
-#include "win32/os_core_win32.h"
-#if defined(OS_FEATURE_GFX)
-#include "win32/os_gfx_win32.h"
-#endif
+# include "win32/os_core_win32.h"
+# if defined(OS_FEATURE_GFX)
+#  include "win32/os_gfx_win32.h"
+# endif
+# if defined(OS_FEATURE_NET)
+#  include "win32/os_net_win32.h"
+# endif
 #else
-#error OS layer not implemented.
+# error OS layer not implemented.
 #endif
 
 #endif // OS_INC_H

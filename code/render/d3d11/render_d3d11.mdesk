@@ -61,7 +61,8 @@ cbuffer CmdGlobals : register(b0)
  float opacity;
  row_major float4x4 albedo_sample_channel_map;
  float2 albedo_t2d_size_px;
- float3x3 xform;
+ row_major float3x3 xform;
+ float2 xform_scale;
 }
 
 Texture2D albedo_t2d : register(t0);
@@ -84,15 +85,14 @@ struct CPU2Vertex
 
 struct Vertex2Pixel
 {
- float4 position_clp       : SV_POSITION;
- float2 rect_center_px     : POS;
+ float4 position           : SV_POSITION;
  float2 rect_half_size_px  : PSIZE;
  float2 texcoord_pct       : TEX;
+ float2 cornercoord_pct    : COLC;
  float4 color00            : COL0;
  float4 color01            : COL1;
  float4 color10            : COL2;
  float4 color11            : COL3;
- float2 colorcoord_pct     : COLC;
  float corner_radius_px    : CRAD;
  float border_thickness_px : BTHC;
  float softness_px         : SFT;
@@ -101,10 +101,9 @@ struct Vertex2Pixel
 
 //- rjf: helpers
 
-float RectSDF(float2 sample_pos, float2 rect_center, float2 rect_half_size, float r)
+float RectSDF(float2 sample_pos, float2 rect_half_size, float r)
 {
- float2 d2 = abs(sample_pos - rect_center) - rect_half_size + float2(r, r);
- return min(max(d2.x, d2.y), 0.0) + length(max(d2, 0.0)) - r;   
+ return length(max(abs(sample_pos) - rect_half_size + r, 0.0)) - r;
 }
 
 //- rjf: vertex shader
@@ -117,8 +116,6 @@ vs_main(CPU2Vertex cpu2vertex)
  float2 dst_p1_px  = cpu2vertex.dst_rect_px.zw;
  float2 src_p0_px  = cpu2vertex.src_rect_px.xy;
  float2 src_p1_px  = cpu2vertex.src_rect_px.zw;
- dst_p0_px = mul(xform, float3(dst_p0_px.x, dst_p0_px.y, 1)).xy;
- dst_p1_px = mul(xform, float3(dst_p1_px.x, dst_p1_px.y, 1)).xy;
  float2 dst_size_px = abs(dst_p1_px - dst_p0_px);
  
  //- rjf: unpack style params
@@ -129,10 +126,10 @@ vs_main(CPU2Vertex cpu2vertex)
  //- rjf: prep per-vertex arrays to sample from (p: position, t: texcoord, c: colorcoord, r: cornerradius)
  float2 dst_p_verts_px[] =
  {
-  float2(dst_p0_px.x, viewport_size_px.y - dst_p1_px.y),
-  float2(dst_p0_px.x, viewport_size_px.y - dst_p0_px.y),
-  float2(dst_p1_px.x, viewport_size_px.y - dst_p1_px.y),
-  float2(dst_p1_px.x, viewport_size_px.y - dst_p0_px.y),
+  mul(xform, float3(dst_p0_px.x, dst_p1_px.y, 1)).xy * float2(1, -1) + float2(0, viewport_size_px.y),
+  mul(xform, float3(dst_p0_px.x, dst_p0_px.y, 1)).xy * float2(1, -1) + float2(0, viewport_size_px.y),
+  mul(xform, float3(dst_p1_px.x, dst_p1_px.y, 1)).xy * float2(1, -1) + float2(0, viewport_size_px.y),
+  mul(xform, float3(dst_p1_px.x, dst_p0_px.y, 1)).xy * float2(1, -1) + float2(0, viewport_size_px.y),
  };
  float2 src_p_verts_pct[] =
  {
@@ -159,19 +156,18 @@ vs_main(CPU2Vertex cpu2vertex)
  // rjf: fill vertex -> pixel data
  Vertex2Pixel vertex2pixel;
  {
-  vertex2pixel.position_clp.x       = 2 * dst_p_verts_px[cpu2vertex.vertex_id].x / viewport_size_px.x - 1.f;
-  vertex2pixel.position_clp.y       = 2 * dst_p_verts_px[cpu2vertex.vertex_id].y / viewport_size_px.y - 1.f;
-  vertex2pixel.position_clp.z       = 0.f;
-  vertex2pixel.position_clp.w       = 1.f;
-  vertex2pixel.rect_center_px       = (dst_p0_px+dst_p1_px)/2;
-  vertex2pixel.rect_half_size_px    = dst_size_px/2 - float2(2*softness_px, 2*softness_px);
+  vertex2pixel.position.x           = 2 * dst_p_verts_px[cpu2vertex.vertex_id].x / viewport_size_px.x - 1.f;
+  vertex2pixel.position.y           = 2 * dst_p_verts_px[cpu2vertex.vertex_id].y / viewport_size_px.y - 1.f;
+  vertex2pixel.position.z           = 0.f;
+  vertex2pixel.position.w           = 1.f;
+  vertex2pixel.rect_half_size_px    = dst_size_px/2 * xform_scale;
   vertex2pixel.texcoord_pct         = src_p_verts_pct[cpu2vertex.vertex_id];
+  vertex2pixel.cornercoord_pct      = dst_c_verts_pct[cpu2vertex.vertex_id];
   vertex2pixel.color00              = cpu2vertex.color00;
   vertex2pixel.color01              = cpu2vertex.color01;
   vertex2pixel.color10              = cpu2vertex.color10;
   vertex2pixel.color11              = cpu2vertex.color11;
-  vertex2pixel.colorcoord_pct       = dst_c_verts_pct[cpu2vertex.vertex_id];
-  vertex2pixel.corner_radius_px     = dst_r_verts_px[cpu2vertex.vertex_id] * (2*vertex2pixel.rect_half_size_px.x) / dst_size_px.x;
+  vertex2pixel.corner_radius_px     = dst_r_verts_px[cpu2vertex.vertex_id];
   vertex2pixel.border_thickness_px  = border_thickness_px;
   vertex2pixel.softness_px          = softness_px;
   vertex2pixel.omit_texture         = omit_texture;
@@ -185,9 +181,9 @@ float4
 ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
 {
  // rjf: blend corner colors to produce final tint
- float4 top_color   = (1-vertex2pixel.colorcoord_pct.x)*vertex2pixel.color00 + (vertex2pixel.colorcoord_pct.x)*vertex2pixel.color10;
- float4 bot_color   = (1-vertex2pixel.colorcoord_pct.x)*vertex2pixel.color01 + (vertex2pixel.colorcoord_pct.x)*vertex2pixel.color11;
- float4 tint        = (1-vertex2pixel.colorcoord_pct.y)*top_color + (vertex2pixel.colorcoord_pct.y)*bot_color;
+ float4 top_color   = (1-vertex2pixel.cornercoord_pct.x)*vertex2pixel.color00 + (vertex2pixel.cornercoord_pct.x)*vertex2pixel.color10;
+ float4 bot_color   = (1-vertex2pixel.cornercoord_pct.x)*vertex2pixel.color01 + (vertex2pixel.cornercoord_pct.x)*vertex2pixel.color11;
+ float4 tint        = (1-vertex2pixel.cornercoord_pct.y)*top_color + (vertex2pixel.cornercoord_pct.y)*bot_color;
  
  // rjf: sample albedo
  float4 albedo_sample = float4(1, 1, 1, 1);
@@ -196,27 +192,32 @@ ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
   albedo_sample = mul(albedo_t2d.Sample(albedo_t2d_sampler, vertex2pixel.texcoord_pct), albedo_sample_channel_map);
  }
  
- // rjf: apply rect corner radius
- float corner_radius_d_px = RectSDF(vertex2pixel.position_clp.xy, vertex2pixel.rect_center_px, vertex2pixel.rect_half_size_px, vertex2pixel.corner_radius_px);
- float corner_radius_t = smoothstep(0, 2*vertex2pixel.softness_px, corner_radius_d_px);
+ // rjf: determine SDF sample position
+ float2 sdf_sample_pos = float2((2*vertex2pixel.cornercoord_pct.x-1)*vertex2pixel.rect_half_size_px.x,
+                                (2*vertex2pixel.cornercoord_pct.y-1)*vertex2pixel.rect_half_size_px.y);
  
- // rjf: apply border thickness
- float border_thickness_d_px = RectSDF(vertex2pixel.position_clp.xy,
-                                       vertex2pixel.rect_center_px,
-                                       vertex2pixel.rect_half_size_px-vertex2pixel.border_thickness_px,
-                                       max(vertex2pixel.corner_radius_px-vertex2pixel.border_thickness_px, 0));
- float border_thickness_t = smoothstep(0, 2*vertex2pixel.softness_px, border_thickness_d_px);
+ // rjf: sample for corners
+ float corner_sdf_s = RectSDF(sdf_sample_pos,
+                              vertex2pixel.rect_half_size_px - float2(vertex2pixel.softness_px*2.f, vertex2pixel.softness_px*2.f),
+                              vertex2pixel.corner_radius_px);
+ float corner_sdf_t = 1-smoothstep(0, 2*vertex2pixel.softness_px, corner_sdf_s);
+ 
+ // rjf: sample for borders
+ float border_sdf_s = RectSDF(sdf_sample_pos,
+                              vertex2pixel.rect_half_size_px - float2(vertex2pixel.softness_px*2.f, vertex2pixel.softness_px*2.f) - vertex2pixel.border_thickness_px,
+                              max(vertex2pixel.corner_radius_px-vertex2pixel.border_thickness_px, 0));
+ float border_sdf_t = smoothstep(0, 2*vertex2pixel.softness_px, border_sdf_s);
  if(vertex2pixel.border_thickness_px == 0)
  {
-  border_thickness_t = 1;
+  border_sdf_t = 1;
  }
  
  // rjf: form+return final color
  float4 final_color = albedo_sample;
- final_color *= 1-corner_radius_t;
- final_color *= border_thickness_t;
  final_color *= tint;
  final_color *= opacity;
+ final_color *= corner_sdf_t;
+ final_color *= border_sdf_t;
  return final_color;
 }
 """

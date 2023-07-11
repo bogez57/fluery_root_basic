@@ -729,14 +729,9 @@ R_WindowSubmit(R_Handle window_eqp, R_CmdList commands)
   ID3D11DepthStencilView *depth_buffer_view = wnd->depth_buffer_view;
   ID3D11RasterizerState *rasterizer = r_d3d11_state->rasterizer;
   
-  //- rjf: set up rasterizer
-  Vec2S64 resolution = wnd->last_resolution;
-  D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (F32)resolution.x, (F32)resolution.y, 0.0f, 1.0f };
-  d_ctx->RSSetViewports(1, &viewport);
-  d_ctx->RSSetState(rasterizer);
-  
   //- rjf: do commands
   R_CmdFlags last_flags = 0;
+  Rng2F32 last_viewport = {0};
   for(R_CmdNode *cmd_node = commands.first;
       cmd_node != 0;
       cmd_node = cmd_node->next)
@@ -746,21 +741,45 @@ R_WindowSubmit(R_Handle window_eqp, R_CmdList commands)
    R_CmdFlags new_flags = cmd->flags;
    B32 flags_change = (new_flags != last_flags || cmd_node == commands.first);
    last_flags = new_flags;
+   Rng2F32 viewport = cmd->viewport;
+   B32 viewport_change = (cmd_node == commands.first ||
+                          viewport.x0 != last_viewport.x0 ||
+                          viewport.y0 != last_viewport.y0 ||
+                          viewport.x1 != last_viewport.x1 ||
+                          viewport.y1 != last_viewport.y1);
+   last_viewport = viewport;
    U64 bytes_per_instance = R_InstanceSizeFromCmdKind(cmd->kind);
    U64 floats_per_instance = bytes_per_instance / sizeof(F32);
    R_Handle albedo_texture_handle = R_HandleIsZero(cmd->albedo_texture) ? r_d3d11_state->backup_texture : cmd->albedo_texture;
    R_D3D11_Texture2D albedo_texture = R_D3D11_Texture2DFromHandle(albedo_texture_handle);
    Mat4x4F32 albedo_sample_channel_map = R_D3D11_SampleChannelMapFromTexture2DFormat(albedo_texture.format);
    R_Texture2DSampleKind sample_kind = cmd->albedo_texture_sample_kind;
-   Rng2F32 clip = R2F32(V2F32(Clamp(0, Min(cmd->clip.x0, cmd->clip.x1), resolution.x),
-                              Clamp(0, Min(cmd->clip.y0, cmd->clip.y1), resolution.y)),
-                        V2F32(Clamp(0, Max(cmd->clip.x0, cmd->clip.x1), resolution.x),
-                              Clamp(0, Max(cmd->clip.y0, cmd->clip.y1), resolution.y)));
+   Rng2F32 clip = R2F32(V2F32(Clamp(0, Min(cmd->clip.x0, cmd->clip.x1), wnd->last_resolution.x),
+                              Clamp(0, Min(cmd->clip.y0, cmd->clip.y1), wnd->last_resolution.y)),
+                        V2F32(Clamp(0, Max(cmd->clip.x0, cmd->clip.x1), wnd->last_resolution.x),
+                              Clamp(0, Max(cmd->clip.y0, cmd->clip.y1), wnd->last_resolution.y)));
    Mat4x4F32 view = cmd->view3d;
    Mat4x4F32 projection = cmd->projection3d;
    Mat4x4 view_projection = Mul4x4F32(projection, view);
    
-   // rjf: send & grab instance count & buffer
+   //- rjf: set up viewport
+   if(viewport_change)
+   {
+    Vec2S64 resolution = wnd->last_resolution;
+    D3D11_VIEWPORT d3d11_viewport = { 0.0f, 0.0f, (F32)resolution.x, (F32)resolution.y, 0.0f, 1.0f };
+    if(viewport.x0 != 0 || viewport.y0 != 0 || viewport.x1 != 0 || viewport.y1 != 0)
+    {
+     Vec2F32 viewport_dim = Dim2F32(viewport);
+     d3d11_viewport.TopLeftX = viewport.x0;
+     d3d11_viewport.TopLeftY = viewport.y0;
+     d3d11_viewport.Width = viewport_dim.x;
+     d3d11_viewport.Height = viewport_dim.y;
+    }
+    d_ctx->RSSetViewports(1, &d3d11_viewport);
+    d_ctx->RSSetState(rasterizer);
+   }
+   
+   //- rjf: send & grab instance count & buffer
    U64 instance_count = cmd->total_instance_count;
    ID3D11Buffer *instance_buffer = R_D3D11_InstanceBufferFromCmd(cmd);
    
@@ -835,9 +854,13 @@ R_WindowSubmit(R_Handle window_eqp, R_CmdList commands)
       cmd_globals.opacity                   = cmd->opacity;
       cmd_globals.albedo_sample_channel_map = albedo_sample_channel_map;
       cmd_globals.albedo_t2d_size           = Vec2F32FromVec(albedo_texture.size);
-      cmd_globals.xform2d[0] = V4F32(cmd->xform2d.elements[0][0], cmd->xform2d.elements[1][0], cmd->xform2d.elements[2][0], 0);
-      cmd_globals.xform2d[1] = V4F32(cmd->xform2d.elements[0][1], cmd->xform2d.elements[1][1], cmd->xform2d.elements[2][1], 0);
-      cmd_globals.xform2d[2] = V4F32(cmd->xform2d.elements[0][2], cmd->xform2d.elements[1][2], cmd->xform2d.elements[2][2], 0);
+      cmd_globals.xform[0] = V4F32(cmd->xform2d.elements[0][0], cmd->xform2d.elements[1][0], cmd->xform2d.elements[2][0], 0);
+      cmd_globals.xform[1] = V4F32(cmd->xform2d.elements[0][1], cmd->xform2d.elements[1][1], cmd->xform2d.elements[2][1], 0);
+      cmd_globals.xform[2] = V4F32(cmd->xform2d.elements[0][2], cmd->xform2d.elements[1][2], cmd->xform2d.elements[2][2], 0);
+      Vec2F32 xform_2x2_col0 = V2F32(cmd_globals.xform[0].x, cmd_globals.xform[1].x);
+      Vec2F32 xform_2x2_col1 = V2F32(cmd_globals.xform[0].y, cmd_globals.xform[1].y);
+      cmd_globals.xform_scale.x = Length2F32(xform_2x2_col0);
+      cmd_globals.xform_scale.y = Length2F32(xform_2x2_col1);
      }
      R_D3D11_WriteGPUBuffer(d_ctx, cmd_global_buffer, 0, Str8Struct(&cmd_globals));
      
