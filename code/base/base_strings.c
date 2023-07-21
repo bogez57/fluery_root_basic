@@ -603,6 +603,28 @@ Str8Stylize(Arena *arena, String8 string, IdentifierStyle style, String8 separat
  return result;
 }
 
+core_function String8
+UpperFromStr8(Arena *arena, String8 string)
+{
+ String8 result = PushStr8Copy(arena, string);
+ for(U64 idx = 0; idx < string.size; idx += 1)
+ {
+  result.str[idx] = CharToUpper(string.str[idx]);
+ }
+ return result;
+}
+
+core_function String8
+LowerFromStr8(Arena *arena, String8 string)
+{
+ String8 result = PushStr8Copy(arena, string);
+ for(U64 idx = 0; idx < string.size; idx += 1)
+ {
+  result.str[idx] = CharToLower(string.str[idx]);
+ }
+ return result;
+}
+
 ////////////////////////////////
 //~ rjf: Unicode Conversions
 

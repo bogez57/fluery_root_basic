@@ -326,7 +326,7 @@ MD_TagCountFromNode(MD_Node *node)
 //~ rjf: Text -> Tokens Functions
 
 core_function MD_TokenizeResult
-MD_TokenizeFromText(Arena *arena, String8 filename, String8 text)
+MD_TokenizeFromText(Arena *arena, String8 text)
 {
  ArenaTemp scratch = GetScratch(&arena, 1);
  MD_TokenChunkList tokens = {0};

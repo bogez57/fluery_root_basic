@@ -13,14 +13,49 @@ CmdLineHashFromString(String8 string)
 core_function CmdLine
 CmdLineFromStringList(Arena *arena, String8List strings)
 {
+ ArenaTemp scratch = GetScratch(&arena, 1);
+ 
  //- rjf: set up
  CmdLine cmdln = {0};
  cmdln.slots_count = 64;
  cmdln.slots = PushArray(arena, CmdLineOptSlot, cmdln.slots_count);
  
+ //- rjf: separate strings by whitespace & collapse quotes - emulate shell
+ String8List separated_strings = {0};
+ for(String8Node *n = strings.first; n != 0; n = n->next)
+ {
+  String8List strings_from_this_n = {0};
+  U64 start_idx = 0;
+  B32 quoted = 0;
+  B32 seeking_non_ws = 0;
+  for(U64 idx = 0; idx <= n->string.size; idx += 1)
+  {
+   if(seeking_non_ws && idx < n->string.size && !CharIsSpace(n->string.str[idx]))
+   {
+    seeking_non_ws = 0;
+    start_idx = idx;
+   }
+   if(!seeking_non_ws && (idx == n->string.size || n->string.str[idx] == ' ' || n->string.str[idx] == '"'))
+   {
+    String8 string = Substr8(n->string, R1U64(start_idx, idx));
+    Str8ListPush(scratch.arena, &strings_from_this_n, string);
+    start_idx = idx+1;
+    if(n->string.str[idx] == ' ')
+    {
+     seeking_non_ws = 1;
+    }
+   }
+   if(idx < n->string.size && n->string.str[idx] == '"')
+   {
+    quoted ^= 1;
+   }
+  }
+  Str8ListConcatInPlace(&separated_strings, &strings_from_this_n);
+ }
+ 
  //- rjf: parse list of strings
  CmdLineOptNode *active_opt_node = 0;
- for(String8Node *n = strings.first; n != 0; n = n->next)
+ for(String8Node *n = separated_strings.first; n != 0; n = n->next)
  {
   String8 piece = Str8SkipChopWhitespace(n->string);
   B32 double_dash   = Str8Match(Prefix8(piece, 2), Str8Lit("--"), 0);
@@ -99,6 +134,8 @@ CmdLineFromStringList(Arena *arena, String8List strings)
    }
   }
  }
+ 
+ ReleaseScratch(scratch);
  return cmdln;
 }
 

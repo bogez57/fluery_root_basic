@@ -275,7 +275,7 @@ OS_Init(void)
   }
   
   // rjf: enable tight-granularity sleeps
-  os_w32_state->granular_sleep_enabled = timeBeginPeriod(1);
+  os_w32_state->granular_sleep_enabled = (timeBeginPeriod(1) == TIMERR_NOERROR);
  }
  OS_InitReceipt result = {0};
  return result;

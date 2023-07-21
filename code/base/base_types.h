@@ -463,6 +463,41 @@ struct DateTime
  U16 milliseconds;   // [0, 999]
 };
 
+inline_function B32
+DateTimeMatch(DateTime a, DateTime b)
+{
+ return (a.year == b.year &&
+         a.month == b.month &&
+         a.day_of_week == b.day_of_week &&
+         a.day == b.day &&
+         a.hour == b.hour &&
+         a.minute == b.minute &&
+         a.second == b.second &&
+         a.milliseconds == b.milliseconds);
+}
+
+inline_function B32
+DateTimeLessThan(DateTime a, DateTime b)
+{
+ B32 result = 0;
+ if(0){}
+ else if(a.year < b.year) { result = 1; }
+ else if(a.year > b.year) { result = 0; }
+ else if(a.month < b.month) { result = 1; }
+ else if(a.month > b.month) { result = 0; }
+ else if(a.day < b.day) { result = 1; }
+ else if(a.day > b.day) { result = 0; }
+ else if(a.hour < b.hour) { result = 1; }
+ else if(a.hour > b.hour) { result = 0; }
+ else if(a.minute < b.minute) { result = 1; }
+ else if(a.minute > b.minute) { result = 0; }
+ else if(a.second < b.second) { result = 1; }
+ else if(a.second > b.second) { result = 0; }
+ else if(a.milliseconds < b.milliseconds) { result = 1; }
+ else if(a.milliseconds > b.milliseconds) { result = 0; }
+ return result;
+}
+
 ////////////////////////////////
 //~ rjf: Assertions
 

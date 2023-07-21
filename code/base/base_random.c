@@ -31,5 +31,7 @@ SampleFromDist1U32(Dist *dist, Rng1U32 range)
 {
  pcg32_random_t *pcg_state = (pcg32_random_t *)dist->u64;
  U32 value = pcg32_random_r(pcg_state);
+ value = value%Dim1U32(range);
+ value += range.min;
  return value;
 }

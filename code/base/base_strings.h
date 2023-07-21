@@ -177,6 +177,7 @@ core_function String8 PushStr8FillByte(Arena *arena, U64 size, U8 byte);
 #define Str8VArg(s) (int)(s).size, (s).str
 
 //- rjf: String Lists
+#define Str8ListFirst(list) ((list)->first != 0 ? (list)->first->string : Str8Lit(""))
 core_function void Str8ListPushNode(String8List *list, String8Node *n);
 core_function void Str8ListPushNodeFront(String8List *list, String8Node *n);
 core_function void Str8ListPush(Arena *arena, String8List *list, String8 str);
@@ -188,6 +189,8 @@ core_function String8 Str8ListJoin(Arena *arena, String8List list, StringJoin *o
 
 //- rjf: String Re-Styling
 core_function String8 Str8Stylize(Arena *arena, String8 string, IdentifierStyle style, String8 separator);
+core_function String8 UpperFromStr8(Arena *arena, String8 string);
+core_function String8 LowerFromStr8(Arena *arena, String8 string);
 
 ////////////////////////////////
 //~ rjf: Unicode Conversions
