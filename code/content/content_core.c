@@ -7,7 +7,7 @@ C_State *c_state = 0;
 #endif
 
 ////////////////////////////////
-//~ rjf: User APIs
+//~ rjf: Top-Level API
 
 core_function C_InitReceipt
 C_Init(OS_InitReceipt os_init_receipt)
@@ -26,6 +26,9 @@ C_Init(OS_InitReceipt os_init_receipt)
  return result;
 }
 
+////////////////////////////////
+//~ rjf: Scopes
+
 core_function C_Scope *
 C_ScopeOpen(void)
 {
@@ -37,6 +40,9 @@ core_function void
 C_ScopeClose(C_Scope *scope)
 {
 }
+
+////////////////////////////////
+//~ rjf: Hashes
 
 core_function C_Hash
 C_HashZero(void)
@@ -68,6 +74,9 @@ C_HashMatch(C_Hash a, C_Hash b)
 {
  return (a.u64[0] == b.u64[0] && a.u64[1] == b.u64[1]);
 }
+
+////////////////////////////////
+//~ rjf: Cache Interaction
 
 core_function C_Hash
 C_SubmitData(Arena **permanent_arena, String8 data)

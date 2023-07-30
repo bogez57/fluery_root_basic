@@ -211,6 +211,8 @@ T_DequeueLoadRequest(void)
 ////////////////////////////////
 //~ rjf: GPU Data Upload Thread Implementation
 
+#if !defined(STB_IMAGE_INCLUDED)
+#define STB_IMAGE_INCLUDED
 #define STBI_ONLY_PNG
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_BMP
@@ -218,6 +220,7 @@ T_DequeueLoadRequest(void)
 #define STBI_ONLY_TGA
 #define STB_IMAGE_IMPLEMENTATION
 #include "third_party/stb_image.h"
+#endif
 
 core_function void
 T_ThreadEntryPoint(void *p)

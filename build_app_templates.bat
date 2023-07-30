@@ -2,7 +2,7 @@
 
 if not exist build mkdir build
 
-xcopy /y /q /s /e data build
+xcopy /y /q /s /e data\ build\data\
 
 pushd build
 cl /Zi /nologo /FC /I..\code\ ..\code\codegen\codegen.c

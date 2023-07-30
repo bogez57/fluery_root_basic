@@ -73,9 +73,12 @@ core_global B32 fs_initialized;
 core_global FS_State *fs_state;
 
 ////////////////////////////////
-//~ rjf: User Thread APIs
+//~ rjf: Top-Level API
 
 core_function FS_InitReceipt FS_Init(OS_InitReceipt os_init_receipt, C_InitReceipt c_init_receipt);
+
+////////////////////////////////
+//~ rjf: Tag Functions
 
 core_function FS_Tag FS_TagZero(void);
 core_function FS_Tag FS_TagFromPath(String8 path);
@@ -83,8 +86,14 @@ core_function String8 FS_PathFromTag(Arena *arena, FS_Tag tag);
 core_function B32 FS_TagMatch(FS_Tag a, FS_Tag b);
 core_function C_Hash FS_ContentHashFromTag(FS_Tag tag, U64 endt_microseconds);
 
+////////////////////////////////
+//~ rjf: Request Ring Buffer Encoding
+
 core_function void FS_EnqueueLoadRequest(FS_Tag tag);
 core_function FS_Tag FS_DequeueLoadRequest(void);
+
+////////////////////////////////
+//~ rjf: Active Work Info
 
 core_function S64 FS_LoaderThreadWorkingCount(void);
 core_function S64 FS_LoaderThreadRequestCount(void);

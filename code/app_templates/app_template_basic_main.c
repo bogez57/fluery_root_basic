@@ -43,6 +43,7 @@ EntryPoint(CmdLine *cmdln)
  OS_InitGfxReceipt os_init_gfx = OS_InitGfx(os_init);
  R_InitReceipt r_init = R_Init(os_init, os_init_gfx);
  C_InitReceipt c_init = C_Init(os_init);
+ FS_InitReceipt fs_init = FS_Init(os_init, c_init);
  FP_InitReceipt fp_init = FP_Init(c_init);
  F_InitReceipt f_init = F_Init(fp_init, r_init, V2S64(1024, 1024));
  D_InitReceipt d_init = D_Init(r_init, f_init);
@@ -65,7 +66,22 @@ EntryPoint(CmdLine *cmdln)
    Rng2F32 client_rect = OS_ClientRectFromWindow(window);
    Vec2F32 client_rect_dim = Dim2F32(client_rect);
    Vec2S64 render_dim = Vec2S64FromVec(client_rect_dim);
+   Vec2F32 mouse = OS_MouseFromWindow(window);
    R_WindowStart(window_r, render_dim);
+   {
+    D_Bucket bucket = D_BucketMake();
+    D_BucketScope(scratch.arena, &bucket)
+    {
+     local_persist F32 turns = 0.f;
+     turns += 0.005f;
+     D_Text2D(V2(60, 60), F_TagFromFontPath(Str8Lit("data/app_templates/Roboto.ttf")), 24.f, V4(1, 1, 1, 1), Str8Lit("Hello, World!"));
+     D_Transform2D(Mul3x3F32(MakeTranslate3x3F32(mouse), MakeRotate3x3F32(turns)))
+     {
+      D_Rect2D(R2(V2(-50, -50), V2(+50, +50)), .color = V4(1, 0.85f, 0, 1), .corner = 16.f, .softness = 1.f);
+     }
+    }
+    D_Submit(window_r, &bucket);
+   }
    R_WindowFinish(window_r);
   }
   

@@ -7,7 +7,7 @@ FS_State *fs_state = 0;
 #endif
 
 ////////////////////////////////
-//~ rjf: User Thread APIs
+//~ rjf: Top-Level API
 
 core_function FS_InitReceipt
 FS_Init(OS_InitReceipt os_init_receipt, C_InitReceipt c_init_receipt)
@@ -42,6 +42,9 @@ FS_Init(OS_InitReceipt os_init_receipt, C_InitReceipt c_init_receipt)
  FS_InitReceipt result = {0};
  return result;
 }
+
+////////////////////////////////
+//~ rjf: Tag Functions
 
 core_function FS_Tag
 FS_TagZero(void)
@@ -165,13 +168,16 @@ FS_ContentHashFromTag(FS_Tag tag, U64 endt_microseconds)
  return hash;
 }
 
+////////////////////////////////
+//~ rjf: Request Ring Buffer Encoding
+
 core_function void
 FS_EnqueueLoadRequest(FS_Tag tag)
 {
  U64 bytes_needed = sizeof(tag);
  OS_MutexBlock(fs_state->req_ring_mutex) for(;;)
  {
-  if(fs_state->req_ring_write_pos - fs_state->req_ring_read_pos < fs_state->req_ring_size - bytes_needed)
+  if(fs_state->req_ring_write_pos - fs_state->req_ring_read_pos <= fs_state->req_ring_size - bytes_needed)
   {
    RingWrite(fs_state->req_ring_base, fs_state->req_ring_size, fs_state->req_ring_write_pos, Str8Struct(&tag));
    fs_state->req_ring_write_pos += bytes_needed;
@@ -200,6 +206,9 @@ FS_DequeueLoadRequest(void)
  OS_ConditionVariableSignalAll(fs_state->req_ring_cv);
  return result;
 }
+
+////////////////////////////////
+//~ rjf: Active Work Info
 
 core_function S64
 FS_LoaderThreadWorkingCount(void)
@@ -266,10 +275,9 @@ FS_LoaderThreadEntryPoint(void *p)
   OS_Timestamp last_modified = 0;
   if(need_reload)
   {
-   OS_FileAttributes attributes = OS_FileAttributesFromPath(path);
-   last_modified = attributes.last_modified;
    OS_Handle file = OS_FileOpen(scratch.arena, OS_AccessFlag_Read, path, &errors);
    OS_FileAttributes atts = OS_AttributesFromFile(file);
+   last_modified = atts.last_modified;
    U64 size = atts.size;
    U64 arena_size = size+Kilobytes(64)-1;
    arena_size -= arena_size%Kilobytes(64);
@@ -289,7 +297,7 @@ FS_LoaderThreadEntryPoint(void *p)
   }
   
   //- rjf: update existing correllation with new hash & modified time if reload
-  if(need_reload)
+  if(!C_HashMatch(C_HashZero(), hash) && need_reload)
   {
    OS_MutexBlock(stripe->mutex)
    {
