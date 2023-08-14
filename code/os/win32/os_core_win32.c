@@ -5,7 +5,7 @@
 ////////////////////////////////
 //~ rjf: Globals
 
-#if BUILD_ROOT
+#if BUILD_CORE
 HINSTANCE os_w32_hinstance = 0;
 OS_W32_State *os_w32_state = 0;
 BOOL (*RtlGenRandom)(VOID *RandomBuffer, ULONG RandomBufferLength);
@@ -212,7 +212,7 @@ OS_W32_ThreadEntryPoint(void *params)
 ////////////////////////////////
 //~ rjf: General Program API
 
-core_function OS_InitReceipt
+root_function OS_InitReceipt
 OS_Init(void)
 {
  if(IsMainThread() && os_w32_state == 0)
@@ -281,13 +281,13 @@ OS_Init(void)
  return result;
 }
 
-core_function void
+root_function void
 OS_Abort(void)
 {
  ExitProcess(1);
 }
 
-core_function String8
+root_function String8
 OS_GetSystemPath(Arena *arena, OS_SystemPath path)
 {
  ArenaTemp scratch = GetScratch(&arena, 1);
@@ -321,7 +321,7 @@ OS_GetSystemPath(Arena *arena, OS_SystemPath path)
 ////////////////////////////////
 //~ rjf: Memory
 
-core_function U64
+root_function U64
 OS_PageSize(void)
 {
  SYSTEM_INFO info;
@@ -329,7 +329,7 @@ OS_PageSize(void)
  return info.dwPageSize;
 }
 
-core_function void *
+root_function void *
 OS_Reserve(U64 size)
 {
  U64 gb_snapped_size = size;
@@ -339,13 +339,13 @@ OS_Reserve(U64 size)
  return ptr;
 }
 
-core_function void
+root_function void
 OS_Release(void *ptr, U64 size)
 {
  VirtualFree(ptr, 0, MEM_RELEASE);
 }
 
-core_function void
+root_function void
 OS_Commit(void *ptr, U64 size)
 {
  U64 page_snapped_size = size;
@@ -354,13 +354,13 @@ OS_Commit(void *ptr, U64 size)
  VirtualAlloc(ptr, page_snapped_size, MEM_COMMIT, PAGE_READWRITE);
 }
 
-core_function void
+root_function void
 OS_Decommit(void *ptr, U64 size)
 {
  VirtualFree(ptr, size, MEM_DECOMMIT);
 }
 
-core_function void
+root_function void
 OS_SetMemoryAccessFlags(void *ptr, U64 size, OS_AccessFlags flags)
 {
  // rjf: size -> page snapped size
@@ -396,7 +396,7 @@ OS_SetMemoryAccessFlags(void *ptr, U64 size, OS_AccessFlags flags)
 ////////////////////////////////
 //~ rjf: Libraries
 
-core_function OS_Handle
+root_function OS_Handle
 OS_LibraryOpen(String8 path)
 {
  ArenaTemp scratch = GetScratch(0, 0);
@@ -408,14 +408,14 @@ OS_LibraryOpen(String8 path)
  return handle;
 }
 
-core_function void
+root_function void
 OS_LibraryClose(OS_Handle handle)
 {
  HMODULE hmodule = (HMODULE)handle.u64[0];
  FreeLibrary(hmodule);
 }
 
-core_function VoidFunction *
+root_function VoidFunction *
 OS_LibraryLoadFunction(OS_Handle handle, String8 name)
 {
  ArenaTemp scratch = GetScratch(0, 0);
@@ -431,7 +431,7 @@ OS_LibraryLoadFunction(OS_Handle handle, String8 name)
 
 //- rjf: granular handle operations
 
-core_function OS_Handle
+root_function OS_Handle
 OS_FileOpen(Arena *arena, OS_AccessFlags access_flags, String8 path, OS_ErrorList *out_errors)
 {
  // rjf: unpack args
@@ -488,7 +488,7 @@ OS_FileOpen(Arena *arena, OS_AccessFlags access_flags, String8 path, OS_ErrorLis
  return handle;
 }
 
-core_function void
+root_function void
 OS_FileClose(OS_Handle file)
 {
  HANDLE handle = (HANDLE)file.u64[0];
@@ -498,7 +498,7 @@ OS_FileClose(OS_Handle file)
  }
 }
 
-core_function String8
+root_function String8
 OS_FileRead(Arena *arena, OS_Handle file, Rng1U64 range, OS_ErrorList *out_errors)
 {
  String8 result = {0};
@@ -537,7 +537,7 @@ OS_FileRead(Arena *arena, OS_Handle file, Rng1U64 range, OS_ErrorList *out_error
  return result;
 }
 
-core_function void
+root_function void
 OS_FileWrite(Arena *arena, OS_Handle file, U64 off, String8List data, OS_ErrorList *out_errors)
 {
  HANDLE handle = (HANDLE)file.u64[0];
@@ -573,14 +573,14 @@ OS_FileWrite(Arena *arena, OS_Handle file, U64 off, String8List data, OS_ErrorLi
  fail_out:;
 }
 
-core_function B32
+root_function B32
 OS_FileIsValid(OS_Handle file)
 {
  HANDLE handle = (HANDLE)file.u64[0];
  return handle != INVALID_HANDLE_VALUE;
 }
 
-core_function OS_FileAttributes
+root_function OS_FileAttributes
 OS_AttributesFromFile(OS_Handle file)
 {
  HANDLE handle = (HANDLE)file.u64[0];
@@ -596,7 +596,7 @@ OS_AttributesFromFile(OS_Handle file)
 
 //- rjf: whole-file operations
 
-core_function void
+root_function void
 OS_DeleteFile(String8 path)
 {
  ArenaTemp scratch = GetScratch(0, 0);
@@ -605,7 +605,7 @@ OS_DeleteFile(String8 path)
  ReleaseScratch(scratch);
 }
 
-core_function void
+root_function void
 OS_MoveFile(String8 dst_path, String8 src_path)
 {
  ArenaTemp scratch = GetScratch(0, 0);
@@ -615,7 +615,7 @@ OS_MoveFile(String8 dst_path, String8 src_path)
  ReleaseScratch(scratch);
 }
 
-core_function B32
+root_function B32
 OS_CopyFile(String8 dst_path, String8 src_path)
 {
  ArenaTemp scratch = GetScratch(0, 0);
@@ -626,7 +626,7 @@ OS_CopyFile(String8 dst_path, String8 src_path)
  return result;
 }
 
-core_function B32
+root_function B32
 OS_MakeDirectory(String8 path)
 {
  ArenaTemp scratch = GetScratch(0, 0);
@@ -640,7 +640,7 @@ OS_MakeDirectory(String8 path)
  return result;
 }
 
-core_function B32
+root_function B32
 OS_DeleteDirectory(String8 path)
 {
  // TODO(rjf)
@@ -648,7 +648,7 @@ OS_DeleteDirectory(String8 path)
 
 //- rjf: file system introspection
 
-core_function OS_FileIter *
+root_function OS_FileIter *
 OS_FileIterBegin(Arena *arena, String8 path)
 {
  OS_W32_FileFindData *file_find_data = PushArray(arena, OS_W32_FileFindData, 1);
@@ -666,7 +666,7 @@ OS_FileIterBegin(Arena *arena, String8 path)
  return it;
 }
 
-core_function B32
+root_function B32
 OS_FileIterNext(Arena *arena, OS_FileIter *it, OS_FileInfo *out_info)
 {
  // rjf: grab find data
@@ -725,14 +725,14 @@ OS_FileIterNext(Arena *arena, OS_FileIter *it, OS_FileInfo *out_info)
  return result;
 }
 
-core_function void
+root_function void
 OS_FileIterEnd(OS_FileIter *it)
 {
  OS_W32_FileFindData *file_find_data = (OS_W32_FileFindData *)it;
  FindClose(file_find_data->handle);
 }
 
-core_function OS_FileAttributes
+root_function OS_FileAttributes
 OS_FileAttributesFromPath(String8 path)
 {
  WIN32_FIND_DATAW find_data = {0};
@@ -748,7 +748,7 @@ OS_FileAttributesFromPath(String8 path)
 ////////////////////////////////
 //~ rjf: Time
 
-core_function DateTime
+root_function DateTime
 OS_DateTimeCurrent(void)
 {
  SYSTEMTIME st = {0};
@@ -766,7 +766,7 @@ OS_DateTimeCurrent(void)
  return dt;
 }
 
-core_function U64
+root_function U64
 OS_TimeMicroseconds(void)
 {
  LARGE_INTEGER current_time;
@@ -776,20 +776,20 @@ OS_TimeMicroseconds(void)
  return time_in_microseconds;
 }
 
-core_function U64
+root_function U64
 OS_TimeCycles(void)
 {
  U64 result = __rdtsc();
  return result;
 }
 
-core_function void
+root_function void
 OS_Sleep(U64 milliseconds)
 {
  Sleep(milliseconds);
 }
 
-core_function void
+root_function void
 OS_Wait(U64 end_time_us)
 {
  U64 begin_time_us = OS_TimeMicroseconds();
@@ -813,13 +813,13 @@ OS_Wait(U64 end_time_us)
 
 //- rjf: thread controls
 
-core_function U64
+root_function U64
 OS_TID(void)
 {
  return GetThreadId(0);
 }
 
-core_function OS_Handle
+root_function OS_Handle
 OS_ThreadStart(void *params, OS_ThreadFunction *func)
 {
  OS_W32_Thread *thread = OS_W32_ThreadAlloc();
@@ -833,7 +833,7 @@ OS_ThreadStart(void *params, OS_ThreadFunction *func)
  return result;
 }
 
-core_function void
+root_function void
 OS_ThreadJoin(OS_Handle handle)
 {
  OS_W32_Thread *thread = (OS_W32_Thread *)handle.u64[0];
@@ -848,7 +848,7 @@ OS_ThreadJoin(OS_Handle handle)
  }
 }
 
-core_function void
+root_function void
 OS_ThreadDetach(OS_Handle handle)
 {
  OS_W32_Thread *thread = (OS_W32_Thread *)handle.u64[0];
@@ -864,7 +864,7 @@ OS_ThreadDetach(OS_Handle handle)
 
 //- rjf: mutexes
 
-core_function OS_Handle
+root_function OS_Handle
 OS_MutexAlloc(void)
 {
  OS_W32_CriticalSection *critical_section = OS_W32_CriticalSectionAlloc();
@@ -873,7 +873,7 @@ OS_MutexAlloc(void)
  return handle;
 }
 
-core_function void
+root_function void
 OS_MutexRelease(OS_Handle mutex)
 {
  OS_W32_CriticalSection *critical_section = (OS_W32_CriticalSection *)mutex.u64[0];
@@ -881,14 +881,14 @@ OS_MutexRelease(OS_Handle mutex)
  OS_W32_CriticalSectionRelease(critical_section);
 }
 
-core_function void
+root_function void
 OS_MutexBlockEnter(OS_Handle mutex)
 {
  OS_W32_CriticalSection *critical_section = (OS_W32_CriticalSection *)mutex.u64[0];
  EnterCriticalSection(&critical_section->base);
 }
 
-core_function void
+root_function void
 OS_MutexBlockLeave(OS_Handle mutex)
 {
  OS_W32_CriticalSection *critical_section = (OS_W32_CriticalSection *)mutex.u64[0];
@@ -897,43 +897,44 @@ OS_MutexBlockLeave(OS_Handle mutex)
 
 //- rjf: slim reader/writer mutexes
 
-core_function OS_Handle
+root_function OS_Handle
 OS_SRWMutexAlloc(void)
 {
  OS_W32_SRWLock *lock = OS_W32_SRWLockAlloc();
+ InitializeSRWLock(&lock->lock);
  OS_Handle h = {(U64)lock};
  return h;
 }
 
-core_function void
+root_function void
 OS_SRWMutexRelease(OS_Handle mutex)
 {
  OS_W32_SRWLock *lock = (OS_W32_SRWLock *)mutex.u64[0];
  OS_W32_SRWLockRelease(lock);
 }
 
-core_function void
+root_function void
 OS_SRWMutexWriterBlockEnter(OS_Handle mutex)
 {
  OS_W32_SRWLock *lock = (OS_W32_SRWLock *)mutex.u64[0];
  AcquireSRWLockExclusive(&lock->lock);
 }
 
-core_function void
+root_function void
 OS_SRWMutexWriterBlockLeave(OS_Handle mutex)
 {
  OS_W32_SRWLock *lock = (OS_W32_SRWLock *)mutex.u64[0];
  ReleaseSRWLockExclusive(&lock->lock);
 }
 
-core_function void
+root_function void
 OS_SRWMutexReaderBlockEnter(OS_Handle mutex)
 {
  OS_W32_SRWLock *lock = (OS_W32_SRWLock *)mutex.u64[0];
  AcquireSRWLockShared(&lock->lock);
 }
 
-core_function void
+root_function void
 OS_SRWMutexReaderBlockLeave(OS_Handle mutex)
 {
  OS_W32_SRWLock *lock = (OS_W32_SRWLock *)mutex.u64[0];
@@ -942,7 +943,7 @@ OS_SRWMutexReaderBlockLeave(OS_Handle mutex)
 
 //- rjf: semaphores
 
-core_function OS_Handle
+root_function OS_Handle
 OS_SemaphoreAlloc(U32 initial_count, U32 max_count)
 {
  max_count = ClampTop(max_count, U32Max/2);
@@ -953,14 +954,14 @@ OS_SemaphoreAlloc(U32 initial_count, U32 max_count)
  return result;
 }
 
-core_function void
+root_function void
 OS_SemaphoreRelease(OS_Handle handle)
 {
  HANDLE h = (HANDLE)handle.u64[0];
  CloseHandle(h);
 }
 
-core_function B32
+root_function B32
 OS_SemaphoreWait(OS_Handle handle, U32 max_milliseconds)
 {
  HANDLE h = (HANDLE)handle.u64[0];
@@ -969,7 +970,7 @@ OS_SemaphoreWait(OS_Handle handle, U32 max_milliseconds)
  return result;
 }
 
-core_function U64 
+root_function U64 
 OS_SemaphoreSignal(OS_Handle handle)
 {
  U32 count = 0;
@@ -981,7 +982,7 @@ OS_SemaphoreSignal(OS_Handle handle)
 
 //- rjf: condition variables
 
-core_function OS_Handle
+root_function OS_Handle
 OS_ConditionVariableAlloc(void)
 {
  OS_W32_ConditionVariable *cv = OS_W32_ConditionVariableAlloc();
@@ -989,14 +990,14 @@ OS_ConditionVariableAlloc(void)
  return handle;
 }
 
-core_function void
+root_function void
 OS_ConditionVariableRelease(OS_Handle handle)
 {
  OS_W32_ConditionVariable *cv = (OS_W32_ConditionVariable *)handle.u64[0];
  OS_W32_ConditionVariableRelease(cv);
 }
 
-core_function B32
+root_function B32
 OS_ConditionVariableWait(OS_Handle cv_handle, OS_Handle mutex_handle, U64 end_time_microseconds)
 {
  OS_W32_ConditionVariable *cv = (OS_W32_ConditionVariable *)cv_handle.u64[0];
@@ -1016,14 +1017,14 @@ OS_ConditionVariableWait(OS_Handle cv_handle, OS_Handle mutex_handle, U64 end_ti
  return result;
 }
 
-core_function void
+root_function void
 OS_ConditionVariableSignal(OS_Handle handle)
 {
  OS_W32_ConditionVariable *cv = (OS_W32_ConditionVariable *)handle.u64[0];
  WakeConditionVariable(&cv->base);
 }
 
-core_function void
+root_function void
 OS_ConditionVariableSignalAll(OS_Handle handle)
 {
  OS_W32_ConditionVariable *cv = (OS_W32_ConditionVariable *)handle.u64[0];
@@ -1033,7 +1034,7 @@ OS_ConditionVariableSignalAll(OS_Handle handle)
 ////////////////////////////////
 //~ rjf: Child Processes
 
-core_function OS_Handle
+root_function OS_Handle
 OS_ProcessLaunch(String8 command, String8 working_directory)
 {
  OS_W32_Process *w32_proc = OS_W32_ProcessAlloc();
@@ -1124,7 +1125,7 @@ OS_ProcessLaunch(String8 command, String8 working_directory)
  return result;
 }
 
-core_function void
+root_function void
 OS_ProcessRelease(OS_Handle handle)
 {
  OS_W32_Process *w32_proc = (OS_W32_Process *)PtrFromInt(handle.u64[0]);
@@ -1137,7 +1138,7 @@ OS_ProcessRelease(OS_Handle handle)
  OS_W32_ProcessRelease(w32_proc);
 }
 
-core_function String8
+root_function String8
 OS_ProcessReadOutput(Arena *arena, OS_Handle process)
 {
  OS_W32_Process *w32_proc = (OS_W32_Process *)PtrFromInt(process.u64[0]);
@@ -1203,7 +1204,7 @@ OS_ProcessReadOutput(Arena *arena, OS_Handle process)
  return result;
 }
 
-core_function void
+root_function void
 OS_ProcessKill(OS_Handle process)
 {
  OS_W32_Process *w32_proc = (OS_W32_Process *)PtrFromInt(process.u64[0]);
@@ -1226,7 +1227,7 @@ OS_ProcessKill(OS_Handle process)
  }
 }
 
-core_function U64
+root_function U64
 OS_PIDFromProcess(OS_Handle process)
 {
  OS_W32_Process *w32_proc = (OS_W32_Process *)PtrFromInt(process.u64[0]);
@@ -1234,7 +1235,7 @@ OS_PIDFromProcess(OS_Handle process)
  return result;
 }
 
-core_function OS_ProcessStatus
+root_function OS_ProcessStatus
 OS_StatusFromProcess(OS_Handle process)
 {
  OS_W32_Process *w32_proc = (OS_W32_Process *)PtrFromInt(process.u64[0]);
@@ -1245,7 +1246,7 @@ OS_StatusFromProcess(OS_Handle process)
 ////////////////////////////////
 //~ rjf: Miscellaneous
 
-core_function void
+root_function void
 OS_GetEntropy(void *data, U64 size)
 {
 #if 1
@@ -1269,21 +1270,21 @@ OS_GetEntropy(void *data, U64 size)
 ////////////////////////////////
 //~ rjf: @os_per_backend System Info
 
-core_function F32
+root_function F32
 OS_CaretBlinkTime(void)
 {
  F32 seconds = GetCaretBlinkTime() / 1000.f;
  return seconds;
 }
 
-core_function F32
+root_function F32
 OS_DoubleClickTime(void)
 {
  F32 seconds = GetDoubleClickTime() / 1000.f;
  return seconds;
 }
 
-core_function U64
+root_function U64
 OS_LogicalProcessorCount(void)
 {
  return os_w32_state->system_info.dwNumberOfProcessors;

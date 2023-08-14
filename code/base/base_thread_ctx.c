@@ -1,6 +1,6 @@
 //- rjf: thread context construction & set/get
 
-core_function ThreadCtx
+root_function ThreadCtx
 ThreadCtxAlloc(void)
 {
  ThreadCtx tctx = {0};
@@ -11,7 +11,7 @@ ThreadCtxAlloc(void)
  return tctx;
 }
 
-core_function void
+root_function void
 ThreadCtxRelease(ThreadCtx *tctx)
 {
  for(U64 arena_idx = 0; arena_idx < ArrayCount(tctx->arenas); arena_idx += 1)
@@ -20,8 +20,7 @@ ThreadCtxRelease(ThreadCtx *tctx)
  }
 }
 
-#if BUILD_ROOT
-
+#if BUILD_CORE
 per_thread ThreadCtx *tl_tctx = 0;
 
 no_name_mangle void
@@ -35,12 +34,11 @@ GetThreadCtx(void)
 {
  return tl_tctx;
 }
-
 #endif
 
 //- rjf: thread name
 
-core_function void
+root_function void
 SetThreadName(String8 string)
 {
  ThreadCtx *tctx = GetThreadCtx();
@@ -48,7 +46,7 @@ SetThreadName(String8 string)
  MemoryCopy(tctx->thread_name, string.str, tctx->thread_name_size);
 }
 
-core_function String8
+root_function String8
 GetThreadName(void)
 {
  ThreadCtx *tctx = GetThreadCtx();
@@ -56,7 +54,7 @@ GetThreadName(void)
  return result;
 }
 
-core_function B32
+root_function B32
 IsMainThread(void)
 {
  ThreadCtx *tctx = GetThreadCtx();
@@ -65,7 +63,7 @@ IsMainThread(void)
 
 //- rjf: source code location set helper
 
-core_function void
+root_function void
 SetThreadFileAndLine_(char *file, int line)
 {
  ThreadCtx *tctx = GetThreadCtx();
@@ -75,7 +73,7 @@ SetThreadFileAndLine_(char *file, int line)
 
 //- rjf: scratch memory
 
-core_function ArenaTemp
+root_function ArenaTemp
 GetScratch(Arena **conflicts, U64 conflict_count)
 {
  ArenaTemp scratch = {0};
@@ -103,7 +101,7 @@ GetScratch(Arena **conflicts, U64 conflict_count)
 
 //- rjf: main thread entry point
 
-core_function void
+root_function void
 BaseMainThreadEntry(void (*entry)(CmdLine *cmdln), U64 argument_count, char **arguments)
 {
  ThreadCtx tctx = ThreadCtxAlloc();

@@ -1,14 +1,14 @@
 ////////////////////////////////
 //~ rjf: Globals
 
-#if BUILD_ROOT
+#if BUILD_CORE
 T_State *t_state = 0;
 #endif
 
 ////////////////////////////////
 //~ rjf: Main API
 
-core_function T_InitReceipt
+root_function T_InitReceipt
 T_Init(C_InitReceipt c_init_receipt, R_InitReceipt r_init_receipt)
 {
  if(IsMainThread() && t_state == 0)
@@ -69,7 +69,7 @@ T_Init(C_InitReceipt c_init_receipt, R_InitReceipt r_init_receipt)
 ////////////////////////////////
 //~ rjf: Accessors
 
-core_function R_Handle
+root_function R_Handle
 T_InvalidTexture(void)
 {
  return t_state->invalid_texture;
@@ -78,7 +78,7 @@ T_InvalidTexture(void)
 ////////////////////////////////
 //~ rjf: Tag -> Texture Region Mapping
 
-core_function R_Slice2F32
+root_function R_Slice2F32
 T_Slice2F32FromHash(C_Hash hash, U64 endt_microseconds)
 {
  //- rjf: map hash to slot/stripe info
@@ -163,7 +163,7 @@ T_Slice2F32FromHash(C_Hash hash, U64 endt_microseconds)
 ////////////////////////////////
 //~ rjf: GPU Upload Request Ring Buffer
 
-core_function B32
+root_function B32
 T_EnqueueLoadRequest(C_Hash hash)
 {
  B32 result = 0;
@@ -189,7 +189,7 @@ T_EnqueueLoadRequest(C_Hash hash)
  return result;
 }
 
-core_function C_Hash
+root_function C_Hash
 T_DequeueLoadRequest(void)
 {
  C_Hash hash = {0};
@@ -222,7 +222,7 @@ T_DequeueLoadRequest(void)
 #include "third_party/stb_image.h"
 #endif
 
-core_function void
+root_function void
 T_ThreadEntryPoint(void *p)
 {
  for(;;)

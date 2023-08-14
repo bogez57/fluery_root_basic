@@ -1,7 +1,7 @@
 ////////////////////////////////
 //~ rjf: Globals
 
-#if BUILD_ROOT
+#if BUILD_CORE
 MD_Node md_nil_node =
 {
  &md_nil_node,
@@ -17,7 +17,7 @@ MD_Node md_nil_node =
 ////////////////////////////////
 //~ rjf: Message Type Functions
 
-core_function void
+root_function void
 MD_MsgListPush(Arena *arena, MD_MsgList *msgs, MD_Node *node, MD_MsgKind kind, String8 string)
 {
  MD_Msg *msg = PushArray(arena, MD_Msg, 1);
@@ -32,7 +32,7 @@ MD_MsgListPush(Arena *arena, MD_MsgList *msgs, MD_Node *node, MD_MsgKind kind, S
 ////////////////////////////////
 //~ rjf: Token Type Functions
 
-core_function String8List
+root_function String8List
 MD_StringListFromTokenFlags(Arena *arena, MD_TokenFlags flags)
 {
  String8List strs = {0};
@@ -50,7 +50,7 @@ MD_StringListFromTokenFlags(Arena *arena, MD_TokenFlags flags)
  return strs;
 }
 
-core_function void
+root_function void
 MD_TokenChunkListPush(Arena *arena, MD_TokenChunkList *list, U64 cap, MD_Token token)
 {
  MD_TokenChunkNode *node = list->last;
@@ -67,7 +67,7 @@ MD_TokenChunkListPush(Arena *arena, MD_TokenChunkList *list, U64 cap, MD_Token t
  list->total_token_count += 1;
 }
 
-core_function MD_TokenArray
+root_function MD_TokenArray
 MD_TokenArrayFromChunkList(Arena *arena, MD_TokenChunkList *chunks)
 {
  MD_TokenArray result = {0};
@@ -82,7 +82,7 @@ MD_TokenArrayFromChunkList(Arena *arena, MD_TokenChunkList *chunks)
  return result;
 }
 
-core_function String8
+root_function String8
 MD_ContentStringFromTokenFlagsStr8(MD_TokenFlags flags, String8 string)
 {
  U64 num_chop = 0;
@@ -104,7 +104,7 @@ MD_ContentStringFromTokenFlagsStr8(MD_TokenFlags flags, String8 string)
 
 //- rjf: flag conversions
 
-core_function MD_NodeFlags
+root_function MD_NodeFlags
 MD_NodeFlagsFromTokenFlags(MD_TokenFlags flags)
 {
  MD_NodeFlags result = 0;
@@ -121,7 +121,7 @@ MD_NodeFlagsFromTokenFlags(MD_TokenFlags flags)
 
 //- rjf: nil
 
-core_function B32
+root_function B32
 MD_NodeIsNil(MD_Node *node)
 {
  return (node == 0 || node == &md_nil_node || node->kind == MD_NodeKind_Nil);
@@ -129,7 +129,7 @@ MD_NodeIsNil(MD_Node *node)
 
 //- rjf: iteration
 
-core_function MD_NodeRec
+root_function MD_NodeRec
 MD_NodeRecDepthFirst(MD_Node *node, MD_Node *subtree_root, MemberOffset child_off, MemberOffset sib_off)
 {
  MD_NodeRec rec = {0};
@@ -152,7 +152,7 @@ MD_NodeRecDepthFirst(MD_Node *node, MD_Node *subtree_root, MemberOffset child_of
 
 //- rjf: tree building
 
-core_function MD_Node *
+root_function MD_Node *
 MD_PushNode(Arena *arena, MD_NodeKind kind, MD_NodeFlags flags, String8 string, String8 raw_string, U64 src_offset)
 {
  MD_Node *node = PushArray(arena, MD_Node, 1);
@@ -165,14 +165,14 @@ MD_PushNode(Arena *arena, MD_NodeKind kind, MD_NodeFlags flags, String8 string, 
  return node;
 }
 
-core_function void
+root_function void
 MD_NodePushChild(MD_Node *parent, MD_Node *node)
 {
  node->parent = parent;
  DLLPushBack_NPZ(parent->first, parent->last, node, next, prev, MD_NodeIsNil, MD_NodeSetNil);
 }
 
-core_function void
+root_function void
 MD_NodePushTag(MD_Node *parent, MD_Node *node)
 {
  node->parent = parent;
@@ -181,7 +181,7 @@ MD_NodePushTag(MD_Node *parent, MD_Node *node)
 
 //- rjf: tree introspection
 
-core_function MD_Node *
+root_function MD_Node *
 MD_NodeFromChainString(MD_Node *first, MD_Node *opl, String8 string, MatchFlags flags)
 {
  MD_Node *result = &md_nil_node;
@@ -196,7 +196,7 @@ MD_NodeFromChainString(MD_Node *first, MD_Node *opl, String8 string, MatchFlags 
  return result;
 }
 
-core_function MD_Node *
+root_function MD_Node *
 MD_NodeFromChainIndex(MD_Node *first, MD_Node *opl, U64 index)
 {
  MD_Node *result = &md_nil_node;
@@ -212,7 +212,7 @@ MD_NodeFromChainIndex(MD_Node *first, MD_Node *opl, U64 index)
  return result;
 }
 
-core_function MD_Node *
+root_function MD_Node *
 MD_NodeFromChainFlags(MD_Node *first, MD_Node *opl, MD_NodeFlags flags)
 {
  MD_Node *result = &md_nil_node;
@@ -227,7 +227,7 @@ MD_NodeFromChainFlags(MD_Node *first, MD_Node *opl, MD_NodeFlags flags)
  return result;
 }
 
-core_function U64
+root_function U64
 MD_IndexFromNode(MD_Node *node)
 {
  U64 index = 0;
@@ -238,7 +238,7 @@ MD_IndexFromNode(MD_Node *node)
  return index;
 }
 
-core_function MD_Node *
+root_function MD_Node *
 MD_RootFromNode(MD_Node *node)
 {
  MD_Node *result = node;
@@ -249,38 +249,38 @@ MD_RootFromNode(MD_Node *node)
  return result;
 }
 
-core_function MD_Node *
+root_function MD_Node *
 MD_ChildFromString(MD_Node *node, String8 child_string, MatchFlags flags)
 {
  return MD_NodeFromChainString(node->first, &md_nil_node, child_string, flags);
 }
 
-core_function MD_Node *
+root_function MD_Node *
 MD_TagFromString(MD_Node *node, String8 tag_string, MatchFlags flags)
 {
  return MD_NodeFromChainString(node->first_tag, &md_nil_node, tag_string, flags);
 }
 
-core_function MD_Node *
+root_function MD_Node *
 MD_ChildFromIndex(MD_Node *node, U64 index)
 {
  return MD_NodeFromChainIndex(node->first, &md_nil_node, index);
 }
 
-core_function MD_Node *
+root_function MD_Node *
 MD_TagFromIndex(MD_Node *node, U64 index)
 {
  return MD_NodeFromChainIndex(node->first_tag, &md_nil_node, index);
 }
 
-core_function MD_Node *
+root_function MD_Node *
 MD_TagArgFromIndex(MD_Node *node, String8 tag_string, MatchFlags flags, U64 index)
 {
  MD_Node *tag = MD_TagFromString(node, tag_string, flags);
  return MD_ChildFromIndex(tag, index);
 }
 
-core_function MD_Node *
+root_function MD_Node *
 MD_TagArgFromString(MD_Node *node, String8 tag_string, MatchFlags tag_str_flags, String8 arg_string, MatchFlags arg_str_flags)
 {
  MD_Node *tag = MD_TagFromString(node, tag_string, tag_str_flags);
@@ -288,19 +288,19 @@ MD_TagArgFromString(MD_Node *node, String8 tag_string, MatchFlags tag_str_flags,
  return arg;
 }
 
-core_function B32
+root_function B32
 MD_NodeHasChild(MD_Node *node, String8 string, MatchFlags flags)
 {
  return !MD_NodeIsNil(MD_ChildFromString(node, string, flags));
 }
 
-core_function B32
+root_function B32
 MD_NodeHasTag(MD_Node *node, String8 string, MatchFlags flags)
 {
  return !MD_NodeIsNil(MD_TagFromString(node, string, flags));
 }
 
-core_function U64
+root_function U64
 MD_ChildCountFromNode(MD_Node *node)
 {
  U64 result = 0;
@@ -311,7 +311,7 @@ MD_ChildCountFromNode(MD_Node *node)
  return result;
 }
 
-core_function U64
+root_function U64
 MD_TagCountFromNode(MD_Node *node)
 {
  U64 result = 0;
@@ -325,7 +325,7 @@ MD_TagCountFromNode(MD_Node *node)
 ////////////////////////////////
 //~ rjf: Text -> Tokens Functions
 
-core_function MD_TokenizeResult
+root_function MD_TokenizeResult
 MD_TokenizeFromText(Arena *arena, String8 text)
 {
  ArenaTemp scratch = GetScratch(&arena, 1);
@@ -612,7 +612,7 @@ MD_TokenizeFromText(Arena *arena, String8 text)
 ////////////////////////////////
 //~ rjf: Tokens -> Tree Functions
 
-core_function MD_ParseResult
+root_function MD_ParseResult
 MD_ParseFromTextTokens(Arena *arena, String8 filename, String8 text, MD_TokenArray tokens)
 {
  ArenaTemp scratch = GetScratch(&arena, 1);

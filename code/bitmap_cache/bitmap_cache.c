@@ -1,7 +1,7 @@
 ////////////////////////////////
 //~ rjf: Globals
 
-#if BUILD_ROOT
+#if BUILD_CORE
 B32 bc_initialized = 0;
 BC_State *bc_state = 0;
 BC_Bitmap bc_nil_bitmap = {0};
@@ -10,7 +10,7 @@ BC_Bitmap bc_nil_bitmap = {0};
 ////////////////////////////////
 //~ rjf: Top-Level API
 
-core_function BC_InitReceipt
+root_function BC_InitReceipt
 BC_Init(OS_InitReceipt os_init, C_InitReceipt c_init)
 {
  if(IsMainThread() && bc_initialized == 0)
@@ -40,14 +40,14 @@ BC_Init(OS_InitReceipt os_init, C_InitReceipt c_init)
 ////////////////////////////////
 //~ rjf: Scopes
 
-core_function BC_Scope *
+root_function BC_Scope *
 BC_ScopeOpen(void)
 {
  BC_Scope *scope = (BC_Scope *)1;
  return scope;
 }
 
-core_function void
+root_function void
 BC_ScopeClose(BC_Scope *scope)
 {
 }
@@ -55,7 +55,7 @@ BC_ScopeClose(BC_Scope *scope)
 ////////////////////////////////
 //~ rjf: Cache Interaction
 
-core_function BC_Bitmap *
+root_function BC_Bitmap *
 BC_BitmapFromHash(BC_Scope *scope, C_Hash hash, U64 end_time_microseconds)
 {
  BC_Bitmap *bitmap = &bc_nil_bitmap;
@@ -110,7 +110,7 @@ BC_BitmapFromHash(BC_Scope *scope, C_Hash hash, U64 end_time_microseconds)
 ////////////////////////////////
 //~ rjf: User -> Parsing Thread Ring Buffer
 
-core_function void
+root_function void
 BC_EnqueueParseRequest(C_Hash hash)
 {
  OS_MutexBlock(bc_state->u2p_ring_mutex) for(;;)
@@ -127,7 +127,7 @@ BC_EnqueueParseRequest(C_Hash hash)
  OS_ConditionVariableSignalAll(bc_state->u2p_ring_cv);
 }
 
-core_function C_Hash
+root_function C_Hash
 BC_DequeueParseRequest(void)
 {
  C_Hash hash = {0};
@@ -160,7 +160,7 @@ BC_DequeueParseRequest(void)
 #include "third_party/stb_image.h"
 #endif
 
-core_function void
+root_function void
 BC_ParseThreadEntryPoint(void *p)
 {
  for(;;)

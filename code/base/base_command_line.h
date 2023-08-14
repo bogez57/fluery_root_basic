@@ -27,12 +27,12 @@ struct CmdLine
  String8List inputs;
 };
 
-core_function U64 CmdLineHashFromString(String8 string);
-core_function CmdLine CmdLineFromStringList(Arena *arena, String8List strings);
-core_function String8List CmdLineOptStrings(CmdLine *cmdln, String8 name);
-core_function String8 CmdLineOptString(CmdLine *cmdln, String8 name);
-core_function B32 CmdLineOptB32(CmdLine *cmdln, String8 name);
-core_function F64 CmdLineOptF64(CmdLine *cmdln, String8 name);
-core_function S64 CmdLineOptS64(CmdLine *cmdln, String8 name);
+root_function U64 CmdLineHashFromString(String8 string);
+root_function CmdLine CmdLineFromStringList(Arena *arena, String8List strings);
+root_function String8List CmdLineOptStrings(CmdLine *cmdln, String8 name);
+root_function String8 CmdLineOptString(CmdLine *cmdln, String8 name);
+root_function B32 CmdLineOptB32(CmdLine *cmdln, String8 name);
+root_function F64 CmdLineOptF64(CmdLine *cmdln, String8 name);
+root_function S64 CmdLineOptS64(CmdLine *cmdln, String8 name);
 
 #endif // BASE_COMMAND_LINE_H

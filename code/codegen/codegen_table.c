@@ -553,7 +553,7 @@ CG_TBL_Generate(MD_Node *file_list)
    MD_String8 h_decl_specifier = MD_S8Lit("extern");
    if(is_core)
    {
-    h_decl_specifier = MD_S8Lit("core_global");
+    h_decl_specifier = MD_S8Lit("root_global");
    }
    
    CG_FilePair f = CG_FilePairFromNode(gen);
@@ -561,7 +561,7 @@ CG_TBL_Generate(MD_Node *file_list)
    
    if(is_core)
    {
-    fprintf(f.c, "#if BUILD_ROOT\n");
+    fprintf(f.c, "#if BUILD_CORE\n");
     // fprintf(f.c, "exported ");
    }
    fprintf(f.c, "%.*s %.*s[%" PRIu64 "] =\n{\n", MD_S8VArg(data_table_type), MD_S8VArg(gen->string), gen_strings.node_count);
@@ -571,7 +571,7 @@ CG_TBL_Generate(MD_Node *file_list)
    fprintf(f.c, "\n};\n");
    if(is_core)
    {
-    fprintf(f.c, "#endif // BUILD_ROOT\n");
+    fprintf(f.c, "#endif // BUILD_CORE\n");
    }
    fprintf(f.c, "\n");
   }

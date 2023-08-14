@@ -14,7 +14,7 @@
 ////////////////////////////////
 //~ rjf: Arena Functions
 
-core_function Arena *
+root_function Arena *
 ArenaAlloc(U64 size)
 {
  U64 size_roundup_granularity = Megabytes(64);
@@ -32,20 +32,20 @@ ArenaAlloc(U64 size)
  return arena;
 }
 
-core_function Arena *
+root_function Arena *
 ArenaAllocDefault(void)
 {
  Arena *arena = ArenaAlloc(Gigabytes(8));
  return arena;
 }
 
-core_function void
+root_function void
 ArenaRelease(Arena *arena)
 {
  ArenaImpl_Release(arena, arena->size);
 }
 
-core_function void *
+root_function void *
 ArenaPushNoZero(Arena *arena, U64 size)
 {
  void *result = 0;
@@ -73,7 +73,7 @@ ArenaPushNoZero(Arena *arena, U64 size)
  return result;
 }
 
-core_function void *
+root_function void *
 ArenaPushAligner(Arena *arena, U64 alignment)
 {
  U64 pos = arena->pos;
@@ -88,7 +88,7 @@ ArenaPushAligner(Arena *arena, U64 alignment)
  return result;
 }
 
-core_function void *
+root_function void *
 ArenaPush(Arena *arena, U64 size)
 {
  void *result = ArenaPushNoZero(arena, size);
@@ -98,7 +98,7 @@ ArenaPush(Arena *arena, U64 size)
  return result;
 }
 
-core_function void
+root_function void
 ArenaPopTo(Arena *arena, U64 pos)
 {
  U64 min_pos = sizeof(Arena);
@@ -115,13 +115,13 @@ ArenaPopTo(Arena *arena, U64 pos)
  }
 }
 
-core_function void
+root_function void
 ArenaSetAutoAlign(Arena *arena, U64 align)
 {
  arena->align = align;
 }
 
-core_function void
+root_function void
 ArenaPop(Arena *arena, U64 size)
 {
  U64 min_pos = sizeof(Arena);
@@ -131,13 +131,13 @@ ArenaPop(Arena *arena, U64 size)
  ArenaPopTo(arena, new_pos);
 }
 
-core_function void
+root_function void
 ArenaClear(Arena *arena)
 {
  ArenaPopTo(arena, sizeof(Arena));
 }
 
-core_function U64
+root_function U64
 ArenaPos(Arena *arena)
 {
  return arena->pos;
@@ -146,7 +146,7 @@ ArenaPos(Arena *arena)
 ////////////////////////////////
 //~ rjf: Arena Temp Functions
 
-core_function ArenaTemp
+root_function ArenaTemp
 ArenaTempBegin(Arena *arena)
 {
  ArenaTemp temp = {0};
@@ -155,7 +155,7 @@ ArenaTempBegin(Arena *arena)
  return temp;
 }
 
-core_function void
+root_function void
 ArenaTempEnd(ArenaTemp temp)
 {
  ArenaPopTo(temp.arena, temp.pos);

@@ -1,7 +1,7 @@
 ////////////////////////////////
 //~ rjf: Ring Functions
 
-core_function U64
+root_function U64
 RingWrite(U8 *base, U64 size, U64 write_pos, String8 string)
 {
  U64 first_part_write_off = write_pos % size;
@@ -24,7 +24,7 @@ RingWrite(U8 *base, U64 size, U64 write_pos, String8 string)
  return string.size;
 }
 
-core_function U64
+root_function U64
 RingRead(void *dst, U8 *base, U64 buffer_size, U64 read_pos, U64 read_size)
 {
  U64 first_part_read_off = read_pos % buffer_size;

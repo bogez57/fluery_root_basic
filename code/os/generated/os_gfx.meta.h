@@ -96,5 +96,5 @@ OS_Key_COUNT
 }
 OS_Key;
 
-core_global String8 os_g_key_string_table[92];
+root_global String8 os_g_key_string_table[92];
 

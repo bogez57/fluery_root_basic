@@ -1,7 +1,7 @@
 ////////////////////////////////
 //~ rjf: Net Address <=> String
 
-core_function OS_NetAddr
+root_function OS_NetAddr
 OS_NetAddrFromString(String8 string)
 {
  U64 colon_pos = FindSubstr8(string, Str8Lit(":"), 0, 0);
@@ -16,7 +16,7 @@ OS_NetAddrFromString(String8 string)
  return result;
 }
 
-core_function OS_NetAddr
+root_function OS_NetAddr
 OS_NetAddrFromStringAndPort(String8 string, U16 port)
 {
  OS_NetAddr result = {0};
@@ -42,7 +42,7 @@ OS_NetAddrFromStringAndPort(String8 string, U16 port)
  return result;
 }
 
-core_function String8
+root_function String8
 OS_StringFromNetAddr(Arena *arena, OS_NetAddr *addr, B32 include_port)
 {
  String8 result = {0};

@@ -60,33 +60,33 @@ struct C_State
 ////////////////////////////////
 //~ rjf: Globals
 
-core_global B32 c_initialized;
-core_global C_State *c_state;
+root_global B32 c_initialized;
+root_global C_State *c_state;
 
 ////////////////////////////////
 //~ rjf: Top-Level API
 
-core_function C_InitReceipt C_Init(OS_InitReceipt os_init_receipt);
+root_function C_InitReceipt C_Init(OS_InitReceipt os_init_receipt);
 
 ////////////////////////////////
 //~ rjf: Scopes
 
-core_function C_Scope *C_ScopeOpen(void);
-core_function void C_ScopeClose(C_Scope *scope);
+root_function C_Scope *C_ScopeOpen(void);
+root_function void C_ScopeClose(C_Scope *scope);
 
 ////////////////////////////////
 //~ rjf: Hashes
 
-core_function C_Hash C_HashZero(void);
-core_function C_Hash C_HashMake(U64 a, U64 b);
-core_function C_Hash C_HashFromString(String8 string);
-core_function B32 C_HashMatch(C_Hash a, C_Hash b);
+root_function C_Hash C_HashZero(void);
+root_function C_Hash C_HashMake(U64 a, U64 b);
+root_function C_Hash C_HashFromString(String8 string);
+root_function B32 C_HashMatch(C_Hash a, C_Hash b);
 
 ////////////////////////////////
 //~ rjf: Cache Interaction
 
-core_function C_Hash C_SubmitData(Arena **permanent_arena, String8 data);
-core_function void C_SubmitStaticData(String8 data, C_Hash hash);
-core_function String8 C_DataFromHash(C_Scope *scope, C_Hash hash);
+root_function C_Hash C_SubmitData(Arena **permanent_arena, String8 data);
+root_function void C_SubmitStaticData(String8 data, C_Hash hash);
+root_function String8 C_DataFromHash(C_Scope *scope, C_Hash hash);
 
 #endif // CONTENT_CORE_H

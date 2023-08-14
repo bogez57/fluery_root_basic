@@ -1,7 +1,7 @@
 ////////////////////////////////
 //~ rjf: Globals
 
-#if BUILD_ROOT
+#if BUILD_CORE
 B32 c_initialized = 0;
 C_State *c_state = 0;
 #endif
@@ -9,7 +9,7 @@ C_State *c_state = 0;
 ////////////////////////////////
 //~ rjf: Top-Level API
 
-core_function C_InitReceipt
+root_function C_InitReceipt
 C_Init(OS_InitReceipt os_init_receipt)
 {
  if(IsMainThread() && c_initialized == 0)
@@ -29,14 +29,14 @@ C_Init(OS_InitReceipt os_init_receipt)
 ////////////////////////////////
 //~ rjf: Scopes
 
-core_function C_Scope *
+root_function C_Scope *
 C_ScopeOpen(void)
 {
  C_Scope *scope = (C_Scope *)1;
  return scope;
 }
 
-core_function void
+root_function void
 C_ScopeClose(C_Scope *scope)
 {
 }
@@ -44,21 +44,21 @@ C_ScopeClose(C_Scope *scope)
 ////////////////////////////////
 //~ rjf: Hashes
 
-core_function C_Hash
+root_function C_Hash
 C_HashZero(void)
 {
  C_Hash hash = {0};
  return hash;
 }
 
-core_function C_Hash
+root_function C_Hash
 C_HashMake(U64 a, U64 b)
 {
  C_Hash hash = {a, b};
  return hash;
 }
 
-core_function C_Hash
+root_function C_Hash
 C_HashFromString(String8 string)
 {
  C_Hash hash = {0};
@@ -69,7 +69,7 @@ C_HashFromString(String8 string)
  return hash;
 }
 
-core_function B32
+root_function B32
 C_HashMatch(C_Hash a, C_Hash b)
 {
  return (a.u64[0] == b.u64[0] && a.u64[1] == b.u64[1]);
@@ -78,7 +78,7 @@ C_HashMatch(C_Hash a, C_Hash b)
 ////////////////////////////////
 //~ rjf: Cache Interaction
 
-core_function C_Hash
+root_function C_Hash
 C_SubmitData(Arena **permanent_arena, String8 data)
 {
  //- rjf: produce hash from hash
@@ -135,7 +135,7 @@ C_SubmitData(Arena **permanent_arena, String8 data)
  return hash;
 }
 
-core_function void
+root_function void
 C_SubmitStaticData(String8 data, C_Hash hash)
 {
  //- rjf: hash -> slot/stripe info
@@ -175,7 +175,7 @@ C_SubmitStaticData(String8 data, C_Hash hash)
  }
 }
 
-core_function String8
+root_function String8
 C_DataFromHash(C_Scope *scope, C_Hash hash)
 {
  String8 data = {0};

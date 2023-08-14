@@ -44,8 +44,8 @@ struct FP_RasterResult
 ////////////////////////////////
 //~ rjf: Basic Handle Functions
 
-core_function FP_Handle FP_HandleZero(void);
-core_function B32 FP_HandleMatch(FP_Handle a, FP_Handle b);
+root_function FP_Handle FP_HandleZero(void);
+root_function B32 FP_HandleMatch(FP_Handle a, FP_Handle b);
 
 ////////////////////////////////
 //~ rjf: Backend Abstraction Functions

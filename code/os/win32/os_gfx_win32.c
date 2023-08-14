@@ -12,7 +12,7 @@
 ////////////////////////////////
 //~ rjf: Globals
 
-#if BUILD_ROOT
+#if BUILD_CORE
 OS_W32_GetDpiForWindowType *w32_GetDpiForWindow = 0;
 OS_W32_GfxState *os_w32_gfx_state = 0;
 per_thread Arena *os_w32_tl_events_arena;
@@ -22,7 +22,7 @@ per_thread OS_EventList *os_w32_tl_events_list;
 ////////////////////////////////
 //~ rjf: Helpers
 
-core_function OS_Handle
+root_function OS_Handle
 OS_W32_HandleFromWindow(OS_W32_Window *window)
 {
  OS_Handle handle = {0};
@@ -30,14 +30,14 @@ OS_W32_HandleFromWindow(OS_W32_Window *window)
  return handle;
 }
 
-core_function OS_W32_Window *
+root_function OS_W32_Window *
 OS_W32_WindowFromHandle(OS_Handle handle)
 {
  OS_W32_Window *w = (OS_W32_Window *)handle.u64[0];
  return w;
 }
 
-core_function OS_Modifiers
+root_function OS_Modifiers
 OS_W32_GetModifiers(void)
 {
  OS_Modifiers modifiers = 0;
@@ -472,7 +472,7 @@ OS_W32_WindowProc(HWND hwnd, UINT message, WPARAM w_param, LPARAM l_param)
 ////////////////////////////////
 //~ rjf: @os_per_backend Main API
 
-core_function OS_InitGfxReceipt
+root_function OS_InitGfxReceipt
 OS_InitGfx(OS_InitReceipt os_init_receipt)
 {
  if(IsMainThread() && os_w32_gfx_state == 0)
@@ -548,7 +548,7 @@ OS_InitGfx(OS_InitReceipt os_init_receipt)
 ////////////////////////////////
 //~ rjf: @os_per_backend System Info
 
-core_function F32
+root_function F32
 OS_DefaultRefreshRate(void)
 {
  return os_w32_gfx_state->refresh_rate;
@@ -559,7 +559,7 @@ OS_DefaultRefreshRate(void)
 
 //- rjf: open/closing/metadata/equipment
 
-core_function OS_Handle
+root_function OS_Handle
 OS_WindowOpen(OS_WindowFlags flags, Vec2S64 size, String8 title)
 {
  OS_Handle handle = {0};
@@ -613,7 +613,7 @@ OS_WindowOpen(OS_WindowFlags flags, Vec2S64 size, String8 title)
  return handle;
 }
 
-core_function void
+root_function void
 OS_WindowClose(OS_Handle handle)
 {
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
@@ -637,7 +637,7 @@ OS_WindowClose(OS_Handle handle)
  ReleaseSRWLockExclusive(&os_w32_gfx_state->window_srw_lock);
 }
 
-core_function void
+root_function void
 OS_WindowSetTitle(OS_Handle handle, String8 title)
 {
  ArenaTemp scratch = GetScratch(0, 0);
@@ -647,7 +647,7 @@ OS_WindowSetTitle(OS_Handle handle, String8 title)
  ReleaseScratch(scratch);
 }
 
-core_function void
+root_function void
 OS_WindowSetIcon(OS_Handle handle, Vec2S32 size, String8 rgba_data)
 {
  ArenaTemp scratch = GetScratch(0, 0);
@@ -690,7 +690,7 @@ OS_WindowSetIcon(OS_Handle handle, Vec2S32 size, String8 rgba_data)
  ReleaseScratch(scratch);
 }
 
-core_function void
+root_function void
 OS_WindowSetRepaint(OS_Handle handle, OS_RepaintFunction *repaint)
 {
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
@@ -699,7 +699,7 @@ OS_WindowSetRepaint(OS_Handle handle, OS_RepaintFunction *repaint)
 
 //- rjf: per-paint custom border hit-testing info
 
-core_function void
+root_function void
 OS_WindowClearCustomBorderData(OS_Handle handle)
 {
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
@@ -709,21 +709,21 @@ OS_WindowClearCustomBorderData(OS_Handle handle)
  window->custom_border_edge_thickness = 0;
 }
 
-core_function void
+root_function void
 OS_WindowPushCustomTitleBar(OS_Handle handle, F32 thickness)
 {
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
  window->custom_border_title_thickness = thickness;
 }
 
-core_function void
+root_function void
 OS_WindowPushCustomEdges(OS_Handle handle, F32 thickness)
 {
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
  window->custom_border_edge_thickness = thickness;
 }
 
-core_function void
+root_function void
 OS_WindowPushCustomTitleBarClientArea(OS_Handle handle, Rng2F32 rect)
 {
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
@@ -737,7 +737,7 @@ OS_WindowPushCustomTitleBarClientArea(OS_Handle handle, Rng2F32 rect)
 
 //- rjf: minimizing/maximizing
 
-core_function B32
+root_function B32
 OS_WindowIsMaximized(OS_Handle handle)
 {
  B32 result = 0;
@@ -749,21 +749,21 @@ OS_WindowIsMaximized(OS_Handle handle)
  return result;
 }
 
-core_function void
+root_function void
 OS_WindowMinimize(OS_Handle handle)
 {
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
  ShowWindow(window->hwnd, SW_MINIMIZE);
 }
 
-core_function void
+root_function void
 OS_WindowMaximize(OS_Handle handle)
 {
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
  ShowWindow(window->hwnd, SW_MAXIMIZE);
 }
 
-core_function void
+root_function void
 OS_WindowRestore(OS_Handle handle)
 {
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
@@ -772,7 +772,7 @@ OS_WindowRestore(OS_Handle handle)
 
 //- rjf: focusing
 
-core_function B32
+root_function B32
 OS_WindowIsFocused(OS_Handle handle)
 {
  B32 result = 0;
@@ -786,7 +786,7 @@ OS_WindowIsFocused(OS_Handle handle)
 
 //- rjf: fullscreen
 
-core_function B32
+root_function B32
 OS_WindowIsFullscreen(OS_Handle handle)
 {
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
@@ -800,7 +800,7 @@ OS_WindowIsFullscreen(OS_Handle handle)
  return is_fullscreen;
 }
 
-core_function void
+root_function void
 OS_WindowToggleFullscreen(OS_Handle handle)
 {
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
@@ -842,7 +842,7 @@ OS_WindowToggleFullscreen(OS_Handle handle)
 
 //- rjf: first paint
 
-core_function void
+root_function void
 OS_WindowFirstPaint(OS_Handle handle)
 {
  ArenaTemp scratch = GetScratch(0, 0);
@@ -857,7 +857,7 @@ OS_WindowFirstPaint(OS_Handle handle)
 
 //- rjf: accessors
 
-core_function Rng2F32
+root_function Rng2F32
 OS_RectFromWindow(OS_Handle handle)
 {
  Rng2F32 rect = {0};
@@ -876,7 +876,7 @@ OS_RectFromWindow(OS_Handle handle)
  return rect;
 }
 
-core_function Rng2F32
+root_function Rng2F32
 OS_ClientRectFromWindow(OS_Handle handle)
 {
  Rng2F32 rect = {0};
@@ -895,7 +895,7 @@ OS_ClientRectFromWindow(OS_Handle handle)
  return rect;
 }
 
-core_function F32
+root_function F32
 OS_DPIFromWindow(OS_Handle handle)
 {
  F32 result = 96.f;
@@ -920,7 +920,7 @@ OS_DPIFromWindow(OS_Handle handle)
  return result;
 }
 
-core_function Vec2F32
+root_function Vec2F32
 OS_MouseFromWindow(OS_Handle handle)
 {
  Vec2F32 result = V2F32(-100, -100);
@@ -942,7 +942,7 @@ OS_MouseFromWindow(OS_Handle handle)
 ////////////////////////////////
 //~ rjf: @os_per_backend Events
 
-core_function OS_EventList
+root_function OS_EventList
 OS_GetEvents(Arena *arena)
 {
  OS_EventList list = {0};
@@ -958,7 +958,7 @@ OS_GetEvents(Arena *arena)
  return list;
 }
 
-core_function void
+root_function void
 OS_EatEvent(OS_EventList *events, OS_Event *event)
 {
  DLLRemove(events->first, events->last, event);
@@ -969,7 +969,7 @@ OS_EatEvent(OS_EventList *events, OS_Event *event)
 ////////////////////////////////
 //~ rjf: @os_per_backend Cursors
 
-core_function void
+root_function void
 OS_SetCursor(OS_CursorKind kind)
 {
  os_w32_gfx_state->cursor_kind = kind;
@@ -978,7 +978,7 @@ OS_SetCursor(OS_CursorKind kind)
 ////////////////////////////////
 //~ rjf: @os_per_backend Clipboard
 
-core_function void
+root_function void
 OS_SetClipboardText(String8 string)
 {
  if(OpenClipboard(0))
@@ -997,7 +997,7 @@ OS_SetClipboardText(String8 string)
  }
 }
 
-core_function String8
+root_function String8
 OS_GetClipboardText(Arena *arena)
 {
  String8 result = {0};

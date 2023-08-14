@@ -108,32 +108,32 @@ struct T_State
 ////////////////////////////////
 //~ rjf: Globals
 
-core_global T_State *t_state;
+root_global T_State *t_state;
 
 ////////////////////////////////
 //~ rjf: Main API
 
-core_function T_InitReceipt T_Init(C_InitReceipt c_init_receipt, R_InitReceipt r_init_receipt);
+root_function T_InitReceipt T_Init(C_InitReceipt c_init_receipt, R_InitReceipt r_init_receipt);
 
 ////////////////////////////////
 //~ rjf: Accessors
 
-core_function R_Handle T_InvalidTexture(void);
+root_function R_Handle T_InvalidTexture(void);
 
 ////////////////////////////////
 //~ rjf: Tag -> Texture Region Mapping
 
-core_function R_Slice2F32 T_Slice2F32FromHash(C_Hash hash, U64 endt_microseconds);
+root_function R_Slice2F32 T_Slice2F32FromHash(C_Hash hash, U64 endt_microseconds);
 
 ////////////////////////////////
 //~ rjf: GPU Upload Request Ring Buffer
 
-core_function B32 T_EnqueueLoadRequest(C_Hash hash);
-core_function C_Hash T_DequeueLoadRequest(void);
+root_function B32 T_EnqueueLoadRequest(C_Hash hash);
+root_function C_Hash T_DequeueLoadRequest(void);
 
 ////////////////////////////////
 //~ rjf: GPU Data Upload Thread Implementation
 
-core_function void T_ThreadEntryPoint(void *p);
+root_function void T_ThreadEntryPoint(void *p);
 
 #endif // TEXTURE_CACHE_H

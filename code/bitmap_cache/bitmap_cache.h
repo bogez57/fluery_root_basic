@@ -80,35 +80,35 @@ struct BC_State
 ////////////////////////////////
 //~ rjf: Globals
 
-core_global B32 bc_initialized;
-core_global BC_State *bc_state;
-core_global BC_Bitmap bc_nil_bitmap;
+root_global B32 bc_initialized;
+root_global BC_State *bc_state;
+root_global BC_Bitmap bc_nil_bitmap;
 
 ////////////////////////////////
 //~ rjf: Top-Level API
 
-core_function BC_InitReceipt BC_Init(OS_InitReceipt os_init, C_InitReceipt c_init);
+root_function BC_InitReceipt BC_Init(OS_InitReceipt os_init, C_InitReceipt c_init);
 
 ////////////////////////////////
 //~ rjf: Scopes
 
-core_function BC_Scope *BC_ScopeOpen(void);
-core_function void BC_ScopeClose(BC_Scope *scope);
+root_function BC_Scope *BC_ScopeOpen(void);
+root_function void BC_ScopeClose(BC_Scope *scope);
 
 ////////////////////////////////
 //~ rjf: Cache Interaction
 
-core_function BC_Bitmap *BC_BitmapFromHash(BC_Scope *scope, C_Hash hash, U64 end_time_microseconds);
+root_function BC_Bitmap *BC_BitmapFromHash(BC_Scope *scope, C_Hash hash, U64 end_time_microseconds);
 
 ////////////////////////////////
 //~ rjf: User -> Parsing Thread Ring Buffer
 
-core_function void BC_EnqueueParseRequest(C_Hash hash);
-core_function C_Hash BC_DequeueParseRequest(void);
+root_function void BC_EnqueueParseRequest(C_Hash hash);
+root_function C_Hash BC_DequeueParseRequest(void);
 
 ////////////////////////////////
 //~ rjf: Parsing Threads
 
-core_function void BC_ParseThreadEntryPoint(void *p);
+root_function void BC_ParseThreadEntryPoint(void *p);
 
 #endif // BITMAP_CACHE_H

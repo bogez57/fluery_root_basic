@@ -6,13 +6,13 @@
 ////////////////////////////////
 //~ rjf: Basic Helpers
 
-core_function String8
+root_function String8
 OS_StringFromKey(OS_Key key)
 {
  return os_g_key_string_table[key];
 }
 
-core_function String8
+root_function String8
 OS_StringFromModifiersKey(Arena *arena, OS_Modifiers modifiers, OS_Key key)
 {
  ArenaTemp scratch = GetScratch(&arena, 1);
@@ -41,7 +41,7 @@ OS_StringFromModifiersKey(Arena *arena, OS_Modifiers modifiers, OS_Key key)
 ////////////////////////////////
 //~ rjf: Event Helpers
 
-core_function U64
+root_function U64
 OS_CharacterFromModifiersAndKey(OS_Modifiers modifiers, OS_Key key)
 {
  U64 character = 0;
@@ -101,7 +101,7 @@ OS_CharacterFromModifiersAndKey(OS_Modifiers modifiers, OS_Key key)
  return character;
 }
 
-core_function OS_CursorKind
+root_function OS_CursorKind
 OS_CursorKindFromResizeSides(Side x, Side y)
 {
  OS_CursorKind kind = OS_CursorKind_Pointer;
@@ -134,7 +134,7 @@ OS_CursorKindFromResizeSides(Side x, Side y)
  return kind;
 }
 
-core_function String8
+root_function String8
 OS_StringFromEvent(Arena *arena, OS_Event *event)
 {
  String8 string = {0};
@@ -167,7 +167,7 @@ OS_StringFromEvent(Arena *arena, OS_Event *event)
  return string;
 }
 
-core_function B32
+root_function B32
 OS_KeyPress(OS_EventList *events, OS_Handle window, OS_Key key, OS_Modifiers mods)
 {
  B32 result = 0;
@@ -185,7 +185,7 @@ OS_KeyPress(OS_EventList *events, OS_Handle window, OS_Key key, OS_Modifiers mod
  return result;
 }
 
-core_function B32
+root_function B32
 OS_KeyRelease(OS_EventList *events, OS_Handle window, OS_Key key, OS_Modifiers mods)
 {
  B32 result = 0;
@@ -203,7 +203,7 @@ OS_KeyRelease(OS_EventList *events, OS_Handle window, OS_Key key, OS_Modifiers m
  return result;
 }
 
-core_function B32
+root_function B32
 OS_TextCodepoint(OS_EventList *events, OS_Handle window, U32 codepoint)
 {
  B32 result = 0;

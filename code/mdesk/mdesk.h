@@ -214,67 +214,67 @@ struct MD_ParseResult
 ////////////////////////////////
 //~ rjf: Globals
 
-core_global MD_Node md_nil_node;
+root_global MD_Node md_nil_node;
 
 ////////////////////////////////
 //~ rjf: Message Type Functions
 
-core_function void MD_MsgListPush(Arena *arena, MD_MsgList *msgs, MD_Node *node, MD_MsgKind kind, String8 string);
+root_function void MD_MsgListPush(Arena *arena, MD_MsgList *msgs, MD_Node *node, MD_MsgKind kind, String8 string);
 
 ////////////////////////////////
 //~ rjf: Token Type Functions
 
-core_function String8List MD_StringListFromTokenFlags(Arena *arena, MD_TokenFlags flags);
-core_function void MD_TokenChunkListPush(Arena *arena, MD_TokenChunkList *list, U64 cap, MD_Token token);
-core_function MD_TokenArray MD_TokenArrayFromChunkList(Arena *arena, MD_TokenChunkList *chunks);
-core_function String8 MD_ContentStringFromTokenFlagsStr8(MD_TokenFlags flags, String8 string);
+root_function String8List MD_StringListFromTokenFlags(Arena *arena, MD_TokenFlags flags);
+root_function void MD_TokenChunkListPush(Arena *arena, MD_TokenChunkList *list, U64 cap, MD_Token token);
+root_function MD_TokenArray MD_TokenArrayFromChunkList(Arena *arena, MD_TokenChunkList *chunks);
+root_function String8 MD_ContentStringFromTokenFlagsStr8(MD_TokenFlags flags, String8 string);
 
 ////////////////////////////////
 //~ rjf: Node Type Functions
 
 //- rjf: flag conversions
-core_function MD_NodeFlags MD_NodeFlagsFromTokenFlags(MD_TokenFlags flags);
+root_function MD_NodeFlags MD_NodeFlagsFromTokenFlags(MD_TokenFlags flags);
 
 //- rjf: nil
-core_function B32 MD_NodeIsNil(MD_Node *node);
+root_function B32 MD_NodeIsNil(MD_Node *node);
 #define MD_NodeSetNil(p) ((p) = &md_nil_node)
 
 //- rjf: iteration
 #define MD_EachNode(it, first) MD_Node *it = first; !MD_NodeIsNil(it); it = it->next
-core_function MD_NodeRec MD_NodeRecDepthFirst(MD_Node *node, MD_Node *subtree_root, MemberOffset child_off, MemberOffset sib_off);
+root_function MD_NodeRec MD_NodeRecDepthFirst(MD_Node *node, MD_Node *subtree_root, MemberOffset child_off, MemberOffset sib_off);
 #define MD_NodeRecDepthFirstPre(node, subtree_root) MD_NodeRecDepthFirst((node), (subtree_root), MemberOff(MD_Node, first), MemberOff(MD_Node, next))
 #define MD_NodeRecDepthFirstPost(node, subtree_root) MD_NodeRecDepthFirst((node), (subtree_root), MemberOff(MD_Node, last), MemberOff(MD_Node, prev))
 
 //- rjf: tree building
-core_function MD_Node *MD_PushNode(Arena *arena, MD_NodeKind kind, MD_NodeFlags flags, String8 string, String8 raw_string, U64 src_offset);
-core_function void MD_NodePushChild(MD_Node *parent, MD_Node *node);
-core_function void MD_NodePushTag(MD_Node *parent, MD_Node *node);
+root_function MD_Node *MD_PushNode(Arena *arena, MD_NodeKind kind, MD_NodeFlags flags, String8 string, String8 raw_string, U64 src_offset);
+root_function void MD_NodePushChild(MD_Node *parent, MD_Node *node);
+root_function void MD_NodePushTag(MD_Node *parent, MD_Node *node);
 
 //- rjf: tree introspection
-core_function MD_Node *  MD_NodeFromChainString(MD_Node *first, MD_Node *opl, String8 string, MatchFlags flags);
-core_function MD_Node *  MD_NodeFromChainIndex(MD_Node *first, MD_Node *opl, U64 index);
-core_function MD_Node *  MD_NodeFromChainFlags(MD_Node *first, MD_Node *opl, MD_NodeFlags flags);
-core_function U64        MD_IndexFromNode(MD_Node *node);
-core_function MD_Node *  MD_RootFromNode(MD_Node *node);
-core_function MD_Node *  MD_ChildFromString(MD_Node *node, String8 child_string, MatchFlags flags);
-core_function MD_Node *  MD_TagFromString(MD_Node *node, String8 tag_string, MatchFlags flags);
-core_function MD_Node *  MD_ChildFromIndex(MD_Node *node, U64 index);
-core_function MD_Node *  MD_TagFromIndex(MD_Node *node, U64 index);
-core_function MD_Node *  MD_TagArgFromIndex(MD_Node *node, String8 tag_string, MatchFlags flags, U64 index);
-core_function MD_Node *  MD_TagArgFromString(MD_Node *node, String8 tag_string, MatchFlags tag_str_flags, String8 arg_string, MatchFlags arg_str_flags);
-core_function B32        MD_NodeHasChild(MD_Node *node, String8 string, MatchFlags flags);
-core_function B32        MD_NodeHasTag(MD_Node *node, String8 string, MatchFlags flags);
-core_function U64        MD_ChildCountFromNode(MD_Node *node);
-core_function U64        MD_TagCountFromNode(MD_Node *node);
+root_function MD_Node *  MD_NodeFromChainString(MD_Node *first, MD_Node *opl, String8 string, MatchFlags flags);
+root_function MD_Node *  MD_NodeFromChainIndex(MD_Node *first, MD_Node *opl, U64 index);
+root_function MD_Node *  MD_NodeFromChainFlags(MD_Node *first, MD_Node *opl, MD_NodeFlags flags);
+root_function U64        MD_IndexFromNode(MD_Node *node);
+root_function MD_Node *  MD_RootFromNode(MD_Node *node);
+root_function MD_Node *  MD_ChildFromString(MD_Node *node, String8 child_string, MatchFlags flags);
+root_function MD_Node *  MD_TagFromString(MD_Node *node, String8 tag_string, MatchFlags flags);
+root_function MD_Node *  MD_ChildFromIndex(MD_Node *node, U64 index);
+root_function MD_Node *  MD_TagFromIndex(MD_Node *node, U64 index);
+root_function MD_Node *  MD_TagArgFromIndex(MD_Node *node, String8 tag_string, MatchFlags flags, U64 index);
+root_function MD_Node *  MD_TagArgFromString(MD_Node *node, String8 tag_string, MatchFlags tag_str_flags, String8 arg_string, MatchFlags arg_str_flags);
+root_function B32        MD_NodeHasChild(MD_Node *node, String8 string, MatchFlags flags);
+root_function B32        MD_NodeHasTag(MD_Node *node, String8 string, MatchFlags flags);
+root_function U64        MD_ChildCountFromNode(MD_Node *node);
+root_function U64        MD_TagCountFromNode(MD_Node *node);
 
 ////////////////////////////////
 //~ rjf: Text -> Tokens Functions
 
-core_function MD_TokenizeResult MD_TokenizeFromText(Arena *arena, String8 text);
+root_function MD_TokenizeResult MD_TokenizeFromText(Arena *arena, String8 text);
 
 ////////////////////////////////
 //~ rjf: Tokens -> Tree Functions
 
-core_function MD_ParseResult MD_ParseFromTextTokens(Arena *arena, String8 filename, String8 text, MD_TokenArray tokens);
+root_function MD_ParseResult MD_ParseFromTextTokens(Arena *arena, String8 filename, String8 text, MD_TokenArray tokens);
 
 #endif // MDESK_H

@@ -15,7 +15,7 @@ StaticAssert(sizeof(Dist) >= sizeof(pcg32_random_t), dist_size_check);
 ////////////////////////////////
 //~ rjf: Implementations
 
-core_function Dist
+root_function Dist
 DistMakeUniform(U64 seed)
 {
  Dist result = {0};
@@ -26,7 +26,7 @@ DistMakeUniform(U64 seed)
  return result;
 }
 
-core_function U32
+root_function U32
 SampleFromDist1U32(Dist *dist, Rng1U32 range)
 {
  pcg32_random_t *pcg_state = (pcg32_random_t *)dist->u64;

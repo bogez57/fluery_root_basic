@@ -47,6 +47,14 @@ struct R_D3D11_CmdGlobals_Sprite3D
  Vec2F32 albedo_t2d_size;
 };
 
+struct R_D3D11_CmdGlobals_Fog3D
+{
+ Vec4F32 color;
+ F32 pct_fog_per_unit;
+ F32 near_z;
+ F32 far_z;
+};
+
 struct R_D3D11_CmdGlobals_DebugLine3D
 {
  Mat4x4F32 xform;
@@ -144,11 +152,23 @@ struct R_D3D11_State
 typedef struct R_D3D11_WindowEquip R_D3D11_WindowEquip;
 struct R_D3D11_WindowEquip
 {
+ // rjf: window swapchain/framebuffer
  IDXGISwapChain1 *swapchain;
  ID3D11Texture2D *framebuffer;
- ID3D11RenderTargetView *framebuffer_view;
- ID3D11Texture2D *depth_buffer;
- ID3D11DepthStencilView *depth_buffer_view;
+ ID3D11RenderTargetView *framebuffer_rtv;
+ 
+ // rjf: g-buffer
+ ID3D11Texture2D *gbuffer_color;
+ ID3D11RenderTargetView *gbuffer_color_rtv;
+ ID3D11Texture2D *gbuffer_depth;
+ ID3D11DepthStencilView *gbuffer_depth_dsv;
+ ID3D11ShaderResourceView *gbuffer_depth_srv;
+ 
+ // rjf: dbg-buffer
+ ID3D11Texture2D *dbgbuffer_color;
+ ID3D11RenderTargetView *dbgbuffer_color_rtv;
+ 
+ // rjf: last state
  Vec2S64 last_resolution;
 };
 
@@ -171,8 +191,8 @@ render_function R_Handle R_D3D11_HandleFromTexture2D(R_D3D11_Texture2D texture);
 render_function R_D3D11_Buffer R_D3D11_BufferFromHandle(R_Handle handle);
 render_function R_Handle R_D3D11_HandleFromBuffer(R_D3D11_Buffer buffer);
 
-render_function void R_D3D11_WriteGPUBuffer(ID3D11DeviceContext1 *device_ctx, ID3D11Buffer *buffer, U64 offset, String8 data);
-render_function ID3D11Buffer *R_D3D11_InstanceBufferFromCmd(R_Cmd *cmd);
+render_function void R_D3D11_BufferWriteString(ID3D11DeviceContext1 *device_ctx, ID3D11Buffer *buffer, String8 data);
+render_function ID3D11Buffer *R_D3D11_InstanceBufferFromCmdInstBatchList(R_CmdInstBatchList *list);
 
 render_function Mat4x4F32 R_D3D11_SampleChannelMapFromTexture2DFormat(R_Texture2DFormat fmt);
 

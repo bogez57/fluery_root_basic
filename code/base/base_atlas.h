@@ -32,8 +32,8 @@ struct Atlas
 ////////////////////////////////
 //~ rjf: Atlas Allocator Functions
 
-core_function Atlas *AtlasMake(Arena *arena, Vec2S64 dim);
-core_function Rng2S64 AtlasRegionAlloc(Arena *arena, Atlas *atlas, Vec2S64 needed_size);
-core_function void AtlasRegionRelease(Atlas *atlas, Rng2S64 region);
+root_function Atlas *AtlasMake(Arena *arena, Vec2S64 dim);
+root_function Rng2S64 AtlasRegionAlloc(Arena *arena, Atlas *atlas, Vec2S64 needed_size);
+root_function void AtlasRegionRelease(Atlas *atlas, Rng2S64 region);
 
 #endif // BASE_ATLAS_H

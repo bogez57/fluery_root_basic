@@ -102,82 +102,82 @@ typedef void OS_RepaintFunction(void);
 ////////////////////////////////
 //~ rjf: Basic Helpers
 
-core_function String8 OS_StringFromKey(OS_Key key);
-core_function String8 OS_StringFromModifiersKey(Arena *arena, OS_Modifiers modifiers, OS_Key key);
+root_function String8 OS_StringFromKey(OS_Key key);
+root_function String8 OS_StringFromModifiersKey(Arena *arena, OS_Modifiers modifiers, OS_Key key);
 
 ////////////////////////////////
 //~ rjf: Event Helpers
 
-core_function U64           OS_CharacterFromModifiersAndKey(OS_Modifiers modifiers, OS_Key key);
-core_function OS_CursorKind OS_CursorKindFromResizeSides(Side x, Side y);
-core_function String8       OS_StringFromEvent(Arena *arena, OS_Event *event);
-core_function B32           OS_KeyPress(OS_EventList *events, OS_Handle window, OS_Key key, OS_Modifiers mods);
-core_function B32           OS_KeyRelease(OS_EventList *events, OS_Handle window, OS_Key key, OS_Modifiers mods);
-core_function B32           OS_TextCodepoint(OS_EventList *events, OS_Handle window, U32 codepoint);
+root_function U64           OS_CharacterFromModifiersAndKey(OS_Modifiers modifiers, OS_Key key);
+root_function OS_CursorKind OS_CursorKindFromResizeSides(Side x, Side y);
+root_function String8       OS_StringFromEvent(Arena *arena, OS_Event *event);
+root_function B32           OS_KeyPress(OS_EventList *events, OS_Handle window, OS_Key key, OS_Modifiers mods);
+root_function B32           OS_KeyRelease(OS_EventList *events, OS_Handle window, OS_Key key, OS_Modifiers mods);
+root_function B32           OS_TextCodepoint(OS_EventList *events, OS_Handle window, U32 codepoint);
 
 ////////////////////////////////
 //~ rjf: @os_per_backend Main API
 
-core_function OS_InitGfxReceipt OS_InitGfx(OS_InitReceipt os_init_receipt);
+root_function OS_InitGfxReceipt OS_InitGfx(OS_InitReceipt os_init_receipt);
 
 ////////////////////////////////
 //~ rjf: @os_per_backend System Info
 
-core_function F32 OS_DefaultRefreshRate(void);
+root_function F32 OS_DefaultRefreshRate(void);
 
 ////////////////////////////////
 //~ rjf: @os_per_backend Windows
 
 //- rjf: open/closing/metadata
-core_function OS_Handle OS_WindowOpen(OS_WindowFlags flags, Vec2S64 size, String8 title);
-core_function void      OS_WindowClose(OS_Handle handle);
-core_function void      OS_WindowSetTitle(OS_Handle handle, String8 title);
-core_function void      OS_WindowSetIcon(OS_Handle handle, Vec2S32 size, String8 rgba_data);
-core_function void      OS_WindowSetRepaint(OS_Handle handle, OS_RepaintFunction *repaint);
+root_function OS_Handle OS_WindowOpen(OS_WindowFlags flags, Vec2S64 size, String8 title);
+root_function void      OS_WindowClose(OS_Handle handle);
+root_function void      OS_WindowSetTitle(OS_Handle handle, String8 title);
+root_function void      OS_WindowSetIcon(OS_Handle handle, Vec2S32 size, String8 rgba_data);
+root_function void      OS_WindowSetRepaint(OS_Handle handle, OS_RepaintFunction *repaint);
 
 //- rjf: per-paint custom border hit-testing info
-core_function void      OS_WindowClearCustomBorderData(OS_Handle handle);
-core_function void      OS_WindowPushCustomTitleBar(OS_Handle handle, F32 thickness);
-core_function void      OS_WindowPushCustomEdges(OS_Handle handle, F32 thickness);
-core_function void      OS_WindowPushCustomTitleBarClientArea(OS_Handle handle, Rng2F32 rect);
+root_function void      OS_WindowClearCustomBorderData(OS_Handle handle);
+root_function void      OS_WindowPushCustomTitleBar(OS_Handle handle, F32 thickness);
+root_function void      OS_WindowPushCustomEdges(OS_Handle handle, F32 thickness);
+root_function void      OS_WindowPushCustomTitleBarClientArea(OS_Handle handle, Rng2F32 rect);
 
 //- rjf: minimizing/maximizing
-core_function B32       OS_WindowIsMaximized(OS_Handle handle);
-core_function void      OS_WindowMinimize(OS_Handle handle);
-core_function void      OS_WindowMaximize(OS_Handle handle);
-core_function void      OS_WindowRestore(OS_Handle handle);
+root_function B32       OS_WindowIsMaximized(OS_Handle handle);
+root_function void      OS_WindowMinimize(OS_Handle handle);
+root_function void      OS_WindowMaximize(OS_Handle handle);
+root_function void      OS_WindowRestore(OS_Handle handle);
 
 //- rjf: focusing
-core_function B32       OS_WindowIsFocused(OS_Handle handle);
+root_function B32       OS_WindowIsFocused(OS_Handle handle);
 
 //- rjf: fullscreen
-core_function B32       OS_WindowIsFullscreen(OS_Handle handle);
-core_function void      OS_WindowToggleFullscreen(OS_Handle handle);
+root_function B32       OS_WindowIsFullscreen(OS_Handle handle);
+root_function void      OS_WindowToggleFullscreen(OS_Handle handle);
 
 //- rjf: first paint
-core_function void      OS_WindowFirstPaint(OS_Handle handle);
+root_function void      OS_WindowFirstPaint(OS_Handle handle);
 
 //- rjf: accessors
-core_function Rng2F32   OS_RectFromWindow(OS_Handle handle);
-core_function Rng2F32   OS_ClientRectFromWindow(OS_Handle handle);
-core_function F32       OS_DPIFromWindow(OS_Handle handle);
-core_function Vec2F32   OS_MouseFromWindow(OS_Handle handle);
+root_function Rng2F32   OS_RectFromWindow(OS_Handle handle);
+root_function Rng2F32   OS_ClientRectFromWindow(OS_Handle handle);
+root_function F32       OS_DPIFromWindow(OS_Handle handle);
+root_function Vec2F32   OS_MouseFromWindow(OS_Handle handle);
 
 ////////////////////////////////
 //~ rjf: @os_per_backend Events
 
-core_function OS_EventList OS_GetEvents(Arena *arena);
-core_function void OS_EatEvent(OS_EventList *events, OS_Event *event);
+root_function OS_EventList OS_GetEvents(Arena *arena);
+root_function void OS_EatEvent(OS_EventList *events, OS_Event *event);
 
 ////////////////////////////////
 //~ rjf: @os_per_backend Cursors
 
-core_function void OS_SetCursor(OS_CursorKind kind);
+root_function void OS_SetCursor(OS_CursorKind kind);
 
 ////////////////////////////////
 //~ rjf: @os_per_backend Clipboard
 
-core_function void OS_SetClipboardText(String8 string);
-core_function String8 OS_GetClipboardText(Arena *arena);
+root_function void OS_SetClipboardText(String8 string);
+root_function String8 OS_GetClipboardText(Arena *arena);
 
 #endif // OS_GFX_H

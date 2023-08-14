@@ -56,7 +56,7 @@ OS_W32_NetAddrFromSockAddrIn(struct sockaddr_in *sock_addr)
 ////////////////////////////////
 //~ rjf: @os_per_backend Top-Level API
 
-core_function OS_InitNetReceipt
+root_function OS_InitNetReceipt
 OS_InitNet(OS_InitReceipt os_init)
 {
  WSADATA wsa_data = {0};
@@ -68,7 +68,7 @@ OS_InitNet(OS_InitReceipt os_init)
 ////////////////////////////////
 //~ rjf: @os_per_backend Sockets
 
-core_function OS_Handle
+root_function OS_Handle
 OS_SocketAlloc(OS_NetProtocol protocol)
 {
  int af = 0;
@@ -95,14 +95,14 @@ OS_SocketAlloc(OS_NetProtocol protocol)
  return s_handle;
 }
 
-core_function void
+root_function void
 OS_SocketRelease(OS_Handle s)
 {
  SOCKET sock = (SOCKET)s.u64[0];
  closesocket(sock);
 }
 
-core_function void
+root_function void
 OS_SocketBind(OS_Handle s, OS_NetAddr addr, OS_ErrorList *errors_out)
 {
  SOCKET sock = (SOCKET)s.u64[0];
@@ -110,7 +110,7 @@ OS_SocketBind(OS_Handle s, OS_NetAddr addr, OS_ErrorList *errors_out)
  int error = bind(sock, (struct sockaddr *)&addrin, sizeof(addrin));
 }
 
-core_function OS_AcceptResult
+root_function OS_AcceptResult
 OS_SocketAccept(OS_Handle s, OS_ErrorList *errors_out)
 {
  SOCKET sock = (SOCKET)s.u64[0];
@@ -125,14 +125,14 @@ OS_SocketAccept(OS_Handle s, OS_ErrorList *errors_out)
  return result;
 }
 
-core_function void
+root_function void
 OS_SocketSend(OS_Handle s, String8 data, OS_ErrorList *errors_out)
 {
  SOCKET sock = (SOCKET)s.u64[0];
  int error = send(sock, data.str, data.size, 0);
 }
 
-core_function void
+root_function void
 OS_SocketSendTo(OS_Handle s, OS_NetAddr addr, String8 data, OS_ErrorList *errors_out)
 {
  SOCKET sock = (SOCKET)s.u64[0];
@@ -140,7 +140,7 @@ OS_SocketSendTo(OS_Handle s, OS_NetAddr addr, String8 data, OS_ErrorList *errors
  int error = sendto(sock, data.str, data.size, 0, (struct sockaddr *)&dst_addr, sizeof(dst_addr));
 }
 
-core_function OS_ReceiveResult
+root_function OS_ReceiveResult
 OS_SocketReceive(Arena *arena, OS_Handle s, U64 cap, OS_ErrorList *errors_out)
 {
  SOCKET sock = (SOCKET)s.u64[0];
@@ -156,7 +156,7 @@ OS_SocketReceive(Arena *arena, OS_Handle s, U64 cap, OS_ErrorList *errors_out)
  return result;
 }
 
-core_function OS_ReceiveResult
+root_function OS_ReceiveResult
 OS_SocketReceiveFrom(Arena *arena, OS_Handle s, U64 cap, OS_ErrorList *errors_out)
 {
  SOCKET sock = (SOCKET)s.u64[0];

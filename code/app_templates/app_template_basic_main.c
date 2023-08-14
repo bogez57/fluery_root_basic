@@ -69,8 +69,8 @@ EntryPoint(CmdLine *cmdln)
    Vec2F32 mouse = OS_MouseFromWindow(window);
    R_WindowStart(window_r, render_dim);
    {
-    D_Bucket bucket = D_BucketMake();
-    D_BucketScope(scratch.arena, &bucket)
+    D_Bucket *bucket = D_BucketMake(scratch.arena);
+    D_BucketScope(scratch.arena, bucket)
     {
      local_persist F32 turns = 0.f;
      turns += 0.005f;
@@ -80,7 +80,7 @@ EntryPoint(CmdLine *cmdln)
       D_Rect2D(R2(V2(-50, -50), V2(+50, +50)), .color = V4(1, 0.85f, 0, 1), .corner = 16.f, .softness = 1.f);
      }
     }
-    D_Submit(window_r, &bucket);
+    D_Submit(window_r, bucket);
    }
    R_WindowFinish(window_r);
   }

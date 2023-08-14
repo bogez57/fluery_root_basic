@@ -307,6 +307,74 @@ Str8LitComp(""
 ""
 );
 
+read_only global String8 r_d3d11_g_fog3d_shader_src =
+Str8LitComp(""
+"\n"
+"//- rjf: resources\n"
+"\n"
+"cbuffer CmdGlobals : register(b0)\n"
+"{\n"
+" float4 fog_color;\n"
+" float pct_fog_per_unit;\n"
+" float near_z;\n"
+" float far_z;\n"
+"}\n"
+"\n"
+"Texture2D depth_t2d : register(t0);\n"
+"SamplerState depth_t2d_sampler : register(s0);\n"
+"\n"
+"//- rjf: cpu -> vshad -> pshad types\n"
+"\n"
+"struct CPU2Vertex\n"
+"{\n"
+" uint vertex_id         : SV_VertexID;\n"
+"};\n"
+"\n"
+"struct Vertex2Pixel\n"
+"{\n"
+" float4 pos_rs          : SV_POSITION;\n"
+" float2 texcoord_pct    : TEX;\n"
+"};\n"
+"\n"
+"//- rjf: vertex shader\n"
+"\n"
+"Vertex2Pixel\n"
+"vs_main(CPU2Vertex cpu2vertex)\n"
+"{\n"
+" float2 vertices[] =\n"
+" {\n"
+"  float2(-1, -1),\n"
+"  float2(-1, +1),\n"
+"  float2(+1, -1),\n"
+"  float2(+1, +1),\n"
+" };\n"
+" float2 vertex = vertices[cpu2vertex.vertex_id];\n"
+" Vertex2Pixel vertex2pixel;\n"
+" {\n"
+"  vertex2pixel.pos_rs = float4(vertex.x, vertex.y, 0, 1);\n"
+"  vertex2pixel.texcoord_pct = float2((vertex.x+1)/2, (-vertex.y+1)/2);\n"
+" }\n"
+" return vertex2pixel;\n"
+"}\n"
+"\n"
+"//- rjf: pixel shader\n"
+"\n"
+"float4\n"
+"ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET\n"
+"{\n"
+" // rjf: sample depth buffer\n"
+" float depth = depth_t2d.Sample(depth_t2d_sampler, vertex2pixel.texcoord_pct).r;\n"
+" \n"
+" // rjf: linearized depth\n"
+" float linear_depth = (near_z * far_z) / (far_z + depth * (near_z - far_z));\n"
+" \n"
+" // rjf: form color\n"
+" float4 final_color = float4(linear_depth/10.f, linear_depth/10.f, linear_depth/10.f, 1);\n"
+" return final_color;\n"
+"}\n"
+""
+);
+
 read_only global String8 r_d3d11_g_debugline3d_shader_src =
 Str8LitComp(""
 "\n"
@@ -372,19 +440,21 @@ Str8LitComp(""
 ""
 );
 
-R_D3D11_CmdGlobalKindInfo r_d3d11_g_cmd_global_kind_info_table[4] =
+R_D3D11_CmdGlobalKindInfo r_d3d11_g_cmd_global_kind_info_table[5] =
 {
 {0},
 {sizeof(R_D3D11_CmdGlobals_Rect2D)},
 {sizeof(R_D3D11_CmdGlobals_Sprite3D)},
+{sizeof(R_D3D11_CmdGlobals_Fog3D)},
 {sizeof(R_D3D11_CmdGlobals_DebugLine3D)},
 };
 
-R_D3D11_ShaderPairKindInfo r_d3d11_g_shader_pair_kind_info_table[4] =
+R_D3D11_ShaderPairKindInfo r_d3d11_g_shader_pair_kind_info_table[5] =
 {
 {0},
-{Str8LitComp("r_d3d11_g_rect2d_shader_src"), r_d3d11_g_rect2d_shader_src, r_d3d11_g_rect2d_ilay_elements, ArrayCount(r_d3d11_g_rect2d_ilay_elements)},
-{Str8LitComp("r_d3d11_g_sprite3d_shader_src"), r_d3d11_g_sprite3d_shader_src, r_d3d11_g_sprite3d_ilay_elements, ArrayCount(r_d3d11_g_sprite3d_ilay_elements)},
-{Str8LitComp("r_d3d11_g_debugline3d_shader_src"), r_d3d11_g_debugline3d_shader_src, r_d3d11_g_debugline3d_ilay_elements, ArrayCount(r_d3d11_g_debugline3d_ilay_elements)},
+{Str8LitComp("r_d3d11_g_rect2d_shader_src"), r_d3d11_g_rect2d_shader_src, r_d3d11_g_rect2d_ilay_elements , ArrayCount(r_d3d11_g_rect2d_ilay_elements) },
+{Str8LitComp("r_d3d11_g_sprite3d_shader_src"), r_d3d11_g_sprite3d_shader_src, r_d3d11_g_sprite3d_ilay_elements , ArrayCount(r_d3d11_g_sprite3d_ilay_elements) },
+{Str8LitComp("r_d3d11_g_fog3d_shader_src"), r_d3d11_g_fog3d_shader_src,  0,  0},
+{Str8LitComp("r_d3d11_g_debugline3d_shader_src"), r_d3d11_g_debugline3d_shader_src, r_d3d11_g_debugline3d_ilay_elements , ArrayCount(r_d3d11_g_debugline3d_ilay_elements) },
 };
 

@@ -113,63 +113,59 @@
 //~ rjf: Language
 
 #if defined(__cplusplus)
-#define LANG_CPP 1
+# define LANG_CPP 1
 #else
-#define LANG_C 1
+# define LANG_C 1
 #endif
 
 ////////////////////////////////
 //~ rjf: Zero
 
 #if !defined(ARCH_32BIT)
-#define ARCH_32BIT 0
+# define ARCH_32BIT 0
 #endif
 #if !defined(ARCH_64BIT)
-#define ARCH_64BIT 0
+# define ARCH_64BIT 0
 #endif
 #if !defined(ARCH_X64)
-#define ARCH_X64 0
+# define ARCH_X64 0
 #endif
 #if !defined(ARCH_X86)
-#define ARCH_X86 0
+# define ARCH_X86 0
 #endif
 #if !defined(ARCH_ARM64)
-#define ARCH_ARM64 0
+# define ARCH_ARM64 0
 #endif
 #if !defined(ARCH_ARM32)
-#define ARCH_ARM32 0
+# define ARCH_ARM32 0
 #endif
 #if !defined(COMPILER_MSVC)
-#define COMPILER_MSVC 0
+# define COMPILER_MSVC 0
 #endif
 #if !defined(COMPILER_GCC)
-#define COMPILER_GCC 0
+# define COMPILER_GCC 0
 #endif
 #if !defined(COMPILER_CLANG)
-#define COMPILER_CLANG 0
+# define COMPILER_CLANG 0
 #endif
 #if !defined(OS_WINDOWS)
-#define OS_WINDOWS 0
+# define OS_WINDOWS 0
 #endif
 #if !defined(OS_LINUX)
-#define OS_LINUX 0
+# define OS_LINUX 0
 #endif
 #if !defined(OS_MAC)
-#define OS_MAC 0
+# define OS_MAC 0
 #endif
 #if !defined(LANG_CPP)
-#define LANG_CPP 0
+# define LANG_CPP 0
 #endif
 #if !defined(LANG_C)
-#define LANG_C 0
+# define LANG_C 0
 #endif
 
 ////////////////////////////////
 //~ rjf: Build Parameters
-
-#define BUILD_LINK_MODE_SOURCE  0
-#define BUILD_LINK_MODE_STATIC  1
-#define BUILD_LINK_MODE_DYNAMIC 2
 
 #if !defined(BUILD_DEBUG)
 # define BUILD_DEBUG 1
@@ -179,17 +175,21 @@
 # define BUILD_CONSOLE_OUTPUT 0
 #endif
 
-#if !defined(BUILD_CORE_LINK_MODE)
-# define BUILD_CORE_LINK_MODE BUILD_LINK_MODE_DYNAMIC
+#define BUILD_LINK_MODE_SOURCE  0
+#define BUILD_LINK_MODE_STATIC  1
+#define BUILD_LINK_MODE_DYNAMIC 2
+
+#if !defined(BUILD_ROOT_LINK_MODE)
+# define BUILD_ROOT_LINK_MODE BUILD_LINK_MODE_SOURCE
 #endif
 
-#if !defined(BUILD_ROOT)
-# if BUILD_CORE_LINK_MODE == BUILD_LINK_MODE_SOURCE
-#  define BUILD_ROOT 1
-# elif BUILD_CORE_LINK_MODE == BUILD_LINK_MODE_STATIC
-#  define BUILD_ROOT 1
-# elif BUILD_CORE_LINK_MODE == BUILD_LINK_MODE_DYNAMIC
-#  define BUILD_ROOT 0
+#if !defined(BUILD_CORE)
+# if BUILD_ROOT_LINK_MODE == BUILD_LINK_MODE_SOURCE
+#  define BUILD_CORE 1
+# elif BUILD_ROOT_LINK_MODE == BUILD_LINK_MODE_STATIC
+#  define BUILD_CORE 1
+# elif BUILD_ROOT_LINK_MODE == BUILD_LINK_MODE_DYNAMIC
+#  define BUILD_CORE 0
 # endif
 #endif
 

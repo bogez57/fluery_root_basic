@@ -1,7 +1,7 @@
 ////////////////////////////////
 //~ rjf: Globals
 
-#if BUILD_ROOT
+#if BUILD_CORE
 B32 fs_initialized = 0;
 FS_State *fs_state = 0;
 #endif
@@ -9,7 +9,7 @@ FS_State *fs_state = 0;
 ////////////////////////////////
 //~ rjf: Top-Level API
 
-core_function FS_InitReceipt
+root_function FS_InitReceipt
 FS_Init(OS_InitReceipt os_init_receipt, C_InitReceipt c_init_receipt)
 {
  if(IsMainThread() && fs_state == 0)
@@ -46,14 +46,14 @@ FS_Init(OS_InitReceipt os_init_receipt, C_InitReceipt c_init_receipt)
 ////////////////////////////////
 //~ rjf: Tag Functions
 
-core_function FS_Tag
+root_function FS_Tag
 FS_TagZero(void)
 {
  FS_Tag result = {0};
  return result;
 }
 
-core_function FS_Tag
+root_function FS_Tag
 FS_TagFromPath(String8 path)
 {
  ArenaTemp scratch = GetScratch(0, 0);
@@ -98,7 +98,7 @@ FS_TagFromPath(String8 path)
  return tag;
 }
 
-core_function String8
+root_function String8
 FS_PathFromTag(Arena *arena, FS_Tag tag)
 {
  String8 result = {0};
@@ -120,13 +120,13 @@ FS_PathFromTag(Arena *arena, FS_Tag tag)
  return result;
 }
 
-core_function B32
+root_function B32
 FS_TagMatch(FS_Tag a, FS_Tag b)
 {
  return (a.u64[0] == b.u64[0] && a.u64[1] == b.u64[1]);
 }
 
-core_function C_Hash
+root_function C_Hash
 FS_ContentHashFromTag(FS_Tag tag, U64 endt_microseconds)
 {
  C_Hash hash = {0};
@@ -171,7 +171,7 @@ FS_ContentHashFromTag(FS_Tag tag, U64 endt_microseconds)
 ////////////////////////////////
 //~ rjf: Request Ring Buffer Encoding
 
-core_function void
+root_function void
 FS_EnqueueLoadRequest(FS_Tag tag)
 {
  U64 bytes_needed = sizeof(tag);
@@ -189,7 +189,7 @@ FS_EnqueueLoadRequest(FS_Tag tag)
  OS_ConditionVariableSignalAll(fs_state->req_ring_cv);
 }
 
-core_function FS_Tag
+root_function FS_Tag
 FS_DequeueLoadRequest(void)
 {
  FS_Tag result = {0};
@@ -210,13 +210,13 @@ FS_DequeueLoadRequest(void)
 ////////////////////////////////
 //~ rjf: Active Work Info
 
-core_function S64
+root_function S64
 FS_LoaderThreadWorkingCount(void)
 {
  return fs_state->loader_thread_working_count;
 }
 
-core_function S64
+root_function S64
 FS_LoaderThreadRequestCount(void)
 {
  return fs_state->loader_thread_request_count;
@@ -225,7 +225,7 @@ FS_LoaderThreadRequestCount(void)
 ////////////////////////////////
 //~ rjf: Worker Thread Implementations
 
-core_function void
+root_function void
 FS_LoaderThreadEntryPoint(void *p)
 {
  for(;;)
@@ -328,7 +328,7 @@ FS_LoaderThreadEntryPoint(void *p)
  }
 }
 
-core_function void
+root_function void
 FS_ChangeDetectorThreadEntryPoint(void *p)
 {
  for(;;)

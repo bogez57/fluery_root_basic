@@ -28,19 +28,19 @@
 # define no_name_mangle
 #endif
 
-#if BUILD_CORE_LINK_MODE == BUILD_LINK_MODE_SOURCE
-# define core_global no_name_mangle
-# define core_function function
-#elif BUILD_CORE_LINK_MODE == BUILD_LINK_MODE_STATIC
-# define core_global extern
-# define core_function extern no_name_mangle
-#elif BUILD_CORE_LINK_MODE == BUILD_LINK_MODE_DYNAMIC
-# if BUILD_ROOT
-#  define core_global exported extern
-#  define core_function exported
+#if BUILD_ROOT_LINK_MODE == BUILD_LINK_MODE_SOURCE
+# define root_global no_name_mangle
+# define root_function function
+#elif BUILD_ROOT_LINK_MODE == BUILD_LINK_MODE_STATIC
+# define root_global no_name_mangle
+# define root_function no_name_mangle
+#elif BUILD_ROOT_LINK_MODE == BUILD_LINK_MODE_DYNAMIC
+# if BUILD_CORE
+#  define root_global exported extern
+#  define root_function exported
 # else
-#  define core_global imported
-#  define core_function imported
+#  define root_global imported
+#  define root_function imported
 # endif
 #endif
 
@@ -65,11 +65,11 @@
 #define fallthrough
 
 #if COMPILER_MSVC
-#define per_thread __declspec(thread)
+# define per_thread __declspec(thread)
 #elif COMPILER_CLANG
-#define per_thread __thread
+# define per_thread __thread
 #elif COMPILER_GCC
-#define per_thread __thread
+# define per_thread __thread
 #endif
 
 #if COMPILER_MSVC && COMPILER_MSVC_YEAR < 2015
@@ -509,7 +509,7 @@ DateTimeLessThan(DateTime a, DateTime b)
 
 #undef Assert
 #define Assert(b) do { if(!(b)) { BreakDebugger(); } } while(0)
-#if BUILD_ROOT
+#if BUILD_CORE
 #define StaticAssert(c, label) U8 static_assert_##label[(c)?(1):(-1)]
 #else
 #define StaticAssert(c, label)
@@ -520,10 +520,10 @@ DateTimeLessThan(DateTime a, DateTime b)
 ////////////////////////////////
 //~ rjf: Bit Patterns
 
-core_function U32 UpToPow2_32(U32 x);
-core_function U64 UpToPow2_64(U64 x);
-core_function U32 SearchFirstOneBit_32_BinarySearch(U32 x);
-core_function U32 SearchFirstOneBit_64_BinarySearch(U64 x);
+root_function U32 UpToPow2_32(U32 x);
+root_function U64 UpToPow2_64(U64 x);
+root_function U32 SearchFirstOneBit_32_BinarySearch(U32 x);
+root_function U32 SearchFirstOneBit_64_BinarySearch(U64 x);
 
 inline_function F32
 F32Inf(void)

@@ -2,7 +2,7 @@
 // https://github.com/4th-dimention/examps/tree/master/win32-direct-write.
 // This API would've been mind-numbing to crack without it.
 
-#define BUILD_ROOT 0
+#define BUILD_CORE 0
 
 #include "base/base_inc.h"
 #include "os/os_inc.h"

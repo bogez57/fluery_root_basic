@@ -1,7 +1,7 @@
 ////////////////////////////////
 //~ rjf: Atlas Allocator Functions
 
-core_function Atlas *
+root_function Atlas *
 AtlasMake(Arena *arena, Vec2S64 dim)
 {
  Atlas *atlas = PushArray(arena, Atlas, 1);
@@ -14,7 +14,7 @@ AtlasMake(Arena *arena, Vec2S64 dim)
  return atlas;
 }
 
-core_function Rng2S64
+root_function Rng2S64
 AtlasRegionAlloc(Arena *arena, Atlas *atlas, Vec2S64 needed_size)
 {
  //- rjf: find node with best-fit size
@@ -126,7 +126,7 @@ AtlasRegionAlloc(Arena *arena, Atlas *atlas, Vec2S64 needed_size)
  return result;
 }
 
-core_function void
+root_function void
 AtlasRegionRelease(Atlas *atlas, Rng2S64 region)
 {
  //- rjf: extract region size

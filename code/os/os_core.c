@@ -3,14 +3,14 @@
 
 //- rjf: handle type functions
 
-core_function OS_Handle
+root_function OS_Handle
 OS_HandleZero(void)
 {
  OS_Handle handle = {0};
  return handle;
 }
 
-core_function B32
+root_function B32
 OS_HandleMatch(OS_Handle a, OS_Handle b)
 {
  return a.u64[0] == b.u64[0];
@@ -18,7 +18,7 @@ OS_HandleMatch(OS_Handle a, OS_Handle b)
 
 //- rjf: path normalizations
 
-core_function String8
+root_function String8
 OS_NormalizedPathFromStr8(Arena *arena, String8 string)
 {
  ArenaTemp scratch = GetScratch(&arena, 1);
@@ -30,7 +30,7 @@ OS_NormalizedPathFromStr8(Arena *arena, String8 string)
 
 //- rjf: file system interaction bundlers
 
-core_function String8
+root_function String8
 OS_LoadFile(Arena *arena, String8 path, OS_ErrorList *out_errors)
 {
  String8 result = {0};
@@ -42,7 +42,7 @@ OS_LoadFile(Arena *arena, String8 path, OS_ErrorList *out_errors)
  return result;
 }
 
-core_function void
+root_function void
 OS_SaveFile(Arena *arena, String8 path, String8List data, OS_ErrorList *out_errors)
 {
  OS_Handle file = OS_FileOpen(arena, OS_AccessFlag_Write, path, out_errors);
@@ -50,7 +50,7 @@ OS_SaveFile(Arena *arena, String8 path, String8List data, OS_ErrorList *out_erro
  OS_FileClose(file);
 }
 
-core_function B32
+root_function B32
 OS_FileExists(String8 path)
 {
  ArenaTemp scratch = GetScratch(0, 0);
@@ -63,7 +63,7 @@ OS_FileExists(String8 path)
 
 //- rjf: stripe table
 
-core_function OS_StripeTable *
+root_function OS_StripeTable *
 OS_StripeTableAlloc(Arena *arena, U64 count)
 {
  OS_StripeTable *table = PushArray(arena, OS_StripeTable, 1);
@@ -78,7 +78,7 @@ OS_StripeTableAlloc(Arena *arena, U64 count)
  return table;
 }
 
-core_function void
+root_function void
 OS_StripeTableRelease(OS_StripeTable *table)
 {
  for(U64 idx = 0; idx < table->count; idx += 1)
@@ -91,7 +91,7 @@ OS_StripeTableRelease(OS_StripeTable *table)
 
 //- rjf: timestamp <-> date time
 
-core_function DateTime
+root_function DateTime
 OS_DateTimeFromTimestamp(OS_Timestamp timestamp)
 {
  DateTime dt = {0};
@@ -108,7 +108,7 @@ OS_DateTimeFromTimestamp(OS_Timestamp timestamp)
  return dt;
 }
 
-core_function OS_Timestamp
+root_function OS_Timestamp
 OS_TimestampFromDateTime(DateTime date_time)
 {
  OS_Timestamp timestamp = 0;

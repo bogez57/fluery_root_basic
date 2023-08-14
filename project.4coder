@@ -78,7 +78,167 @@ commands =
   .save_dirty_files = true,
   .cursor_at_end    = true,
  },
-
+ 
+ //- rjf: workbench
+ .build_workbench =
+ {
+  .win              = "build_workbench.bat",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ .run_workbench =
+ {
+  .win              = "pushd build && workbench.exe && popd",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = true,
+ },
+ 
+ //- rjf: g0
+ .build_g0 =
+ {
+  .win              = "build_g0.bat",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ .run_g0 =
+ {
+  .win              = "pushd build && g0.exe && popd",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = true,
+ },
+ 
+ //- rjf: hmb_demo
+ .build_hmb_demo =
+ {
+  .win              = "build_hmb_demo.bat",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ .run_hmb_demo =
+ {
+  .win              = "pushd build && hmb_demo.exe && popd",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = true,
+ },
+ 
+ //- rjf: human profiler
+ .build_human_profiler =
+ {
+  .win              = "build_human_profiler.bat",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ .run_human_profiler =
+ {
+  .win              = "pushd build && human_profiler.exe && popd",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = true,
+ },
+ 
+ //- rjf: harmonia
+ .build_harmonia =
+ {
+  .win              = "build_harmonia.bat",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ .run_harmonia =
+ {
+  .win              = "pushd build && harmonia.exe && popd",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = true,
+ },
+ 
+ //- rjf: net scratch
+ .build_net_scratch =
+ {
+  .win              = "build_net_scratch.bat",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ .run_net_scratch =
+ {
+  .win              = "pushd build && net_scratch.exe && popd",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = true,
+ },
+ 
+ //- rjf: subcheck
+ .build_subcheck =
+ {
+  .win              = "build_subcheck.bat",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ .run_subcheck =
+ {
+  .win              = "pushd build && subcheck.exe && popd",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = true,
+ },
+ 
+ //- rjf: subgrant
+ .build_subgrant =
+ {
+  .win              = "build_subgrant.bat",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ .run_subgrant_rjf =
+ {
+  .win              = "pushd build && subgrant --data=\"C:/devel/subcheck_data/\" --gitea_token=\"C:/devel/code_depot_token.txt\" --discord_token=\"C:/devel/discord_bot_token.txt\" && popd",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ 
 };
 
 ////////////////////////////////
@@ -99,5 +259,8 @@ fkey_command_override =
  {
   .F1 = "build_g0",
   .F3 = "run_g0",
+  .F4 = "build_subcheck",
+  .F5 = "build_subgrant",
+  .F6 = "run_subgrant_rjf",
  },
 };

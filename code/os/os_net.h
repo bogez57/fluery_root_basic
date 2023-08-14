@@ -69,25 +69,25 @@ struct OS_ReceiveResult
 ////////////////////////////////
 //~ rjf: Net Address <=> String
 
-core_function OS_NetAddr OS_NetAddrFromString(String8 string);
-core_function OS_NetAddr OS_NetAddrFromStringAndPort(String8 string, U16 port);
-core_function String8 OS_StringFromNetAddr(Arena *arena, OS_NetAddr *addr, B32 include_port);
+root_function OS_NetAddr OS_NetAddrFromString(String8 string);
+root_function OS_NetAddr OS_NetAddrFromStringAndPort(String8 string, U16 port);
+root_function String8 OS_StringFromNetAddr(Arena *arena, OS_NetAddr *addr, B32 include_port);
 
 ////////////////////////////////
 //~ rjf: @os_per_backend Top-Level API
 
-core_function OS_InitNetReceipt OS_InitNet(OS_InitReceipt os_init);
+root_function OS_InitNetReceipt OS_InitNet(OS_InitReceipt os_init);
 
 ////////////////////////////////
 //~ rjf: @os_per_backend Sockets
 
-core_function OS_Handle OS_SocketAlloc(OS_NetProtocol protocol);
-core_function void OS_SocketRelease(OS_Handle s);
-core_function void OS_SocketBind(OS_Handle s, OS_NetAddr addr, OS_ErrorList *errors_out);
-core_function OS_AcceptResult OS_SocketAccept(OS_Handle s, OS_ErrorList *errors_out);
-core_function void OS_SocketSend(OS_Handle s, String8 data, OS_ErrorList *errors_out);
-core_function void OS_SocketSendTo(OS_Handle s, OS_NetAddr addr, String8 data, OS_ErrorList *errors_out);
-core_function OS_ReceiveResult OS_SocketReceive(Arena *arena, OS_Handle s, U64 cap, OS_ErrorList *errors_out);
-core_function OS_ReceiveResult OS_SocketReceiveFrom(Arena *arena, OS_Handle s, U64 cap, OS_ErrorList *errors_out);
+root_function OS_Handle OS_SocketAlloc(OS_NetProtocol protocol);
+root_function void OS_SocketRelease(OS_Handle s);
+root_function void OS_SocketBind(OS_Handle s, OS_NetAddr addr, OS_ErrorList *errors_out);
+root_function OS_AcceptResult OS_SocketAccept(OS_Handle s, OS_ErrorList *errors_out);
+root_function void OS_SocketSend(OS_Handle s, String8 data, OS_ErrorList *errors_out);
+root_function void OS_SocketSendTo(OS_Handle s, OS_NetAddr addr, String8 data, OS_ErrorList *errors_out);
+root_function OS_ReceiveResult OS_SocketReceive(Arena *arena, OS_Handle s, U64 cap, OS_ErrorList *errors_out);
+root_function OS_ReceiveResult OS_SocketReceiveFrom(Arena *arena, OS_Handle s, U64 cap, OS_ErrorList *errors_out);
 
 #endif // OS_NET_H

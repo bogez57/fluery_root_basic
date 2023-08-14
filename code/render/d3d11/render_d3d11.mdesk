@@ -6,6 +6,7 @@ R_D3D11_CmdGlobalsTable:
 {
  {Rect2D       rect2d       R_D3D11_CmdGlobals_Rect2D      }
  {Sprite3D     sprite3d     R_D3D11_CmdGlobals_Sprite3D    }
+ {Fog3D        fog3d        R_D3D11_CmdGlobals_Fog3D       }
  {DebugLine3D  debugline3d  R_D3D11_CmdGlobals_DebugLine3D }
 }
 
@@ -14,6 +15,7 @@ R_D3D11_ShaderPairTable:
 {
  {Rect2D       rect2d        r_d3d11_g_rect2d_shader_src      r_d3d11_g_rect2d_ilay_elements      }
  {Sprite3D     sprite3d      r_d3d11_g_sprite3d_shader_src    r_d3d11_g_sprite3d_ilay_elements    }
+ {Fog3D        fog3d         r_d3d11_g_fog3d_shader_src       /                                   }
  {DebugLine3D  debugline3d   r_d3d11_g_debugline3d_shader_src r_d3d11_g_debugline3d_ilay_elements }
 }
 
@@ -45,7 +47,7 @@ r_d3d11_g_cmd_global_kind_info_table:
 r_d3d11_g_shader_pair_kind_info_table:
 {
  `{0},`;
- @expand(R_D3D11_ShaderPairTable a) `{Str8LitComp("$(a.shader_blob)"), $(a.shader_blob), $(a.element_desc_table), ArrayCount($(a.element_desc_table))},`;
+ @expand(R_D3D11_ShaderPairTable a) `{Str8LitComp("$(a.shader_blob)"), $(a.shader_blob), $(a.element_desc_table != "/" ?? a.element_desc_table) $(a.element_desc_table == "/" ?? "0"), $(a.element_desc_table != "/" ?? "ArrayCount(" .. a.element_desc_table .. ")") $(a.element_desc_table == "/" ?? "0")},`;
 }
 
 ////////////////////////////////
@@ -357,6 +359,75 @@ ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
  return final_color;
 }
 
+"""
+
+////////////////////////////////
+//~ rjf: Fog Shader
+
+@embed_string @c r_d3d11_g_fog3d_shader_src:
+"""
+//- rjf: resources
+
+cbuffer CmdGlobals : register(b0)
+{
+ float4 fog_color;
+ float pct_fog_per_unit;
+ float near_z;
+ float far_z;
+}
+
+Texture2D depth_t2d : register(t0);
+SamplerState depth_t2d_sampler : register(s0);
+
+//- rjf: cpu -> vshad -> pshad types
+
+struct CPU2Vertex
+{
+ uint vertex_id         : SV_VertexID;
+};
+
+struct Vertex2Pixel
+{
+ float4 pos_rs          : SV_POSITION;
+ float2 texcoord_pct    : TEX;
+};
+
+//- rjf: vertex shader
+
+Vertex2Pixel
+vs_main(CPU2Vertex cpu2vertex)
+{
+ float2 vertices[] =
+ {
+  float2(-1, -1),
+  float2(-1, +1),
+  float2(+1, -1),
+  float2(+1, +1),
+ };
+ float2 vertex = vertices[cpu2vertex.vertex_id];
+ Vertex2Pixel vertex2pixel;
+ {
+  vertex2pixel.pos_rs = float4(vertex.x, vertex.y, 0, 1);
+  vertex2pixel.texcoord_pct = float2((vertex.x+1)/2, (-vertex.y+1)/2);
+ }
+ return vertex2pixel;
+}
+
+//- rjf: pixel shader
+
+float4
+ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
+{
+ // rjf: sample depth buffer
+ float depth = depth_t2d.Sample(depth_t2d_sampler, vertex2pixel.texcoord_pct).r;
+ 
+ // rjf: linearized depth
+ float linear_depth = (near_z * far_z) / (far_z + depth * (near_z - far_z));
+ 
+ // rjf: form color
+ float4 final_color = float4(linear_depth/10.f, linear_depth/10.f, linear_depth/10.f, 1);
+ return final_color;
+}
 """
 
 ////////////////////////////////

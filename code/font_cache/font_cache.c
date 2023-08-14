@@ -1,7 +1,7 @@
 ////////////////////////////////
 //~ rjf: Globals
 
-#if BUILD_ROOT
+#if BUILD_CORE
 B32 f_initialized = 0;
 F_State *f_state = 0;
 #endif
@@ -9,13 +9,13 @@ F_State *f_state = 0;
 ////////////////////////////////
 //~ rjf: Tag Functions
 
-core_function B32
+root_function B32
 F_TagMatch(F_Tag a, F_Tag b)
 {
  return a.u64[0] == b.u64[0] && a.u64[1] == b.u64[1];
 }
 
-core_function F_Tag
+root_function F_Tag
 F_TagFromHash(C_Hash hash)
 {
  //- rjf: build tag from hash
@@ -49,7 +49,7 @@ F_TagFromHash(C_Hash hash)
  return result;
 }
 
-core_function F_Tag
+root_function F_Tag
 F_TagFromFontPath(String8 string)
 {
  FS_Tag fs_tag = FS_TagFromPath(string);
@@ -58,13 +58,13 @@ F_TagFromFontPath(String8 string)
  return tag;
 }
 
-core_function B32
+root_function B32
 F_HashMatch(F_Hash a, F_Hash b)
 {
  return a.u64[0] == b.u64[0] && a.u64[1] == b.u64[1];
 }
 
-core_function F_Hash
+root_function F_Hash
 F_HashFromTagSizeString(F_Tag tag, F32 size, String8 string)
 {
  union {F32 f; U64 u;} size_u = {0};
@@ -89,7 +89,7 @@ F_HashFromTagSizeString(F_Tag tag, F32 size, String8 string)
 ////////////////////////////////
 //~ rjf: Cache Interaction Functions
 
-core_function FP_Handle
+root_function FP_Handle
 F_FontHandleFromTag(F_Tag font)
 {
  //- rjf: tag => slot
@@ -117,7 +117,7 @@ F_FontHandleFromTag(F_Tag font)
  return handle;
 }
 
-core_function F_Metrics
+root_function F_Metrics
 F_MetricsFromTag(F_Tag font, F32 size)
 {
  F_Metrics result = {0};
@@ -132,7 +132,7 @@ F_MetricsFromTag(F_Tag font, F32 size)
  return result;
 }
 
-core_function F_Run
+root_function F_Run
 F_RunFromFontSizeString(Arena *arena, F_Tag font, F32 size, String8 string)
 {
  ArenaTemp scratch = GetScratch(&arena, 1);
@@ -230,7 +230,7 @@ F_RunFromFontSizeString(Arena *arena, F_Tag font, F32 size, String8 string)
  return run;
 }
 
-core_function F32
+root_function F32
 F_AdvanceFromFontSizeString(F_Tag font, F32 size, String8 string)
 {
  ArenaTemp scratch = GetScratch(0, 0);
@@ -239,7 +239,7 @@ F_AdvanceFromFontSizeString(F_Tag font, F32 size, String8 string)
  return run.advance;
 }
 
-core_function U64
+root_function U64
 F_ByteOffFromFontSizeStringAdvance(F_Tag font, F32 size, String8 string, F32 advance)
 {
  U64 result = 0;
@@ -267,7 +267,7 @@ F_ByteOffFromFontSizeStringAdvance(F_Tag font, F32 size, String8 string, F32 adv
  return result;
 }
 
-core_function String8
+root_function String8
 F_TruncatedStringFromFontSizeStringMax(F_Tag font, F32 size, String8 string, F32 max, F32 trailer_advance)
 {
  // rjf: calculate truncated size
@@ -302,7 +302,7 @@ F_TruncatedStringFromFontSizeStringMax(F_Tag font, F32 size, String8 string, F32
  return result;
 }
 
-core_function String8List
+root_function String8List
 F_WrappedStringLinesFromFontSizeStringMax(Arena *arena, F_Tag font, F32 size, String8 string, F32 max)
 {
  String8List list = {0};
@@ -416,7 +416,7 @@ F_WrappedStringLinesFromFontSizeStringMax(Arena *arena, F_Tag font, F32 size, St
 ////////////////////////////////
 //~ rjf: Diagnostics
 
-core_function F_AtlasList
+root_function F_AtlasList
 F_PushAtlasList(Arena *arena)
 {
  F_AtlasList list = {0};
@@ -430,7 +430,7 @@ F_PushAtlasList(Arena *arena)
 ////////////////////////////////
 //~ rjf: Main API
 
-core_function F_InitReceipt
+root_function F_InitReceipt
 F_Init(FP_InitReceipt fp_init_receipt, R_InitReceipt r_init_receipt, Vec2S64 glyph_atlas_size)
 {
  if(IsMainThread() && f_initialized == 0)

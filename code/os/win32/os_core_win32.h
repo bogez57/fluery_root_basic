@@ -115,9 +115,9 @@ struct OS_W32_State
 ////////////////////////////////
 //~ rjf: Globals
 
-core_global HINSTANCE os_w32_hinstance;
-core_global OS_W32_State *os_w32_state;
-core_global BOOL (*RtlGenRandom)(VOID *RandomBuffer, ULONG RandomBufferLength);
+root_global HINSTANCE os_w32_hinstance;
+root_global OS_W32_State *os_w32_state;
+root_global BOOL (*RtlGenRandom)(VOID *RandomBuffer, ULONG RandomBufferLength);
 
 ////////////////////////////////
 //~ rjf: File System Helpers

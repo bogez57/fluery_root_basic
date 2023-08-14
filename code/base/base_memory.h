@@ -36,17 +36,17 @@ struct ArenaTemp
 ////////////////////////////////
 //~ rjf: Arena Functions
 
-core_function Arena *ArenaAlloc(U64 size);
-core_function Arena *ArenaAllocDefault(void);
-core_function void ArenaRelease(Arena *arena);
-core_function void *ArenaPushNoZero(Arena *arena, U64 size);
-core_function void *ArenaPushAligner(Arena *arena, U64 alignment);
-core_function void *ArenaPush(Arena *arena, U64 size);
-core_function void ArenaPopTo(Arena *arena, U64 pos);
-core_function void ArenaSetAutoAlign(Arena *arena, U64 align);
-core_function void ArenaPop(Arena *arena, U64 size);
-core_function void ArenaClear(Arena *arena);
-core_function U64 ArenaPos(Arena *arena);
+root_function Arena *ArenaAlloc(U64 size);
+root_function Arena *ArenaAllocDefault(void);
+root_function void ArenaRelease(Arena *arena);
+root_function void *ArenaPushNoZero(Arena *arena, U64 size);
+root_function void *ArenaPushAligner(Arena *arena, U64 alignment);
+root_function void *ArenaPush(Arena *arena, U64 size);
+root_function void ArenaPopTo(Arena *arena, U64 pos);
+root_function void ArenaSetAutoAlign(Arena *arena, U64 align);
+root_function void ArenaPop(Arena *arena, U64 size);
+root_function void ArenaClear(Arena *arena);
+root_function U64 ArenaPos(Arena *arena);
 
 #define PushArrayNoZero(arena, type, count) (type *)ArenaPushNoZero((arena), sizeof(type)*(count))
 #define PushArray(arena, type, count)       (type *)ArenaPush((arena), sizeof(type)*(count))
@@ -54,8 +54,8 @@ core_function U64 ArenaPos(Arena *arena);
 ////////////////////////////////
 //~ rjf: Arena Temp Functions
 
-core_function ArenaTemp ArenaTempBegin(Arena *arena);
-core_function void ArenaTempEnd(ArenaTemp temp);
+root_function ArenaTemp ArenaTempBegin(Arena *arena);
+root_function void ArenaTempEnd(ArenaTemp temp);
 
 #define ArenaTempBlock(arena, name) ArenaTemp name = {0}; DeferLoop(name = ArenaTempBegin(arena), ArenaTempEnd(name))
 

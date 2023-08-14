@@ -842,268 +842,268 @@ struct Rng1U64List
 ////////////////////////////////
 //~ rjf: Scalar Ops
 
-core_function F32 Mix1F32(F32 a, F32 b, F32 t);
+root_function F32 Mix1F32(F32 a, F32 b, F32 t);
 
 ////////////////////////////////
 //~ rjf: Vector Ops
 
-core_function Vec2F32 V2F32(F32 x, F32 y);
-core_function Vec2F32 Add2F32(Vec2F32 a, Vec2F32 b);
-core_function Vec2F32 Sub2F32(Vec2F32 a, Vec2F32 b);
-core_function Vec2F32 Mul2F32(Vec2F32 a, Vec2F32 b);
-core_function Vec2F32 Div2F32(Vec2F32 a, Vec2F32 b);
-core_function Vec2F32 Scale2F32(Vec2F32 a, F32 scale);
-core_function F32 Dot2F32(Vec2F32 a, Vec2F32 b);
-core_function F32 LengthSquared2F32(Vec2F32 v);
-core_function F32 Length2F32(Vec2F32 v);
-core_function Vec2F32 Normalize2F32(Vec2F32 v);
-core_function Vec2F32 Mix2F32(Vec2F32 a, Vec2F32 b, F32 t);
+root_function Vec2F32 V2F32(F32 x, F32 y);
+root_function Vec2F32 Add2F32(Vec2F32 a, Vec2F32 b);
+root_function Vec2F32 Sub2F32(Vec2F32 a, Vec2F32 b);
+root_function Vec2F32 Mul2F32(Vec2F32 a, Vec2F32 b);
+root_function Vec2F32 Div2F32(Vec2F32 a, Vec2F32 b);
+root_function Vec2F32 Scale2F32(Vec2F32 a, F32 scale);
+root_function F32 Dot2F32(Vec2F32 a, Vec2F32 b);
+root_function F32 LengthSquared2F32(Vec2F32 v);
+root_function F32 Length2F32(Vec2F32 v);
+root_function Vec2F32 Normalize2F32(Vec2F32 v);
+root_function Vec2F32 Mix2F32(Vec2F32 a, Vec2F32 b, F32 t);
 
-core_function Vec2F64 V2F64(F64 x, F64 y);
-core_function Vec2F64 Add2F64(Vec2F64 a, Vec2F64 b);
-core_function Vec2F64 Sub2F64(Vec2F64 a, Vec2F64 b);
-core_function Vec2F64 Mul2F64(Vec2F64 a, Vec2F64 b);
-core_function Vec2F64 Div2F64(Vec2F64 a, Vec2F64 b);
-core_function Vec2F64 Scale2F64(Vec2F64 a, F64 scale);
-core_function F64 Dot2F64(Vec2F64 a, Vec2F64 b);
-core_function F64 LengthSquared2F64(Vec2F64 v);
-core_function F64 Length2F64(Vec2F64 v);
-core_function Vec2F64 Normalize2F64(Vec2F64 v);
-core_function Vec2F64 Mix2F64(Vec2F64 a, Vec2F64 b, F64 t);
+root_function Vec2F64 V2F64(F64 x, F64 y);
+root_function Vec2F64 Add2F64(Vec2F64 a, Vec2F64 b);
+root_function Vec2F64 Sub2F64(Vec2F64 a, Vec2F64 b);
+root_function Vec2F64 Mul2F64(Vec2F64 a, Vec2F64 b);
+root_function Vec2F64 Div2F64(Vec2F64 a, Vec2F64 b);
+root_function Vec2F64 Scale2F64(Vec2F64 a, F64 scale);
+root_function F64 Dot2F64(Vec2F64 a, Vec2F64 b);
+root_function F64 LengthSquared2F64(Vec2F64 v);
+root_function F64 Length2F64(Vec2F64 v);
+root_function Vec2F64 Normalize2F64(Vec2F64 v);
+root_function Vec2F64 Mix2F64(Vec2F64 a, Vec2F64 b, F64 t);
 
-core_function Vec2S32 V2S32(S32 x, S32 y);
-core_function Vec2S32 Add2S32(Vec2S32 a, Vec2S32 b);
-core_function Vec2S32 Sub2S32(Vec2S32 a, Vec2S32 b);
+root_function Vec2S32 V2S32(S32 x, S32 y);
+root_function Vec2S32 Add2S32(Vec2S32 a, Vec2S32 b);
+root_function Vec2S32 Sub2S32(Vec2S32 a, Vec2S32 b);
 
-core_function Vec2S64 V2S64(S64 x, S64 y);
-core_function Vec2S64 Add2S64(Vec2S64 a, Vec2S64 b);
-core_function Vec2S64 Sub2S64(Vec2S64 a, Vec2S64 b);
+root_function Vec2S64 V2S64(S64 x, S64 y);
+root_function Vec2S64 Add2S64(Vec2S64 a, Vec2S64 b);
+root_function Vec2S64 Sub2S64(Vec2S64 a, Vec2S64 b);
 
-core_function Vec3F32 V3F32(F32 x, F32 y, F32 z);
-core_function Vec3F32 Add3F32(Vec3F32 a, Vec3F32 b);
-core_function Vec3F32 Sub3F32(Vec3F32 a, Vec3F32 b);
-core_function Vec3F32 Mul3F32(Vec3F32 a, Vec3F32 b);
-core_function Vec3F32 Div3F32(Vec3F32 a, Vec3F32 b);
-core_function Vec3F32 Scale3F32(Vec3F32 a, F32 scale);
-core_function F32 Dot3F32(Vec3F32 a, Vec3F32 b);
-core_function F32 LengthSquared3F32(Vec3F32 v);
-core_function F32 Length3F32(Vec3F32 v);
-core_function Vec3F32 Normalize3F32(Vec3F32 v);
-core_function Vec3F32 Mix3F32(Vec3F32 a, Vec3F32 b, F32 t);
-core_function Vec3F32 Cross3F32(Vec3F32 a, Vec3F32 b);
-core_function Vec3F32 Transform3F32(Vec3F32 v, Mat3x3F32 m);
+root_function Vec3F32 V3F32(F32 x, F32 y, F32 z);
+root_function Vec3F32 Add3F32(Vec3F32 a, Vec3F32 b);
+root_function Vec3F32 Sub3F32(Vec3F32 a, Vec3F32 b);
+root_function Vec3F32 Mul3F32(Vec3F32 a, Vec3F32 b);
+root_function Vec3F32 Div3F32(Vec3F32 a, Vec3F32 b);
+root_function Vec3F32 Scale3F32(Vec3F32 a, F32 scale);
+root_function F32 Dot3F32(Vec3F32 a, Vec3F32 b);
+root_function F32 LengthSquared3F32(Vec3F32 v);
+root_function F32 Length3F32(Vec3F32 v);
+root_function Vec3F32 Normalize3F32(Vec3F32 v);
+root_function Vec3F32 Mix3F32(Vec3F32 a, Vec3F32 b, F32 t);
+root_function Vec3F32 Cross3F32(Vec3F32 a, Vec3F32 b);
+root_function Vec3F32 Transform3F32(Vec3F32 v, Mat3x3F32 m);
 
-core_function Vec3F64 V3F64(F64 x, F64 y, F64 z);
-core_function Vec3F64 Add3F64(Vec3F64 a, Vec3F64 b);
-core_function Vec3F64 Sub3F64(Vec3F64 a, Vec3F64 b);
-core_function Vec3F64 Mul3F64(Vec3F64 a, Vec3F64 b);
-core_function Vec3F64 Div3F64(Vec3F64 a, Vec3F64 b);
-core_function Vec3F64 Scale3F64(Vec3F64 a, F64 scale);
-core_function F64 Dot3F64(Vec3F64 a, Vec3F64 b);
-core_function F64 LengthSquared3F64(Vec3F64 v);
-core_function F64 Length3F64(Vec3F64 v);
-core_function Vec3F64 Normalize3F64(Vec3F64 v);
-core_function Vec3F64 Mix3F64(Vec3F64 a, Vec3F64 b, F64 t);
-core_function Vec3F64 Cross3F64(Vec3F64 a, Vec3F64 b);
-core_function Vec3F64 Transform3F64(Vec3F64 v, Mat3x3F64 m);
+root_function Vec3F64 V3F64(F64 x, F64 y, F64 z);
+root_function Vec3F64 Add3F64(Vec3F64 a, Vec3F64 b);
+root_function Vec3F64 Sub3F64(Vec3F64 a, Vec3F64 b);
+root_function Vec3F64 Mul3F64(Vec3F64 a, Vec3F64 b);
+root_function Vec3F64 Div3F64(Vec3F64 a, Vec3F64 b);
+root_function Vec3F64 Scale3F64(Vec3F64 a, F64 scale);
+root_function F64 Dot3F64(Vec3F64 a, Vec3F64 b);
+root_function F64 LengthSquared3F64(Vec3F64 v);
+root_function F64 Length3F64(Vec3F64 v);
+root_function Vec3F64 Normalize3F64(Vec3F64 v);
+root_function Vec3F64 Mix3F64(Vec3F64 a, Vec3F64 b, F64 t);
+root_function Vec3F64 Cross3F64(Vec3F64 a, Vec3F64 b);
+root_function Vec3F64 Transform3F64(Vec3F64 v, Mat3x3F64 m);
 
-core_function Vec3S32 V3S32(S32 x, S32 y, S32 z);
+root_function Vec3S32 V3S32(S32 x, S32 y, S32 z);
 
-core_function Vec3S64 V3S64(S64 x, S64 y, S64 z);
+root_function Vec3S64 V3S64(S64 x, S64 y, S64 z);
 
-core_function Vec4F32 V4F32(F32 x, F32 y, F32 z, F32 w);
-core_function Vec4F32 Add4F32(Vec4F32 a, Vec4F32 b);
-core_function Vec4F32 Sub4F32(Vec4F32 a, Vec4F32 b);
-core_function Vec4F32 Mul4F32(Vec4F32 a, Vec4F32 b);
-core_function Vec4F32 Div4F32(Vec4F32 a, Vec4F32 b);
-core_function Vec4F32 Scale4F32(Vec4F32 a, F32 scale);
-core_function F32 Dot4F32(Vec4F32 a, Vec4F32 b);
-core_function F32 LengthSquared4F32(Vec4F32 v);
-core_function F32 Length4F32(Vec4F32 v);
-core_function Vec4F32 Normalize4F32(Vec4F32 v);
-core_function Vec4F32 Mix4F32(Vec4F32 a, Vec4F32 b, F32 t);
-core_function Vec4F32 Transform4F32(Vec4F32 v, Mat4x4F32 m);
+root_function Vec4F32 V4F32(F32 x, F32 y, F32 z, F32 w);
+root_function Vec4F32 Add4F32(Vec4F32 a, Vec4F32 b);
+root_function Vec4F32 Sub4F32(Vec4F32 a, Vec4F32 b);
+root_function Vec4F32 Mul4F32(Vec4F32 a, Vec4F32 b);
+root_function Vec4F32 Div4F32(Vec4F32 a, Vec4F32 b);
+root_function Vec4F32 Scale4F32(Vec4F32 a, F32 scale);
+root_function F32 Dot4F32(Vec4F32 a, Vec4F32 b);
+root_function F32 LengthSquared4F32(Vec4F32 v);
+root_function F32 Length4F32(Vec4F32 v);
+root_function Vec4F32 Normalize4F32(Vec4F32 v);
+root_function Vec4F32 Mix4F32(Vec4F32 a, Vec4F32 b, F32 t);
+root_function Vec4F32 Transform4F32(Vec4F32 v, Mat4x4F32 m);
 
-core_function Vec4F64 V4F64(F64 x, F64 y, F64 z, F64 w);
-core_function Vec4F64 Add4F64(Vec4F64 a, Vec4F64 b);
-core_function Vec4F64 Sub4F64(Vec4F64 a, Vec4F64 b);
-core_function Vec4F64 Mul4F64(Vec4F64 a, Vec4F64 b);
-core_function Vec4F64 Div4F64(Vec4F64 a, Vec4F64 b);
-core_function Vec4F64 Scale4F64(Vec4F64 a, F64 scale);
-core_function F64 Dot4F64(Vec4F64 a, Vec4F64 b);
-core_function F64 LengthSquared4F64(Vec4F64 v);
-core_function F64 Length4F64(Vec4F64 v);
-core_function Vec4F64 Normalize4F64(Vec4F64 v);
-core_function Vec4F64 Mix4F64(Vec4F64 a, Vec4F64 b, F64 t);
-core_function Vec4F64 Transform4F64(Vec4F64 v, Mat4x4F64 m);
+root_function Vec4F64 V4F64(F64 x, F64 y, F64 z, F64 w);
+root_function Vec4F64 Add4F64(Vec4F64 a, Vec4F64 b);
+root_function Vec4F64 Sub4F64(Vec4F64 a, Vec4F64 b);
+root_function Vec4F64 Mul4F64(Vec4F64 a, Vec4F64 b);
+root_function Vec4F64 Div4F64(Vec4F64 a, Vec4F64 b);
+root_function Vec4F64 Scale4F64(Vec4F64 a, F64 scale);
+root_function F64 Dot4F64(Vec4F64 a, Vec4F64 b);
+root_function F64 LengthSquared4F64(Vec4F64 v);
+root_function F64 Length4F64(Vec4F64 v);
+root_function Vec4F64 Normalize4F64(Vec4F64 v);
+root_function Vec4F64 Mix4F64(Vec4F64 a, Vec4F64 b, F64 t);
+root_function Vec4F64 Transform4F64(Vec4F64 v, Mat4x4F64 m);
 
-core_function Vec4S32 V4S32(S32 x, S32 y, S32 z, S32 w);
+root_function Vec4S32 V4S32(S32 x, S32 y, S32 z, S32 w);
 
-core_function Vec4S64 V4S64(S64 x, S64 y, S64 z, S64 w);
+root_function Vec4S64 V4S64(S64 x, S64 y, S64 z, S64 w);
 
 ////////////////////////////////
 //~ rjf: Matrix Constructors
 
-core_function Mat3x3F32 MakeMat3x3F32(F32 d);
-core_function Mat3x3F32 MakeTranslate3x3F32(Vec2F32 translation);
-core_function Mat3x3F32 MakeScale3x3F32(Vec2F32 scale);
-core_function Mat3x3F32 MakeRotate3x3F32(F32 turns);
+root_function Mat3x3F32 MakeMat3x3F32(F32 d);
+root_function Mat3x3F32 MakeTranslate3x3F32(Vec2F32 translation);
+root_function Mat3x3F32 MakeScale3x3F32(Vec2F32 scale);
+root_function Mat3x3F32 MakeRotate3x3F32(F32 turns);
 
-core_function Mat4x4F32 MakeMat4x4F32(F32 d);
-core_function Mat4x4F32 MakeTranslate4x4F32(Vec3F32 translation);
-core_function Mat4x4F32 MakeScale4x4F32(Vec3F32 scale);
-core_function Mat4x4F32 MakePerspective4x4F32(F32 fov, F32 aspect_ratio, F32 near_z, F32 far_z);
-core_function Mat4x4F32 MakeOrthographic4x4F32(F32 left, F32 right, F32 bottom, F32 top, F32 near_z, F32 far_z);
-core_function Mat4x4F32 MakeLookAt4x4F32(Vec3F32 eye, Vec3F32 center, Vec3F32 up);
-core_function Mat4x4F32 MakeRotate4x4F32(Vec3F32 axis, F32 turns);
+root_function Mat4x4F32 MakeMat4x4F32(F32 d);
+root_function Mat4x4F32 MakeTranslate4x4F32(Vec3F32 translation);
+root_function Mat4x4F32 MakeScale4x4F32(Vec3F32 scale);
+root_function Mat4x4F32 MakePerspective4x4F32(F32 fov, F32 aspect_ratio, F32 near_z, F32 far_z);
+root_function Mat4x4F32 MakeOrthographic4x4F32(F32 left, F32 right, F32 bottom, F32 top, F32 near_z, F32 far_z);
+root_function Mat4x4F32 MakeLookAt4x4F32(Vec3F32 eye, Vec3F32 center, Vec3F32 up);
+root_function Mat4x4F32 MakeRotate4x4F32(Vec3F32 axis, F32 turns);
 
 ////////////////////////////////
 //~ rjf: Matrix Ops
 
-core_function Mat3x3F32 Mul3x3F32(Mat3x3F32 a, Mat3x3F32 b);
-core_function Mat3x3F32 Scale3x3F32(Mat3x3F32 m, F32 scale);
-core_function Mat4x4F32 Mul4x4F32(Mat4x4F32 a, Mat4x4F32 b);
-core_function Mat4x4F32 Scale4x4F32(Mat4x4F32 m, F32 scale);
-core_function Mat4x4F32 Inverse4x4F32(Mat4x4F32 m);
-core_function Mat4x4F32 RemoveRotation4x4F32(Mat4x4F32 mat);
+root_function Mat3x3F32 Mul3x3F32(Mat3x3F32 a, Mat3x3F32 b);
+root_function Mat3x3F32 Scale3x3F32(Mat3x3F32 m, F32 scale);
+root_function Mat4x4F32 Mul4x4F32(Mat4x4F32 a, Mat4x4F32 b);
+root_function Mat4x4F32 Scale4x4F32(Mat4x4F32 m, F32 scale);
+root_function Mat4x4F32 Inverse4x4F32(Mat4x4F32 m);
+root_function Mat4x4F32 RemoveRotation4x4F32(Mat4x4F32 mat);
 
 ////////////////////////////////
 //~ rjf: Quaternion Constructors
 
-core_function QuatF32 MakeQuatF32(F32 x, F32 y, F32 z, F32 w);
-core_function QuatF32 QuatFromAxisAngleF32(Vec3F32 axis, F32 turns);
+root_function QuatF32 MakeQuatF32(F32 x, F32 y, F32 z, F32 w);
+root_function QuatF32 QuatFromAxisAngleF32(Vec3F32 axis, F32 turns);
 
 ////////////////////////////////
 //~ rjf: Quaternion Ops
 
-core_function QuatF32 AddQF32(QuatF32 a, QuatF32 b);
-core_function QuatF32 SubQF32(QuatF32 a, QuatF32 b);
-core_function QuatF32 MulQF32(QuatF32 a, QuatF32 b);
-core_function QuatF32 ScaleQF32(QuatF32 a, F32 scale);
-core_function QuatF32 NormalizeQF32(QuatF32 q);
-core_function QuatF32 MixQF32(QuatF32 a, QuatF32 b, F32 t);
-core_function F32 DotQF32(QuatF32 a, QuatF32 b);
-core_function Mat4x4F32 Mat4x4FromQuatF32(QuatF32 q);
+root_function QuatF32 AddQF32(QuatF32 a, QuatF32 b);
+root_function QuatF32 SubQF32(QuatF32 a, QuatF32 b);
+root_function QuatF32 MulQF32(QuatF32 a, QuatF32 b);
+root_function QuatF32 ScaleQF32(QuatF32 a, F32 scale);
+root_function QuatF32 NormalizeQF32(QuatF32 q);
+root_function QuatF32 MixQF32(QuatF32 a, QuatF32 b, F32 t);
+root_function F32 DotQF32(QuatF32 a, QuatF32 b);
+root_function Mat4x4F32 Mat4x4FromQuatF32(QuatF32 q);
 
 ////////////////////////////////
 //~ rjf: Range Ops
 
-core_function Rng1F32 R1F32(F32 min, F32 max);
-core_function Rng1F32 Shift1F32(Rng1F32 r, F32 v);
-core_function Rng1F32 Pad1F32(Rng1F32 r, F32 x);
-core_function F32 Center1F32(Rng1F32 r);
-core_function B32 Contains1F32(Rng1F32 r, F32 v);
-core_function F32 Dim1F32(Rng1F32 r);
-core_function Rng1F32 Union1F32(Rng1F32 a, Rng1F32 b);
-core_function Rng1F32 Intersection1F32(Rng1F32 a, Rng1F32 b);
+root_function Rng1F32 R1F32(F32 min, F32 max);
+root_function Rng1F32 Shift1F32(Rng1F32 r, F32 v);
+root_function Rng1F32 Pad1F32(Rng1F32 r, F32 x);
+root_function F32 Center1F32(Rng1F32 r);
+root_function B32 Contains1F32(Rng1F32 r, F32 v);
+root_function F32 Dim1F32(Rng1F32 r);
+root_function Rng1F32 Union1F32(Rng1F32 a, Rng1F32 b);
+root_function Rng1F32 Intersection1F32(Rng1F32 a, Rng1F32 b);
 
-core_function Rng1F64 R1F64(F64 min, F64 max);
-core_function Rng1F64 Shift1F64(Rng1F64 r, F64 v);
-core_function Rng1F64 Pad1F64(Rng1F64 r, F64 x);
-core_function F64 Center1F64(Rng1F64 r);
-core_function B32 Contains1F64(Rng1F64 r, F64 v);
-core_function F64 Dim1F64(Rng1F64 r);
-core_function Rng1F64 Union1F64(Rng1F64 a, Rng1F64 b);
-core_function Rng1F64 Intersection1F64(Rng1F64 a, Rng1F64 b);
+root_function Rng1F64 R1F64(F64 min, F64 max);
+root_function Rng1F64 Shift1F64(Rng1F64 r, F64 v);
+root_function Rng1F64 Pad1F64(Rng1F64 r, F64 x);
+root_function F64 Center1F64(Rng1F64 r);
+root_function B32 Contains1F64(Rng1F64 r, F64 v);
+root_function F64 Dim1F64(Rng1F64 r);
+root_function Rng1F64 Union1F64(Rng1F64 a, Rng1F64 b);
+root_function Rng1F64 Intersection1F64(Rng1F64 a, Rng1F64 b);
 
-core_function Rng1S32 R1S32(S32 min, S32 max);
-core_function Rng1S32 Shift1S32(Rng1S32 r, S32 v);
-core_function Rng1S32 Pad1S32(Rng1S32 r, S32 x);
-core_function S32 Center1S32(Rng1S32 r);
-core_function B32 Contains1S32(Rng1S32 r, S32 v);
-core_function S32 Dim1S32(Rng1S32 r);
-core_function Rng1S32 Union1S32(Rng1S32 a, Rng1S32 b);
-core_function Rng1S32 Intersection1S32(Rng1S32 a, Rng1S32 b);
+root_function Rng1S32 R1S32(S32 min, S32 max);
+root_function Rng1S32 Shift1S32(Rng1S32 r, S32 v);
+root_function Rng1S32 Pad1S32(Rng1S32 r, S32 x);
+root_function S32 Center1S32(Rng1S32 r);
+root_function B32 Contains1S32(Rng1S32 r, S32 v);
+root_function S32 Dim1S32(Rng1S32 r);
+root_function Rng1S32 Union1S32(Rng1S32 a, Rng1S32 b);
+root_function Rng1S32 Intersection1S32(Rng1S32 a, Rng1S32 b);
 
-core_function Rng1S64 R1S64(S64 min, S64 max);
-core_function Rng1S64 Shift1S64(Rng1S64 r, S64 v);
-core_function Rng1S64 Pad1S64(Rng1S64 r, S64 x);
-core_function S64 Center1S64(Rng1S64 r);
-core_function B32 Contains1S64(Rng1S64 r, S64 v);
-core_function S64 Dim1S64(Rng1S64 r);
-core_function Rng1S64 Union1S64(Rng1S64 a, Rng1S64 b);
-core_function Rng1S64 Intersection1S64(Rng1S64 a, Rng1S64 b);
+root_function Rng1S64 R1S64(S64 min, S64 max);
+root_function Rng1S64 Shift1S64(Rng1S64 r, S64 v);
+root_function Rng1S64 Pad1S64(Rng1S64 r, S64 x);
+root_function S64 Center1S64(Rng1S64 r);
+root_function B32 Contains1S64(Rng1S64 r, S64 v);
+root_function S64 Dim1S64(Rng1S64 r);
+root_function Rng1S64 Union1S64(Rng1S64 a, Rng1S64 b);
+root_function Rng1S64 Intersection1S64(Rng1S64 a, Rng1S64 b);
 
-core_function Rng1U32 R1U32(U32 min, U32 max);
-core_function Rng1U32 Shift1U32(Rng1U32 r, U32 v);
-core_function Rng1U32 Pad1U32(Rng1U32 r, U32 x);
-core_function U32 Center1U32(Rng1U32 r);
-core_function B32 Contains1U32(Rng1U32 r, U32 v);
-core_function U32 Dim1U32(Rng1U32 r);
-core_function Rng1U32 Union1U32(Rng1U32 a, Rng1U32 b);
-core_function Rng1U32 Intersection1U32(Rng1U32 a, Rng1U32 b);
+root_function Rng1U32 R1U32(U32 min, U32 max);
+root_function Rng1U32 Shift1U32(Rng1U32 r, U32 v);
+root_function Rng1U32 Pad1U32(Rng1U32 r, U32 x);
+root_function U32 Center1U32(Rng1U32 r);
+root_function B32 Contains1U32(Rng1U32 r, U32 v);
+root_function U32 Dim1U32(Rng1U32 r);
+root_function Rng1U32 Union1U32(Rng1U32 a, Rng1U32 b);
+root_function Rng1U32 Intersection1U32(Rng1U32 a, Rng1U32 b);
 
-core_function Rng1U64 R1U64(U64 min, U64 max);
-core_function Rng1U64 Shift1U64(Rng1U64 r, U64 v);
-core_function Rng1U64 Pad1U64(Rng1U64 r, U64 x);
-core_function U64 Center1U64(Rng1U64 r);
-core_function B32 Contains1U64(Rng1U64 r, U64 v);
-core_function U64 Dim1U64(Rng1U64 r);
-core_function Rng1U64 Union1U64(Rng1U64 a, Rng1U64 b);
-core_function Rng1U64 Intersection1U64(Rng1U64 a, Rng1U64 b);
+root_function Rng1U64 R1U64(U64 min, U64 max);
+root_function Rng1U64 Shift1U64(Rng1U64 r, U64 v);
+root_function Rng1U64 Pad1U64(Rng1U64 r, U64 x);
+root_function U64 Center1U64(Rng1U64 r);
+root_function B32 Contains1U64(Rng1U64 r, U64 v);
+root_function U64 Dim1U64(Rng1U64 r);
+root_function Rng1U64 Union1U64(Rng1U64 a, Rng1U64 b);
+root_function Rng1U64 Intersection1U64(Rng1U64 a, Rng1U64 b);
 
-core_function Rng2F32 R2F32(Vec2F32 min, Vec2F32 max);
-core_function Rng2F32 Shift2F32(Rng2F32 r, Vec2F32 v);
-core_function Rng2F32 Pad2F32(Rng2F32 r, F32 x);
-core_function Vec2F32 Center2F32(Rng2F32 r);
-core_function B32 Contains2F32(Rng2F32 r, Vec2F32 v);
-core_function Vec2F32 Dim2F32(Rng2F32 r);
-core_function Rng2F32 Union2F32(Rng2F32 a, Rng2F32 b);
-core_function Rng2F32 Intersection2F32(Rng2F32 a, Rng2F32 b);
+root_function Rng2F32 R2F32(Vec2F32 min, Vec2F32 max);
+root_function Rng2F32 Shift2F32(Rng2F32 r, Vec2F32 v);
+root_function Rng2F32 Pad2F32(Rng2F32 r, F32 x);
+root_function Vec2F32 Center2F32(Rng2F32 r);
+root_function B32 Contains2F32(Rng2F32 r, Vec2F32 v);
+root_function Vec2F32 Dim2F32(Rng2F32 r);
+root_function Rng2F32 Union2F32(Rng2F32 a, Rng2F32 b);
+root_function Rng2F32 Intersection2F32(Rng2F32 a, Rng2F32 b);
 
-core_function Rng2F64 R2F64(Vec2F64 min, Vec2F64 max);
-core_function Rng2F64 Shift2F64(Rng2F64 r, Vec2F64 v);
-core_function Rng2F64 Pad2F64(Rng2F64 r, F64 x);
-core_function Vec2F64 Center2F64(Rng2F64 r);
-core_function B32 Contains2F64(Rng2F64 r, Vec2F64 v);
-core_function Vec2F64 Dim2F64(Rng2F64 r);
-core_function Rng2F64 Union2F64(Rng2F64 a, Rng2F64 b);
-core_function Rng2F64 Intersection2F64(Rng2F64 a, Rng2F64 b);
+root_function Rng2F64 R2F64(Vec2F64 min, Vec2F64 max);
+root_function Rng2F64 Shift2F64(Rng2F64 r, Vec2F64 v);
+root_function Rng2F64 Pad2F64(Rng2F64 r, F64 x);
+root_function Vec2F64 Center2F64(Rng2F64 r);
+root_function B32 Contains2F64(Rng2F64 r, Vec2F64 v);
+root_function Vec2F64 Dim2F64(Rng2F64 r);
+root_function Rng2F64 Union2F64(Rng2F64 a, Rng2F64 b);
+root_function Rng2F64 Intersection2F64(Rng2F64 a, Rng2F64 b);
 
-core_function Rng2S32 R2S32(Vec2S32 min, Vec2S32 max);
-core_function Rng2S32 Shift2S32(Rng2F32 r, Vec2S32 v);
-core_function Rng2S32 Pad2S32(Rng2S32 r, S32 x);
-core_function Vec2S32 Center2S32(Rng2S32 r);
-core_function B32 Contains2S32(Rng2S32 r, Vec2S32 v);
-core_function Vec2S32 Dim2S32(Rng2S32 r);
-core_function Rng2S32 Union2S32(Rng2S32 a, Rng2S32 b);
-core_function Rng2S32 Intersection2S32(Rng2S32 a, Rng2S32 b);
+root_function Rng2S32 R2S32(Vec2S32 min, Vec2S32 max);
+root_function Rng2S32 Shift2S32(Rng2F32 r, Vec2S32 v);
+root_function Rng2S32 Pad2S32(Rng2S32 r, S32 x);
+root_function Vec2S32 Center2S32(Rng2S32 r);
+root_function B32 Contains2S32(Rng2S32 r, Vec2S32 v);
+root_function Vec2S32 Dim2S32(Rng2S32 r);
+root_function Rng2S32 Union2S32(Rng2S32 a, Rng2S32 b);
+root_function Rng2S32 Intersection2S32(Rng2S32 a, Rng2S32 b);
 
-core_function Rng2S64 R2S64(Vec2S64 min, Vec2S64 max);
-core_function Rng2S64 Shift2S64(Rng2F32 r, Vec2S64 v);
-core_function Rng2S64 Pad2S64(Rng2S64 r, S64 x);
-core_function Vec2S64 Center2S64(Rng2S64 r);
-core_function B32 Contains2S64(Rng2S64 r, Vec2S64 v);
-core_function Vec2S64 Dim2S64(Rng2S64 r);
-core_function Rng2S64 Union2S64(Rng2S64 a, Rng2S64 b);
-core_function Rng2S64 Intersection2S64(Rng2S64 a, Rng2S64 b);
+root_function Rng2S64 R2S64(Vec2S64 min, Vec2S64 max);
+root_function Rng2S64 Shift2S64(Rng2F32 r, Vec2S64 v);
+root_function Rng2S64 Pad2S64(Rng2S64 r, S64 x);
+root_function Vec2S64 Center2S64(Rng2S64 r);
+root_function B32 Contains2S64(Rng2S64 r, Vec2S64 v);
+root_function Vec2S64 Dim2S64(Rng2S64 r);
+root_function Rng2S64 Union2S64(Rng2S64 a, Rng2S64 b);
+root_function Rng2S64 Intersection2S64(Rng2S64 a, Rng2S64 b);
 
-core_function Rng3F32 R3F32(Vec3F32 min, Vec3F32 max);
-core_function Rng3F32 Shift3F32(Rng3F32 r, Vec3F32 v);
-core_function Rng3F32 Pad3F32(Rng3F32 r, F32 x);
-core_function Vec3F32 Center3F32(Rng3F32 r);
-core_function B32 Contains3F32(Rng3F32 r, Vec3F32 v);
-core_function Vec3F32 Dim3F32(Rng3F32 r);
-core_function Rng3F32 Union3F32(Rng3F32 a, Rng3F32 b);
-core_function Rng3F32 Intersection3F32(Rng3F32 a, Rng3F32 b);
+root_function Rng3F32 R3F32(Vec3F32 min, Vec3F32 max);
+root_function Rng3F32 Shift3F32(Rng3F32 r, Vec3F32 v);
+root_function Rng3F32 Pad3F32(Rng3F32 r, F32 x);
+root_function Vec3F32 Center3F32(Rng3F32 r);
+root_function B32 Contains3F32(Rng3F32 r, Vec3F32 v);
+root_function Vec3F32 Dim3F32(Rng3F32 r);
+root_function Rng3F32 Union3F32(Rng3F32 a, Rng3F32 b);
+root_function Rng3F32 Intersection3F32(Rng3F32 a, Rng3F32 b);
 
 ////////////////////////////////
 //~ rjf: Lists
 
-core_function void Rng1U64ListPushNode(Rng1U64List *list, Rng1U64Node *node);
-core_function void Rng1U64ListPushNodeFront(Rng1U64List *list, Rng1U64Node *node);
-core_function void Rng1U64ListPush(Arena *arena, Rng1U64List *list, Rng1U64 rng);
-core_function void Rng1U64ListPushFront(Arena *arena, Rng1U64List *list, Rng1U64 rng);
+root_function void Rng1U64ListPushNode(Rng1U64List *list, Rng1U64Node *node);
+root_function void Rng1U64ListPushNodeFront(Rng1U64List *list, Rng1U64Node *node);
+root_function void Rng1U64ListPush(Arena *arena, Rng1U64List *list, Rng1U64 rng);
+root_function void Rng1U64ListPushFront(Arena *arena, Rng1U64List *list, Rng1U64 rng);
 
 ////////////////////////////////
 //~ rjf: Miscellaneous Ops
 
-core_function Vec3F32 HSVFromRGB(Vec3F32 rgb);
-core_function Vec3F32 RGBFromHSV(Vec3F32 hsv);
-core_function Vec4F32 Vec4F32FromHexRGBA(U32 hex);
-core_function F32 MillisecondsFromMicroseconds(U64 microseconds);
-core_function U64 MicrosecondsFromMilliseconds(F32 milliseconds);
-core_function Vec2S64 SideVertexFromCorner(Corner corner);
+root_function Vec3F32 HSVFromRGB(Vec3F32 rgb);
+root_function Vec3F32 RGBFromHSV(Vec3F32 hsv);
+root_function Vec4F32 Vec4F32FromHexRGBA(U32 hex);
+root_function F32 MillisecondsFromMicroseconds(U64 microseconds);
+root_function U64 MicrosecondsFromMilliseconds(F32 milliseconds);
+root_function Vec2S64 SideVertexFromCorner(Corner corner);
 
 ////////////////////////////////
 //~ rjf: Omitted Base Type Wrappers (Assume F32)

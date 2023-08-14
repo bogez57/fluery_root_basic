@@ -63,19 +63,11 @@ struct R_Slice2F32
 ////////////////////////////////
 //~ rjf: Command Types
 
-typedef U32 R_CmdFlags;
-enum
-{
- R_CmdFlag_DepthWrite = (1<<0),
- R_CmdFlag_DepthTest  = (1<<1),
-};
-
 typedef enum R_CmdKind
 {
  R_CmdKind_Null,
  R_CmdKind_Rect2D,
- R_CmdKind_Sprite3D,
- R_CmdKind_DebugLine3D,
+ R_CmdKind_Pass3D,
  R_CmdKind_COUNT
 }
 R_CmdKind;
@@ -113,28 +105,61 @@ struct R_DebugLine3DInst
  Vec4F32 color1;
 };
 
-typedef struct R_CmdBatch R_CmdBatch;
-struct R_CmdBatch
+typedef struct R_CmdInstBatch R_CmdInstBatch;
+struct R_CmdInstBatch
 {
- R_CmdBatch *next;
- U64 instance_count;
- void *ext;
+ R_CmdInstBatch *next;
+ U8 *v;
+ U64 byte_count;
+ U64 byte_cap;
+ U64 inst_count;
+ U64 inst_cap;
+};
+
+typedef struct R_CmdInstBatchList R_CmdInstBatchList;
+struct R_CmdInstBatchList
+{
+ R_CmdInstBatch *first;
+ R_CmdInstBatch *last;
+ U64 batch_count;
+ U64 inst_count;
+ U64 byte_count;
+};
+
+typedef struct R_Pass3DParams R_Pass3DParams;
+struct R_Pass3DParams
+{
+ // rjf: viewport
+ Rng2F32 viewport;
+ 
+ // rjf: near/far z planes
+ F32 near_z;
+ F32 far_z;
+ 
+ // rjf: view/projection
+ Mat4x4F32 xform_view;
+ Mat4x4F32 xform_projection;
+ 
+ // rjf: fog
+ Vec4F32 fog_color;
+ F32 pct_fog_per_unit;
+ 
+ // rjf: instance batches
+ R_CmdInstBatchList sprites;
+ R_CmdInstBatchList debug_lines;
 };
 
 typedef struct R_Cmd R_Cmd;
 struct R_Cmd
 {
+ // rjf: payload
  R_CmdKind kind;
+ R_CmdInstBatchList batches;
+ 
+ // rjf: parameters
  R_Handle albedo_texture;
  R_Texture2DSampleKind albedo_texture_sample_kind;
- R_CmdBatch *first_batch;
- R_CmdBatch *last_batch;
- U64 total_instance_count;
- R_CmdFlags flags;
- Rng2F32 viewport;
  Mat3x3F32 xform2d;
- Mat4x4F32 view3d;
- Mat4x4F32 projection3d;
  Rng2F32 clip;
  F32 opacity;
 };
@@ -157,18 +182,24 @@ struct R_CmdList
 ////////////////////////////////
 //~ rjf: Basic Type Functions
 
-core_function R_Handle R_HandleZero(void);
-core_function B32 R_HandleMatch(R_Handle a, R_Handle b);
-core_function B32 R_HandleIsZero(R_Handle handle);
-core_function U64 R_BytesPerPixelFromTexture2DFormat(R_Texture2DFormat fmt);
+root_function R_Handle R_HandleZero(void);
+root_function B32 R_HandleMatch(R_Handle a, R_Handle b);
+root_function B32 R_HandleIsZero(R_Handle handle);
+root_function U64 R_BytesPerPixelFromTexture2DFormat(R_Texture2DFormat fmt);
 
 ////////////////////////////////
 //~ rjf: Command Type Functions
 
-core_function U64 R_InstanceSizeFromCmdKind(R_CmdKind kind);
-core_function void *R_PushCmdInstance(Arena *arena, R_Cmd *cmd);
-core_function R_CmdNode *R_CmdListPush(Arena *arena, R_CmdList *list, R_Cmd *cmd);
-core_function void R_CmdListJoin(R_CmdList *list, R_CmdList *to_push);
-core_function void R_DeepConcatCmd(Arena *arena, R_Cmd *dst, R_Cmd *src);
+//- rjf: command kind metadata
+root_function U64 R_InstanceSizeFromCmdKind(R_CmdKind kind);
+
+//- rjf: command instance batch lists
+root_function void *R_CmdInstBatchListPush(Arena *arena, R_CmdInstBatchList *list, U64 cap, U64 instance_size);
+root_function void R_CmdInstBatchListConcatInPlace(R_CmdInstBatchList *list, R_CmdInstBatchList *to_push);
+root_function void R_CmdInstBatchListConcatDeepCopy(Arena *arena, R_CmdInstBatchList *list, R_CmdInstBatchList *to_push);
+
+//- rjf: command lists
+root_function R_CmdNode *R_CmdListPush(Arena *arena, R_CmdList *list, R_Cmd *cmd);
+root_function void R_CmdListConcatInPlace(R_CmdList *list, R_CmdList *to_push);
 
 #endif // RENDER_TYPES_H

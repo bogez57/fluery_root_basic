@@ -1,5 +1,5 @@
 
-core_function U64
+root_function U64
 CmdLineHashFromString(String8 string)
 {
  U64 result = 5381;
@@ -10,7 +10,7 @@ CmdLineHashFromString(String8 string)
  return result;
 }
 
-core_function CmdLine
+root_function CmdLine
 CmdLineFromStringList(Arena *arena, String8List strings)
 {
  ArenaTemp scratch = GetScratch(&arena, 1);
@@ -139,7 +139,7 @@ CmdLineFromStringList(Arena *arena, String8List strings)
  return cmdln;
 }
 
-core_function String8List
+root_function String8List
 CmdLineOptStrings(CmdLine *cmdln, String8 name)
 {
  String8List result = {0};
@@ -164,7 +164,7 @@ CmdLineOptStrings(CmdLine *cmdln, String8 name)
  return result;
 }
 
-core_function String8
+root_function String8
 CmdLineOptString(CmdLine *cmdln, String8 name)
 {
  String8 result = {0};
@@ -189,7 +189,7 @@ CmdLineOptString(CmdLine *cmdln, String8 name)
  return result;
 }
 
-core_function B32
+root_function B32
 CmdLineOptB32(CmdLine *cmdln, String8 name)
 {
  B32 result = 0;
@@ -216,7 +216,7 @@ CmdLineOptB32(CmdLine *cmdln, String8 name)
  return result;
 }
 
-core_function F64
+root_function F64
 CmdLineOptF64(CmdLine *cmdln, String8 name)
 {
  F64 result = 0;
@@ -227,7 +227,7 @@ CmdLineOptF64(CmdLine *cmdln, String8 name)
  return result;
 }
 
-core_function S64
+root_function S64
 CmdLineOptS64(CmdLine *cmdln, String8 name)
 {
  S64 result = 0;

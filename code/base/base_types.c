@@ -1,11 +1,11 @@
-#if BUILD_ROOT
+#if BUILD_CORE
 #include "third_party/pcg/include/pcg_impl.c"
 #endif
 
 ////////////////////////////////
 //~ rjf: Bit Patterns
 
-core_function U32
+root_function U32
 UpToPow2_32(U32 x)
 {
  if(x == 0)
@@ -25,7 +25,7 @@ UpToPow2_32(U32 x)
  return x;
 }
 
-core_function U64
+root_function U64
 UpToPow2_64(U64 x)
 {
  if(x == 0)
@@ -46,7 +46,7 @@ UpToPow2_64(U64 x)
  return x;
 }
 
-core_function U32
+root_function U32
 SearchFirstOneBit_32_BinarySearch(U32 x)
 {
  U32 result = 0;
@@ -86,7 +86,7 @@ SearchFirstOneBit_32_BinarySearch(U32 x)
  return result;
 }
 
-core_function U32
+root_function U32
 SearchFirstOneBit_64_BinarySearch(U64 x)
 {
  U32 result = 0;

@@ -21,10 +21,23 @@ struct D_InitReceipt
 typedef struct D_Bucket D_Bucket;
 struct D_Bucket
 {
+ // rjf: render commands
  R_CmdList cmds;
+ 
+ // rjf: 3d pass stack
+ struct D_Pass3DNode *top_3d_pass;
+ 
+ // rjf: parameter stacks
  U64 last_cmd_stack_gen;
  U64 current_stack_gen;
  D_DeclBucketStacks;
+};
+
+typedef struct D_Pass3DNode D_Pass3DNode;
+struct D_Pass3DNode
+{
+ D_Pass3DNode *next;
+ R_Pass3DParams *params;
 };
 
 ////////////////////////////////
@@ -134,98 +147,88 @@ struct D_SpriteParams
 ////////////////////////////////
 //~ rjf: Globals
 
-core_global B32 d_initialized;
-core_global D_State *d_state;
+root_global B32 d_initialized;
+root_global D_State *d_state;
 extern per_thread D_ThreadCtx *d_thread_ctx;
 
 ////////////////////////////////
 //~ rjf: Initialization
 
-core_function D_InitReceipt D_Init(R_InitReceipt r_init_receipt, F_InitReceipt f_init_receipt);
-core_function void D_InitThread(void);
+root_function D_InitReceipt D_Init(R_InitReceipt r_init_receipt, F_InitReceipt f_init_receipt);
+root_function void D_InitThread(void);
 
 ////////////////////////////////
 //~ rjf: Frame Boundaries
 
-core_function void D_BeginFrame(void);
-core_function void D_EndFrame(void);
+root_function void D_BeginFrame(void);
+root_function void D_EndFrame(void);
 
 ////////////////////////////////
 //~ rjf: Bucket Creation, Selection, & Submission
 
-core_function D_Bucket D_BucketMake(void);
-core_function void D_PushBucket(Arena *arena, D_Bucket *bucket);
-core_function void D_PopBucket(void);
+root_function D_Bucket *D_BucketMake(Arena *arena);
+root_function void D_PushBucket(Arena *arena, D_Bucket *bucket);
+root_function void D_PopBucket(void);
 #define D_BucketScope(arena, bucket) DeferLoop(D_PushBucket((arena), (bucket)), D_PopBucket())
-core_function Arena *D_ActiveArena(void);
-core_function D_Bucket *D_ActiveBucket(void);
-core_function void D_Submit(R_Handle window_r, D_Bucket *bucket);
+root_function Arena *D_ActiveArena(void);
+root_function D_Bucket *D_ActiveBucket(void);
+root_function void D_Submit(R_Handle window_r, D_Bucket *bucket);
 
 ////////////////////////////////
 //~ rjf: Command Building Helpers
 
-core_function R_Cmd *D_PushCmd(R_CmdKind kind, R_Handle albedo_texture);
+root_function R_Cmd *D_PushCmd(R_CmdKind kind, R_Handle albedo_texture);
 
 ////////////////////////////////
 //~ rjf: Command Building
 
 //- rjf: rectangles (2d)
 #define D_Rect2D(r, ...) D_Rect2D_((r), (D_RectParams){.color = {1, 1, 1, 1}, __VA_ARGS__})
-core_function R_Rect2DInst *D_Rect2D_(Rng2F32 rect, D_RectParams p);
+root_function R_Rect2DInst *D_Rect2D_(Rng2F32 rect, D_RectParams p);
 
 //- rjf: text (2d)
-core_function F32 D_Text2D(Vec2F32 position, F_Tag font, F32 size, Vec4F32 color, String8 string);
-core_function F32 D_Text2DF(Vec2F32 position, F_Tag font, F32 size, Vec4F32 color, char *fmt, ...);
+root_function F32 D_Text2D(Vec2F32 position, F_Tag font, F32 size, Vec4F32 color, String8 string);
+root_function F32 D_Text2DF(Vec2F32 position, F_Tag font, F32 size, Vec4F32 color, char *fmt, ...);
+
+//- rjf: passes (3d)
+#define D_Pass3D(viewport_, ...) DeferLoop(D_BeginPass3D_((R_Pass3DParams){.viewport = (viewport_), __VA_ARGS__}), D_EndPass3D())
+#define D_BeginPass3D(viewport_, ...) D_BeginPass3D_((R_Pass3DParams){.viewport = (viewport_), __VA_ARGS__})
+root_function void D_BeginPass3D_(R_Pass3DParams p);
+root_function void D_EndPass3D(void);
 
 //- rjf: sprites (3d)
 #define D_Sprite3D(pos, xform, ...) D_Sprite3D_((pos), (xform), (D_SpriteParams){.color = {1, 1, 1, 1}, .scale = {1, 1}, __VA_ARGS__})
-core_function R_Sprite3DInst *D_Sprite3D_(Vec3F32 pos, Mat4x4F32 xform, D_SpriteParams p);
+root_function R_Sprite3DInst *D_Sprite3D_(Vec3F32 pos, Mat4x4F32 xform, D_SpriteParams p);
 
 //- rjf: debug lines (3d)
-core_function R_DebugLine3DInst *D_DebugLine3D(Vec3F32 p0, Vec3F32 p1, Vec4F32 color0, Vec4F32 color1);
-core_function void D_DebugCuboid3D(Rng3F32 rng, Vec4F32 color);
-core_function void D_DebugSphere3D(Vec3F32 center, F32 radius, Vec4F32 color);
+root_function R_DebugLine3DInst *D_DebugLine3D(Vec3F32 p0, Vec3F32 p1, Vec4F32 color0, Vec4F32 color1);
+root_function void D_DebugCuboid3D(Rng3F32 rng, Vec4F32 color);
+root_function void D_DebugSphere3D(Vec3F32 center, F32 radius, Vec4F32 color);
 
 //- rjf: joining many buckets
-core_function void D_BucketDeepCopy(D_Bucket *src);
+root_function void D_BucketConcatInPlace(D_Bucket *to_push);
 
 ////////////////////////////////
 //~ rjf: Stacks
 
-core_function Rng2F32          D_PushViewport(Rng2F32 v);
-core_function R_Texture2DSampleKind  D_PushTexture2DSampleKind(R_Texture2DSampleKind v);
-core_function Mat3x3F32        D_PushTransform2D(Mat3x3F32 v);
-core_function Mat4x4F32        D_PushView3D(Mat4x4F32 v);
-core_function Mat4x4F32        D_PushProjection3D(Mat4x4F32 v);
-core_function Rng2F32          D_PushClip(Rng2F32 v);
-core_function F32              D_PushOpacity(F32 v);
-core_function R_CmdFlags       D_PushFlags(R_CmdFlags v);
+root_function R_Texture2DSampleKind  D_PushTexture2DSampleKind(R_Texture2DSampleKind v);
+root_function Mat3x3F32        D_PushTransform2D(Mat3x3F32 v);
+root_function Rng2F32          D_PushClip(Rng2F32 v);
+root_function F32              D_PushOpacity(F32 v);
 
-core_function Rng2F32          D_PopViewport(void);
-core_function R_Texture2DSampleKind  D_PopTexture2DSampleKind(void);
-core_function Mat3x3F32        D_PopTransform2D(void);
-core_function Mat4x4F32        D_PopView3D(void);
-core_function Mat4x4F32        D_PopProjection3D(void);
-core_function Rng2F32          D_PopClip(void);
-core_function F32              D_PopOpacity(void);
-core_function R_CmdFlags       D_PopFlags(void);
+root_function R_Texture2DSampleKind  D_PopTexture2DSampleKind(void);
+root_function Mat3x3F32        D_PopTransform2D(void);
+root_function Rng2F32          D_PopClip(void);
+root_function F32              D_PopOpacity(void);
 
-core_function Rng2F32          D_TopViewport(void);
-core_function R_Texture2DSampleKind  D_TopTexture2DSampleKind(void);
-core_function Mat3x3F32        D_TopTransform2D(void);
-core_function Mat4x4F32        D_TopView3D(void);
-core_function Mat4x4F32        D_TopProjection3D(void);
-core_function Rng2F32          D_TopClip(void);
-core_function F32              D_TopOpacity(void);
-core_function R_CmdFlags       D_TopFlags(void);
+root_function R_Texture2DSampleKind  D_TopTexture2DSampleKind(void);
+root_function Mat3x3F32        D_TopTransform2D(void);
+root_function Rng2F32          D_TopClip(void);
+root_function F32              D_TopOpacity(void);
 
-#define D_Viewport(v)          DeferLoop(D_PushViewport(v), D_PopViewport())
 #define D_Texture2DSampleKind(v)  DeferLoop(D_PushTexture2DSampleKind(v), D_PopTexture2DSampleKind())
 #define D_Transform2D(v)       DeferLoop(D_PushTransform2D(v), D_PopTransform2D())
-#define D_View3D(v)            DeferLoop(D_PushView3D(v), D_PopView3D())
-#define D_Projection3D(v)      DeferLoop(D_PushProjection3D(v), D_PopProjection3D())
 #define D_Clip(v)              DeferLoop(D_PushClip(v), D_PopClip())
 #define D_Opacity(v)           DeferLoop(D_PushOpacity(v), D_PopOpacity())
-#define D_Flags(v)             DeferLoop(D_PushFlags(v), D_PopFlags())
 
 #endif // DRAW_H

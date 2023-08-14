@@ -1,4 +1,4 @@
-#if BUILD_ROOT
+#if BUILD_CORE
 #define STB_SPRINTF_IMPLEMENTATION
 #include "third_party/ts_stb_sprintf.h"
 #endif
@@ -6,31 +6,31 @@
 ////////////////////////////////
 //~ rjf: Char Functions
 
-core_function B32
+root_function B32
 CharIsAlpha(U8 c)
 {
  return CharIsAlphaUpper(c) || CharIsAlphaLower(c);
 }
 
-core_function B32
+root_function B32
 CharIsAlphaUpper(U8 c)
 {
  return c >= 'A' && c <= 'Z';
 }
 
-core_function B32
+root_function B32
 CharIsAlphaLower(U8 c)
 {
  return c >= 'a' && c <= 'z';
 }
 
-core_function B32
+root_function B32
 CharIsDigit(U8 c)
 {
  return (c >= '0' && c <= '9');
 }
 
-core_function B32
+root_function B32
 CharIsSymbol(U8 c)
 {
  return (c == '~' || c == '!'  || c == '$' || c == '%' || c == '^' ||
@@ -41,25 +41,25 @@ CharIsSymbol(U8 c)
          c == ',' || c == ';'  || c == ':' || c == '@');
 }
 
-core_function B32
+root_function B32
 CharIsSpace(U8 c)
 {
  return c == ' ' || c == '\r' || c == '\t' || c == '\f' || c == '\v' || c == '\n';
 }
 
-core_function U8
+root_function U8
 CharToUpper(U8 c)
 {
  return (c >= 'a' && c <= 'z') ? ('A' + (c - 'a')) : c;
 }
 
-core_function U8
+root_function U8
 CharToLower(U8 c)
 {
  return (c >= 'A' && c <= 'Z') ? ('a' + (c - 'A')) : c;
 }
 
-core_function U8
+root_function U8
 CharToForwardSlash(U8 c)
 {
  return (c == '\\' ? '/' : c);
@@ -70,7 +70,7 @@ CharToForwardSlash(U8 c)
 
 //- rjf: Helpers
 
-core_function U64
+root_function U64
 CalculateCStringLength(char *cstr)
 {
  U64 length = 0;
@@ -80,7 +80,7 @@ CalculateCStringLength(char *cstr)
 
 //- rjf: Basic Constructors
 
-core_function String8
+root_function String8
 Str8(U8 *str, U64 size)
 {
  String8 string;
@@ -89,7 +89,7 @@ Str8(U8 *str, U64 size)
  return string;
 }
 
-core_function String8
+root_function String8
 Str8Range(U8 *first, U8 *one_past_last)
 {
  String8 string;
@@ -98,7 +98,7 @@ Str8Range(U8 *first, U8 *one_past_last)
  return string;
 }
 
-core_function String16
+root_function String16
 Str16(U16 *str, U64 size)
 {
  String16 result;
@@ -107,7 +107,7 @@ Str16(U16 *str, U64 size)
  return result;
 }
 
-core_function String16
+root_function String16
 Str16C(U16 *ptr)
 {
  U16 *p = ptr;
@@ -116,7 +116,7 @@ Str16C(U16 *ptr)
  return result;
 }
 
-core_function String32
+root_function String32
 Str32(U32 *str, U64 size)
 {
  String32 string = {0};
@@ -127,7 +127,7 @@ Str32(U32 *str, U64 size)
 
 //- rjf: Substrings
 
-core_function String8
+root_function String8
 Substr8(String8 str, Rng1U64 rng)
 {
  U64 min = rng.min;
@@ -151,25 +151,25 @@ Substr8(String8 str, Rng1U64 rng)
  return str;
 }
 
-core_function String8
+root_function String8
 Str8Skip(String8 str, U64 min)
 {
  return Substr8(str, R1U64(min, str.size));
 }
 
-core_function String8
+root_function String8
 Str8Chop(String8 str, U64 nmax)
 {
  return Substr8(str, R1U64(0, str.size-nmax));
 }
 
-core_function String8
+root_function String8
 Prefix8(String8 str, U64 size)
 {
  return Substr8(str, R1U64(0, size));
 }
 
-core_function String8
+root_function String8
 Suffix8(String8 str, U64 size)
 {
  return Substr8(str, R1U64(str.size-size, str.size));
@@ -177,7 +177,7 @@ Suffix8(String8 str, U64 size)
 
 //- rjf: Matching
 
-core_function B32
+root_function B32
 Str8Match(String8 a, String8 b, MatchFlags flags)
 {
  B32 result = 0;
@@ -205,7 +205,7 @@ Str8Match(String8 a, String8 b, MatchFlags flags)
  return result;
 }
 
-core_function U64
+root_function U64
 FindSubstr8(String8 haystack, String8 needle, U64 start_pos, MatchFlags flags)
 {
  B32 found = 0;
@@ -229,7 +229,7 @@ FindSubstr8(String8 haystack, String8 needle, U64 start_pos, MatchFlags flags)
  return found_idx;
 }
 
-core_function FuzzyMatchList
+root_function FuzzyMatchList
 FindFuzzy8(Arena *arena, String8 haystack, String8 needle, U64 start_pos, MatchFlags flags)
 {
  ArenaTemp scratch = GetScratch(&arena, 1);
@@ -276,7 +276,7 @@ FindFuzzy8(Arena *arena, String8 haystack, String8 needle, U64 start_pos, MatchF
 
 //- rjf: Allocation
 
-core_function String8
+root_function String8
 PushStr8Copy(Arena *arena, String8 string)
 {
  String8 res;
@@ -287,7 +287,7 @@ PushStr8Copy(Arena *arena, String8 string)
  return res;
 }
 
-core_function String8
+root_function String8
 PushStr8FV(Arena *arena, char *fmt, va_list args)
 {
  String8 result = {0};
@@ -300,7 +300,7 @@ PushStr8FV(Arena *arena, char *fmt, va_list args)
  return result;
 }
 
-core_function String8
+root_function String8
 PushStr8F(Arena *arena, char *fmt, ...)
 {
  String8 result = {0};
@@ -311,7 +311,7 @@ PushStr8F(Arena *arena, char *fmt, ...)
  return result;
 }
 
-core_function String8
+root_function String8
 PushStr8FillByte(Arena *arena, U64 size, U8 byte)
 {
  String8 result = {0};
@@ -323,7 +323,7 @@ PushStr8FillByte(Arena *arena, U64 size, U8 byte)
 
 //- rjf: String Lists
 
-core_function void
+root_function void
 Str8ListPushNode(String8List *list, String8Node *n)
 {
  QueuePush(list->first, list->last, n);
@@ -331,7 +331,7 @@ Str8ListPushNode(String8List *list, String8Node *n)
  list->total_size += n->string.size;
 }
 
-core_function void
+root_function void
 Str8ListPushNodeFront(String8List *list, String8Node *n)
 {
  QueuePushFront(list->first, list->last, n);
@@ -339,7 +339,7 @@ Str8ListPushNodeFront(String8List *list, String8Node *n)
  list->total_size += n->string.size;
 }
 
-core_function void
+root_function void
 Str8ListPush(Arena *arena, String8List *list, String8 str)
 {
  String8Node *n = PushArray(arena, String8Node, 1);
@@ -347,7 +347,7 @@ Str8ListPush(Arena *arena, String8List *list, String8 str)
  Str8ListPushNode(list, n);
 }
 
-core_function void
+root_function void
 Str8ListPushF(Arena *arena, String8List *list, char *fmt, ...)
 {
  va_list args;
@@ -357,7 +357,7 @@ Str8ListPushF(Arena *arena, String8List *list, char *fmt, ...)
  Str8ListPush(arena, list, string);
 }
 
-core_function void
+root_function void
 Str8ListPushFront(Arena *arena, String8List *list, String8 str)
 {
  String8Node *n = PushArray(arena, String8Node, 1);
@@ -365,7 +365,7 @@ Str8ListPushFront(Arena *arena, String8List *list, String8 str)
  Str8ListPushNodeFront(list, n);
 }
 
-core_function void
+root_function void
 Str8ListConcatInPlace(String8List *list, String8List *to_push)
 {
  if(to_push->first)
@@ -385,7 +385,7 @@ Str8ListConcatInPlace(String8List *list, String8List *to_push)
  MemoryZero(to_push, sizeof(*to_push));
 }
 
-core_function String8List
+root_function String8List
 StrSplit8(Arena *arena, String8 string, U64 split_count, String8 *splits)
 {
  String8List list = {0};
@@ -431,7 +431,7 @@ StrSplit8(Arena *arena, String8 string, U64 split_count, String8 *splits)
  return list;
 }
 
-core_function String8
+root_function String8
 Str8ListJoin(Arena *arena, String8List list, StringJoin *optional_params)
 {
  // rjf: setup join parameters
@@ -477,7 +477,7 @@ Str8ListJoin(Arena *arena, String8List list, StringJoin *optional_params)
 
 //- rjf: String Re-Styling
 
-core_function String8
+root_function String8
 Str8Stylize(Arena *arena, String8 string, IdentifierStyle style, String8 separator)
 {
  String8 result = {0};
@@ -603,7 +603,7 @@ Str8Stylize(Arena *arena, String8 string, IdentifierStyle style, String8 separat
  return result;
 }
 
-core_function String8
+root_function String8
 UpperFromStr8(Arena *arena, String8 string)
 {
  String8 result = PushStr8Copy(arena, string);
@@ -614,7 +614,7 @@ UpperFromStr8(Arena *arena, String8 string)
  return result;
 }
 
-core_function String8
+root_function String8
 LowerFromStr8(Arena *arena, String8 string)
 {
  String8 result = PushStr8Copy(arena, string);
@@ -644,7 +644,7 @@ read_only global U8 utf8_class[32] =
 #define bitmask9  0x01FF
 #define bitmask10 0x03FF
 
-core_function DecodedCodepoint
+root_function DecodedCodepoint
 DecodeCodepointFromUtf8(U8 *str, U64 max)
 {
  DecodedCodepoint result = {~((U32)0), 1};
@@ -709,7 +709,7 @@ DecodeCodepointFromUtf8(U8 *str, U64 max)
  return result;
 }
 
-core_function DecodedCodepoint
+root_function DecodedCodepoint
 DecodeCodepointFromUtf16(U16 *out, U64 max)
 {
  DecodedCodepoint result = {~((U32)0), 1};
@@ -723,7 +723,7 @@ DecodeCodepointFromUtf16(U16 *out, U64 max)
  return result;
 }
 
-core_function U32             
+root_function U32             
 Utf8FromCodepoint(U8 *out, U32 codepoint)
 {
 #define bit8 0x80
@@ -762,7 +762,7 @@ Utf8FromCodepoint(U8 *out, U32 codepoint)
  return advance;
 }
 
-core_function U32             
+root_function U32             
 Utf16FromCodepoint(U16 *out, U32 codepoint)
 {
  U32 advance = 1;
@@ -784,7 +784,7 @@ Utf16FromCodepoint(U16 *out, U32 codepoint)
  return advance;
 }
 
-core_function String8         
+root_function String8         
 Str8From16(Arena *arena, String16 in)
 {
  U64 cap = in.size*3;
@@ -804,7 +804,7 @@ Str8From16(Arena *arena, String16 in)
  return Str8(str, size);
 }
 
-core_function String16        
+root_function String16        
 Str16From8(Arena *arena, String8 in)
 {
  U64 cap = in.size*2;
@@ -825,7 +825,7 @@ Str16From8(Arena *arena, String8 in)
  return result;
 }
 
-core_function String8         
+root_function String8         
 Str8From32(Arena *arena, String32 in)
 {
  U64 cap = in.size*4;
@@ -843,7 +843,7 @@ Str8From32(Arena *arena, String32 in)
  return Str8(str, size);
 }
 
-core_function String32        
+root_function String32        
 Str32From8(Arena *arena, String8 in)
 {
  U64 cap = in.size;
@@ -868,7 +868,7 @@ Str32From8(Arena *arena, String8 in)
 ////////////////////////////////
 //~ rjf: Skip/Chop Helpers
 
-core_function String8
+root_function String8
 Str8SkipWhitespace(String8 str)
 {
  U64 first_non_ws = 0;
@@ -887,7 +887,7 @@ Str8SkipWhitespace(String8 str)
  return Substr8(str, R1U64(first_non_ws, str.size));
 }
 
-core_function String8
+root_function String8
 Str8ChopWhitespace(String8 str)
 {
  U64 first_ws_at_end = str.size;
@@ -902,13 +902,13 @@ Str8ChopWhitespace(String8 str)
  return Substr8(str, R1U64(0, first_ws_at_end));
 }
 
-core_function String8
+root_function String8
 Str8SkipChopWhitespace(String8 str)
 {
  return Str8SkipWhitespace(Str8ChopWhitespace(str));
 }
 
-core_function String8
+root_function String8
 Str8SkipChopNewlines(String8 str)
 {
  U64 first_non_ws = 0;
@@ -937,7 +937,7 @@ Str8SkipChopNewlines(String8 str)
 ////////////////////////////////
 //~ rjf: Path Helpers
 
-core_function String8
+root_function String8
 Str8PathChopLastPeriod(String8 string)
 {
  U64 period_pos = FindSubstr8(string, Str8Lit("."), 0, MatchFlag_FindLast);
@@ -948,7 +948,7 @@ Str8PathChopLastPeriod(String8 string)
  return string;
 }
 
-core_function String8
+root_function String8
 Str8PathSkipLastSlash(String8 string)
 {
  U64 slash_pos = FindSubstr8(string, Str8Lit("/"), 0,
@@ -962,7 +962,7 @@ Str8PathSkipLastSlash(String8 string)
  return string;
 }
 
-core_function String8
+root_function String8
 Str8PathSkipLastPeriod(String8 string)
 {
  U64 period_pos = FindSubstr8(string, Str8Lit("."), 0, MatchFlag_FindLast);
@@ -974,7 +974,7 @@ Str8PathSkipLastPeriod(String8 string)
  return string;
 }
 
-core_function String8
+root_function String8
 Str8PathChopPastLastSlash(String8 string)
 {
  U64 slash_pos = FindSubstr8(string, Str8Lit("/"), 0, MatchFlag_SlashInsensitive|MatchFlag_FindLast);
@@ -985,7 +985,7 @@ Str8PathChopPastLastSlash(String8 string)
  return string;
 }
 
-core_function PathKind
+root_function PathKind
 PathKindFromStr8(String8 path)
 {
  PathKind kind = PathKind_Relative;
@@ -1000,7 +1000,7 @@ PathKindFromStr8(String8 path)
  return kind;
 }
 
-core_function String8List
+root_function String8List
 PathPartsFromStr8(Arena *arena, String8 path)
 {
  String8 splits[] = {Str8Lit("/"), Str8Lit("\\")};
@@ -1008,7 +1008,7 @@ PathPartsFromStr8(Arena *arena, String8 path)
  return strs;
 }
 
-core_function String8List
+root_function String8List
 AbsolutePathPartsFromSourcePartsKind(Arena *arena, String8 source, String8List parts, PathKind kind)
 {
  if(kind == PathKind_Relative)
@@ -1022,7 +1022,7 @@ AbsolutePathPartsFromSourcePartsKind(Arena *arena, String8 source, String8List p
  return parts;
 }
 
-core_function String8List
+root_function String8List
 DotResolvedPathPartsFromParts(Arena *arena, String8List parts)
 {
  ArenaTemp scratch = GetScratch(&arena, 1);
@@ -1059,7 +1059,7 @@ DotResolvedPathPartsFromParts(Arena *arena, String8List parts)
  return result;
 }
 
-core_function String8
+root_function String8
 NormalizedPathFromStr8(Arena *arena, String8 source, String8 path)
 {
  ArenaTemp scratch = GetScratch(&arena, 1);
@@ -1083,7 +1083,7 @@ NormalizedPathFromStr8(Arena *arena, String8 source, String8 path)
 ////////////////////////////////
 //~ rjf: Array Functions
 
-core_function String8Array
+root_function String8Array
 Str8ArrayFromList(Arena *arena, String8List list)
 {
  String8Array array = {0};
@@ -1100,7 +1100,7 @@ Str8ArrayFromList(Arena *arena, String8List list)
 ////////////////////////////////
 //~ rjf: Numeric Conversions
 
-core_function U64
+root_function U64
 U64FromStr8(String8 string, U32 radix)
 {
  Assert(2 <= radix && radix <= 16);
@@ -1121,7 +1121,7 @@ U64FromStr8(String8 string, U32 radix)
  return value;
 }
 
-core_function S64
+root_function S64
 CStyleIntFromStr8(String8 string)
 {
  U64 p = 0;
@@ -1177,7 +1177,7 @@ CStyleIntFromStr8(String8 string)
  return result;
 }
 
-core_function F64
+root_function F64
 F64FromStr8(String8 string)
 {
  char str[64];
@@ -1191,7 +1191,7 @@ F64FromStr8(String8 string)
  return atof(str);
 }
 
-core_function String8
+root_function String8
 CStyleHexStringFromU64(Arena *arena, U64 x, B32 caps)
 {
  local_persist char int_value_to_char[] = "0123456789abcdef";
@@ -1238,7 +1238,7 @@ CStyleHexStringFromU64(Arena *arena, U64 x, B32 caps)
 ////////////////////////////////
 //~ rjf: Text Coordinates
 
-core_function TxtPt
+root_function TxtPt
 TxtPtFromStr8Off(String8 string, U64 off)
 {
  TxtPt pt = {1, 1};

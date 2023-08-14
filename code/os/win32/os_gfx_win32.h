@@ -63,17 +63,17 @@ struct OS_W32_GfxState
 ////////////////////////////////
 //~ rjf: Globals
 
-core_global OS_W32_GetDpiForWindowType *w32_GetDpiForWindow;
-core_global OS_W32_GfxState *os_w32_gfx_state;
+root_global OS_W32_GetDpiForWindowType *w32_GetDpiForWindow;
+root_global OS_W32_GfxState *os_w32_gfx_state;
 extern per_thread Arena *os_w32_tl_events_arena;
 extern per_thread OS_EventList *os_w32_tl_events_list;
 
 ////////////////////////////////
 //~ rjf: Helpers
 
-core_function OS_Handle OS_W32_HandleFromWindow(OS_W32_Window *window);
-core_function OS_W32_Window *OS_W32_WindowFromHandle(OS_Handle handle);
-core_function OS_Modifiers OS_W32_GetModifiers(void);
+root_function OS_Handle OS_W32_HandleFromWindow(OS_W32_Window *window);
+root_function OS_W32_Window *OS_W32_WindowFromHandle(OS_Handle handle);
+root_function OS_Modifiers OS_W32_GetModifiers(void);
 
 ////////////////////////////////
 //~ rjf: Window Proc

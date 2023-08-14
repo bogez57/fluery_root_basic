@@ -140,38 +140,38 @@ struct F_State
 ////////////////////////////////
 //~ rjf: Globals
 
-core_global B32 f_initialized;
-core_global F_State *f_state;
+root_global B32 f_initialized;
+root_global F_State *f_state;
 
 ////////////////////////////////
 //~ rjf: Tag Functions
 
-core_function B32 F_TagMatch(F_Tag a, F_Tag b);
-core_function F_Tag F_TagFromHash(C_Hash hash);
-core_function F_Tag F_TagFromFontPath(String8 string);
+root_function B32 F_TagMatch(F_Tag a, F_Tag b);
+root_function F_Tag F_TagFromHash(C_Hash hash);
+root_function F_Tag F_TagFromFontPath(String8 string);
 
-core_function B32 F_HashMatch(F_Hash a, F_Hash b);
-core_function F_Hash F_HashFromTagSizeString(F_Tag tag, F32 size, String8 string);
+root_function B32 F_HashMatch(F_Hash a, F_Hash b);
+root_function F_Hash F_HashFromTagSizeString(F_Tag tag, F32 size, String8 string);
 
 ////////////////////////////////
 //~ rjf: Cache Interaction Functions
 
-core_function FP_Handle F_FontHandleFromTag(F_Tag font);
-core_function F_Metrics F_MetricsFromTag(F_Tag font, F32 size);
-core_function F_Run F_RunFromFontSizeString(Arena *arena, F_Tag font, F32 size, String8 string);
-core_function F32 F_AdvanceFromFontSizeString(F_Tag font, F32 size, String8 string);
-core_function U64 F_ByteOffFromFontSizeStringAdvance(F_Tag font, F32 size, String8 string, F32 advance);
-core_function String8 F_TruncatedStringFromFontSizeStringMax(F_Tag font, F32 size, String8 string, F32 max, F32 trailer_advance);
-core_function String8List F_WrappedStringLinesFromFontSizeStringMax(Arena *arena, F_Tag font, F32 size, String8 string, F32 max);
+root_function FP_Handle F_FontHandleFromTag(F_Tag font);
+root_function F_Metrics F_MetricsFromTag(F_Tag font, F32 size);
+root_function F_Run F_RunFromFontSizeString(Arena *arena, F_Tag font, F32 size, String8 string);
+root_function F32 F_AdvanceFromFontSizeString(F_Tag font, F32 size, String8 string);
+root_function U64 F_ByteOffFromFontSizeStringAdvance(F_Tag font, F32 size, String8 string, F32 advance);
+root_function String8 F_TruncatedStringFromFontSizeStringMax(F_Tag font, F32 size, String8 string, F32 max, F32 trailer_advance);
+root_function String8List F_WrappedStringLinesFromFontSizeStringMax(Arena *arena, F_Tag font, F32 size, String8 string, F32 max);
 
 ////////////////////////////////
 //~ rjf: Diagnostics
 
-core_function F_AtlasList F_PushAtlasList(Arena *arena);
+root_function F_AtlasList F_PushAtlasList(Arena *arena);
 
 ////////////////////////////////
 //~ rjf: Main API
 
-core_function F_InitReceipt F_Init(FP_InitReceipt fp_init_receipt, R_InitReceipt r_init_receipt, Vec2S64 glyph_atlas_size);
+root_function F_InitReceipt F_Init(FP_InitReceipt fp_init_receipt, R_InitReceipt r_init_receipt, Vec2S64 glyph_atlas_size);
 
 #endif // FONT_CACHE_H

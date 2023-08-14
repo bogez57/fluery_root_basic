@@ -1,7 +1,7 @@
 ////////////////////////////////
 //~ rjf: Scalar Ops
 
-core_function F32
+root_function F32
 Mix1F32(F32 a, F32 b, F32 t)
 {
  F32 c = a*(1-t) + b*t;
@@ -11,51 +11,51 @@ Mix1F32(F32 a, F32 b, F32 t)
 ////////////////////////////////
 //~ rjf: Vector Ops
 
-core_function Vec2F32
+root_function Vec2F32
 V2F32(F32 x, F32 y)
 {
  Vec2F32 result = { x, y };
  return result;
 }
-core_function Vec2F32 Add2F32(Vec2F32 a, Vec2F32 b) { return V2F32(a.x+b.x, a.y+b.y); }
-core_function Vec2F32 Sub2F32(Vec2F32 a, Vec2F32 b) { return V2F32(a.x-b.x, a.y-b.y); }
-core_function Vec2F32 Mul2F32(Vec2F32 a, Vec2F32 b) { return V2F32(a.x*b.x, a.y*b.y); }
-core_function Vec2F32 Div2F32(Vec2F32 a, Vec2F32 b) { return V2F32(a.x/b.x, a.y/b.y); }
-core_function Vec2F32 Scale2F32(Vec2F32 a, F32 scale) { return V2F32(a.x*scale, a.y*scale); }
-core_function F32 Dot2F32(Vec2F32 a, Vec2F32 b) { return (a.x*b.x + a.y*b.y); }
-core_function F32 LengthSquared2F32(Vec2F32 v) { return Dot2F32(v, v); }
-core_function F32 Length2F32(Vec2F32 v) { return SquareRoot(LengthSquared2F32(v)); }
-core_function Vec2F32 Normalize2F32(Vec2F32 v) { return Scale2F32(v, 1.f/Length2F32(v)); }
-core_function Vec2F32 Mix2F32(Vec2F32 a, Vec2F32 b, F32 t) { return V2F32(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t); }
+root_function Vec2F32 Add2F32(Vec2F32 a, Vec2F32 b) { return V2F32(a.x+b.x, a.y+b.y); }
+root_function Vec2F32 Sub2F32(Vec2F32 a, Vec2F32 b) { return V2F32(a.x-b.x, a.y-b.y); }
+root_function Vec2F32 Mul2F32(Vec2F32 a, Vec2F32 b) { return V2F32(a.x*b.x, a.y*b.y); }
+root_function Vec2F32 Div2F32(Vec2F32 a, Vec2F32 b) { return V2F32(a.x/b.x, a.y/b.y); }
+root_function Vec2F32 Scale2F32(Vec2F32 a, F32 scale) { return V2F32(a.x*scale, a.y*scale); }
+root_function F32 Dot2F32(Vec2F32 a, Vec2F32 b) { return (a.x*b.x + a.y*b.y); }
+root_function F32 LengthSquared2F32(Vec2F32 v) { return Dot2F32(v, v); }
+root_function F32 Length2F32(Vec2F32 v) { return SquareRoot(LengthSquared2F32(v)); }
+root_function Vec2F32 Normalize2F32(Vec2F32 v) { return Scale2F32(v, 1.f/Length2F32(v)); }
+root_function Vec2F32 Mix2F32(Vec2F32 a, Vec2F32 b, F32 t) { return V2F32(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t); }
 
-core_function Vec2F64
+root_function Vec2F64
 V2F64(F64 x, F64 y)
 {
  Vec2F64 result = { x, y };
  return result;
 }
-core_function Vec2F64 Add2F64(Vec2F64 a, Vec2F64 b) { return V2F64(a.x+b.x, a.y+b.y); }
-core_function Vec2F64 Sub2F64(Vec2F64 a, Vec2F64 b) { return V2F64(a.x-b.x, a.y-b.y); }
-core_function Vec2F64 Mul2F64(Vec2F64 a, Vec2F64 b) { return V2F64(a.x*b.x, a.y*b.y); }
-core_function Vec2F64 Div2F64(Vec2F64 a, Vec2F64 b) { return V2F64(a.x/b.x, a.y/b.y); }
-core_function Vec2F64 Scale2F64(Vec2F64 a, F64 scale) { return V2F64(a.x*scale, a.y*scale); }
-core_function F64 Dot2F64(Vec2F64 a, Vec2F64 b) { return (a.x*b.x + a.y*b.y); }
-core_function F64 LengthSquared2F64(Vec2F64 v) { return Dot2F64(v, v); }
-core_function F64 Length2F64(Vec2F64 v) { return SquareRoot(LengthSquared2F64(v)); }
-core_function Vec2F64 Normalize2F64(Vec2F64 v) { return Scale2F64(v, 1.f/Length2F64(v)); }
-core_function Vec2F64 Mix2F64(Vec2F64 a, Vec2F64 b, F64 t) { return V2F64(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t); }
+root_function Vec2F64 Add2F64(Vec2F64 a, Vec2F64 b) { return V2F64(a.x+b.x, a.y+b.y); }
+root_function Vec2F64 Sub2F64(Vec2F64 a, Vec2F64 b) { return V2F64(a.x-b.x, a.y-b.y); }
+root_function Vec2F64 Mul2F64(Vec2F64 a, Vec2F64 b) { return V2F64(a.x*b.x, a.y*b.y); }
+root_function Vec2F64 Div2F64(Vec2F64 a, Vec2F64 b) { return V2F64(a.x/b.x, a.y/b.y); }
+root_function Vec2F64 Scale2F64(Vec2F64 a, F64 scale) { return V2F64(a.x*scale, a.y*scale); }
+root_function F64 Dot2F64(Vec2F64 a, Vec2F64 b) { return (a.x*b.x + a.y*b.y); }
+root_function F64 LengthSquared2F64(Vec2F64 v) { return Dot2F64(v, v); }
+root_function F64 Length2F64(Vec2F64 v) { return SquareRoot(LengthSquared2F64(v)); }
+root_function Vec2F64 Normalize2F64(Vec2F64 v) { return Scale2F64(v, 1.f/Length2F64(v)); }
+root_function Vec2F64 Mix2F64(Vec2F64 a, Vec2F64 b, F64 t) { return V2F64(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t); }
 
-core_function Vec2S32
+root_function Vec2S32
 V2S32(S32 x, S32 y)
 {
  Vec2S32 result = { x, y };
  return result;
 }
 
-core_function Vec2S32 Add2S32(Vec2S32 a, Vec2S32 b) { return V2S32(a.x+b.x, a.y+b.y); }
-core_function Vec2S32 Sub2S32(Vec2S32 a, Vec2S32 b) { return V2S32(a.x-b.x, a.y-b.y); }
+root_function Vec2S32 Add2S32(Vec2S32 a, Vec2S32 b) { return V2S32(a.x+b.x, a.y+b.y); }
+root_function Vec2S32 Sub2S32(Vec2S32 a, Vec2S32 b) { return V2S32(a.x-b.x, a.y-b.y); }
 
-core_function Vec2S64
+root_function Vec2S64
 V2S64(S64 x, S64 y)
 {
  Vec2S64 v;
@@ -64,27 +64,27 @@ V2S64(S64 x, S64 y)
  return v;
 }
 
-core_function Vec2S64 Add2S64(Vec2S64 a, Vec2S64 b) { return V2S64(a.x+b.x, a.y+b.y); }
-core_function Vec2S64 Sub2S64(Vec2S64 a, Vec2S64 b) { return V2S64(a.x-b.x, a.y-b.y); }
+root_function Vec2S64 Add2S64(Vec2S64 a, Vec2S64 b) { return V2S64(a.x+b.x, a.y+b.y); }
+root_function Vec2S64 Sub2S64(Vec2S64 a, Vec2S64 b) { return V2S64(a.x-b.x, a.y-b.y); }
 
-core_function Vec3F32
+root_function Vec3F32
 V3F32(F32 x, F32 y, F32 z)
 {
  Vec3F32 result = { x, y, z };
  return result;
 }
-core_function Vec3F32 Add3F32(Vec3F32 a, Vec3F32 b) { return V3F32(a.x+b.x, a.y+b.y, a.z+b.z); }
-core_function Vec3F32 Sub3F32(Vec3F32 a, Vec3F32 b) { return V3F32(a.x-b.x, a.y-b.y, a.z-b.z); }
-core_function Vec3F32 Mul3F32(Vec3F32 a, Vec3F32 b) { return V3F32(a.x*b.x, a.y*b.y, a.z*b.z); }
-core_function Vec3F32 Div3F32(Vec3F32 a, Vec3F32 b) { return V3F32(a.x/b.x, a.y/b.y, a.z/b.z); }
-core_function Vec3F32 Scale3F32(Vec3F32 a, F32 scale) { return V3F32(a.x*scale, a.y*scale, a.z*scale); }
-core_function F32 Dot3F32(Vec3F32 a, Vec3F32 b) { return (a.x*b.x + a.y*b.y + a.z*b.z); }
-core_function F32 LengthSquared3F32(Vec3F32 v) { return Dot3F32(v, v); }
-core_function F32 Length3F32(Vec3F32 v) { return SquareRoot(LengthSquared3F32(v)); }
-core_function Vec3F32 Normalize3F32(Vec3F32 v) { return Scale3F32(v, 1.f/Length3F32(v)); }
-core_function Vec3F32 Mix3F32(Vec3F32 a, Vec3F32 b, F32 t) { return V3F32(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t, a.z*(1-t) + b.z*t); }
-core_function Vec3F32 Cross3F32(Vec3F32 a, Vec3F32 b) { return V3F32(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x); }
-core_function Vec3F32
+root_function Vec3F32 Add3F32(Vec3F32 a, Vec3F32 b) { return V3F32(a.x+b.x, a.y+b.y, a.z+b.z); }
+root_function Vec3F32 Sub3F32(Vec3F32 a, Vec3F32 b) { return V3F32(a.x-b.x, a.y-b.y, a.z-b.z); }
+root_function Vec3F32 Mul3F32(Vec3F32 a, Vec3F32 b) { return V3F32(a.x*b.x, a.y*b.y, a.z*b.z); }
+root_function Vec3F32 Div3F32(Vec3F32 a, Vec3F32 b) { return V3F32(a.x/b.x, a.y/b.y, a.z/b.z); }
+root_function Vec3F32 Scale3F32(Vec3F32 a, F32 scale) { return V3F32(a.x*scale, a.y*scale, a.z*scale); }
+root_function F32 Dot3F32(Vec3F32 a, Vec3F32 b) { return (a.x*b.x + a.y*b.y + a.z*b.z); }
+root_function F32 LengthSquared3F32(Vec3F32 v) { return Dot3F32(v, v); }
+root_function F32 Length3F32(Vec3F32 v) { return SquareRoot(LengthSquared3F32(v)); }
+root_function Vec3F32 Normalize3F32(Vec3F32 v) { return Scale3F32(v, 1.f/Length3F32(v)); }
+root_function Vec3F32 Mix3F32(Vec3F32 a, Vec3F32 b, F32 t) { return V3F32(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t, a.z*(1-t) + b.z*t); }
+root_function Vec3F32 Cross3F32(Vec3F32 a, Vec3F32 b) { return V3F32(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x); }
+root_function Vec3F32
 Transform3F32(Vec3F32 v, Mat3x3F32 m)
 {
  Vec3F32 result = { 0 };
@@ -97,24 +97,24 @@ Transform3F32(Vec3F32 v, Mat3x3F32 m)
  return result;
 }
 
-core_function Vec3F64
+root_function Vec3F64
 V3F64(F64 x, F64 y, F64 z)
 {
  Vec3F64 result = { x, y, z };
  return result;
 }
-core_function Vec3F64 Add3F64(Vec3F64 a, Vec3F64 b) { return V3F64(a.x+b.x, a.y+b.y, a.z+b.z); }
-core_function Vec3F64 Sub3F64(Vec3F64 a, Vec3F64 b) { return V3F64(a.x-b.x, a.y-b.y, a.z-b.z); }
-core_function Vec3F64 Mul3F64(Vec3F64 a, Vec3F64 b) { return V3F64(a.x*b.x, a.y*b.y, a.z*b.z); }
-core_function Vec3F64 Div3F64(Vec3F64 a, Vec3F64 b) { return V3F64(a.x/b.x, a.y/b.y, a.z/b.z); }
-core_function Vec3F64 Scale3F64(Vec3F64 a, F64 scale) { return V3F64(a.x*scale, a.y*scale, a.z*scale); }
-core_function F64 Dot3F64(Vec3F64 a, Vec3F64 b) { return (a.x*b.x + a.y*b.y + a.z*b.z); }
-core_function F64 LengthSquared3F64(Vec3F64 v) { return Dot3F64(v, v); }
-core_function F64 Length3F64(Vec3F64 v) { return SquareRoot(LengthSquared3F64(v)); }
-core_function Vec3F64 Normalize3F64(Vec3F64 v) { return Scale3F64(v, 1.f/Length3F64(v)); }
-core_function Vec3F64 Mix3F64(Vec3F64 a, Vec3F64 b, F64 t) { return V3F64(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t, a.z*(1-t) + b.z*t); }
-core_function Vec3F64 Cross3F64(Vec3F64 a, Vec3F64 b) { return V3F64(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x); }
-core_function Vec3F64
+root_function Vec3F64 Add3F64(Vec3F64 a, Vec3F64 b) { return V3F64(a.x+b.x, a.y+b.y, a.z+b.z); }
+root_function Vec3F64 Sub3F64(Vec3F64 a, Vec3F64 b) { return V3F64(a.x-b.x, a.y-b.y, a.z-b.z); }
+root_function Vec3F64 Mul3F64(Vec3F64 a, Vec3F64 b) { return V3F64(a.x*b.x, a.y*b.y, a.z*b.z); }
+root_function Vec3F64 Div3F64(Vec3F64 a, Vec3F64 b) { return V3F64(a.x/b.x, a.y/b.y, a.z/b.z); }
+root_function Vec3F64 Scale3F64(Vec3F64 a, F64 scale) { return V3F64(a.x*scale, a.y*scale, a.z*scale); }
+root_function F64 Dot3F64(Vec3F64 a, Vec3F64 b) { return (a.x*b.x + a.y*b.y + a.z*b.z); }
+root_function F64 LengthSquared3F64(Vec3F64 v) { return Dot3F64(v, v); }
+root_function F64 Length3F64(Vec3F64 v) { return SquareRoot(LengthSquared3F64(v)); }
+root_function Vec3F64 Normalize3F64(Vec3F64 v) { return Scale3F64(v, 1.f/Length3F64(v)); }
+root_function Vec3F64 Mix3F64(Vec3F64 a, Vec3F64 b, F64 t) { return V3F64(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t, a.z*(1-t) + b.z*t); }
+root_function Vec3F64 Cross3F64(Vec3F64 a, Vec3F64 b) { return V3F64(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x); }
+root_function Vec3F64
 Transform3F64(Vec3F64 v, Mat3x3F64 m)
 {
  Vec3F64 result = { 0 };
@@ -127,37 +127,37 @@ Transform3F64(Vec3F64 v, Mat3x3F64 m)
  return result;
 }
 
-core_function Vec3S32
+root_function Vec3S32
 V3S32(S32 x, S32 y, S32 z)
 {
  Vec3S32 result = {x, y, z};
  return result;
 }
 
-core_function Vec3S64
+root_function Vec3S64
 V3S64(S64 x, S64 y, S64 z)
 {
  Vec3S64 result = {x, y, z};
  return result;
 }
 
-core_function Vec4F32
+root_function Vec4F32
 V4F32(F32 x, F32 y, F32 z, F32 w)
 {
  Vec4F32 result = { x, y, z, w };
  return result;
 }
-core_function Vec4F32 Add4F32(Vec4F32 a, Vec4F32 b) { return V4F32(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w); }
-core_function Vec4F32 Sub4F32(Vec4F32 a, Vec4F32 b) { return V4F32(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w); }
-core_function Vec4F32 Mul4F32(Vec4F32 a, Vec4F32 b) { return V4F32(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w); }
-core_function Vec4F32 Div4F32(Vec4F32 a, Vec4F32 b) { return V4F32(a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w); }
-core_function Vec4F32 Scale4F32(Vec4F32 a, F32 scale) { return V4F32(a.x*scale, a.y*scale, a.z*scale, a.w*scale); }
-core_function F32 Dot4F32(Vec4F32 a, Vec4F32 b) { return (a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w); }
-core_function F32 LengthSquared4F32(Vec4F32 v) { return Dot4F32(v, v); }
-core_function F32 Length4F32(Vec4F32 v) { return SquareRoot(LengthSquared4F32(v)); }
-core_function Vec4F32 Normalize4F32(Vec4F32 v) { return Scale4F32(v, 1.f/Length4F32(v)); }
-core_function Vec4F32 Mix4F32(Vec4F32 a, Vec4F32 b, F32 t) { return V4F32(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t, a.z*(1-t) + b.z*t, a.w*(1-t) + b.w*t); }
-core_function Vec4F32
+root_function Vec4F32 Add4F32(Vec4F32 a, Vec4F32 b) { return V4F32(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w); }
+root_function Vec4F32 Sub4F32(Vec4F32 a, Vec4F32 b) { return V4F32(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w); }
+root_function Vec4F32 Mul4F32(Vec4F32 a, Vec4F32 b) { return V4F32(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w); }
+root_function Vec4F32 Div4F32(Vec4F32 a, Vec4F32 b) { return V4F32(a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w); }
+root_function Vec4F32 Scale4F32(Vec4F32 a, F32 scale) { return V4F32(a.x*scale, a.y*scale, a.z*scale, a.w*scale); }
+root_function F32 Dot4F32(Vec4F32 a, Vec4F32 b) { return (a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w); }
+root_function F32 LengthSquared4F32(Vec4F32 v) { return Dot4F32(v, v); }
+root_function F32 Length4F32(Vec4F32 v) { return SquareRoot(LengthSquared4F32(v)); }
+root_function Vec4F32 Normalize4F32(Vec4F32 v) { return Scale4F32(v, 1.f/Length4F32(v)); }
+root_function Vec4F32 Mix4F32(Vec4F32 a, Vec4F32 b, F32 t) { return V4F32(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t, a.z*(1-t) + b.z*t, a.w*(1-t) + b.w*t); }
+root_function Vec4F32
 Transform4F32(Vec4F32 v, Mat4x4F32 m)
 {
  Vec4F32 result = {0};
@@ -171,23 +171,23 @@ Transform4F32(Vec4F32 v, Mat4x4F32 m)
  return result;
 }
 
-core_function Vec4F64
+root_function Vec4F64
 V4F64(F64 x, F64 y, F64 z, F64 w)
 {
  Vec4F64 result = { x, y, z, w };
  return result;
 }
-core_function Vec4F64 Add4F64(Vec4F64 a, Vec4F64 b) { return V4F64(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w); }
-core_function Vec4F64 Sub4F64(Vec4F64 a, Vec4F64 b) { return V4F64(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w); }
-core_function Vec4F64 Mul4F64(Vec4F64 a, Vec4F64 b) { return V4F64(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w); }
-core_function Vec4F64 Div4F64(Vec4F64 a, Vec4F64 b) { return V4F64(a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w); }
-core_function Vec4F64 Scale4F64(Vec4F64 a, F64 scale) { return V4F64(a.x*scale, a.y*scale, a.z*scale, a.w*scale); }
-core_function F64 Dot4F64(Vec4F64 a, Vec4F64 b) { return (a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w); }
-core_function F64 LengthSquared4F64(Vec4F64 v) { return Dot4F64(v, v); }
-core_function F64 Length4F64(Vec4F64 v) { return SquareRoot(LengthSquared4F64(v)); }
-core_function Vec4F64 Normalize4F64(Vec4F64 v) { return Scale4F64(v, 1.f/Length4F64(v)); }
-core_function Vec4F64 Mix4F64(Vec4F64 a, Vec4F64 b, F64 t) { return V4F64(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t, a.z*(1-t) + b.z*t, a.w*(1-t) + b.w*t); }
-core_function Vec4F64
+root_function Vec4F64 Add4F64(Vec4F64 a, Vec4F64 b) { return V4F64(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w); }
+root_function Vec4F64 Sub4F64(Vec4F64 a, Vec4F64 b) { return V4F64(a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w); }
+root_function Vec4F64 Mul4F64(Vec4F64 a, Vec4F64 b) { return V4F64(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w); }
+root_function Vec4F64 Div4F64(Vec4F64 a, Vec4F64 b) { return V4F64(a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w); }
+root_function Vec4F64 Scale4F64(Vec4F64 a, F64 scale) { return V4F64(a.x*scale, a.y*scale, a.z*scale, a.w*scale); }
+root_function F64 Dot4F64(Vec4F64 a, Vec4F64 b) { return (a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w); }
+root_function F64 LengthSquared4F64(Vec4F64 v) { return Dot4F64(v, v); }
+root_function F64 Length4F64(Vec4F64 v) { return SquareRoot(LengthSquared4F64(v)); }
+root_function Vec4F64 Normalize4F64(Vec4F64 v) { return Scale4F64(v, 1.f/Length4F64(v)); }
+root_function Vec4F64 Mix4F64(Vec4F64 a, Vec4F64 b, F64 t) { return V4F64(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t, a.z*(1-t) + b.z*t, a.w*(1-t) + b.w*t); }
+root_function Vec4F64
 Transform4F64(Vec4F64 v, Mat4x4F64 m)
 {
  Vec4F64 result = {0};
@@ -201,14 +201,14 @@ Transform4F64(Vec4F64 v, Mat4x4F64 m)
  return result;
 }
 
-core_function Vec4S32
+root_function Vec4S32
 V4S32(S32 x, S32 y, S32 z, S32 w)
 {
  Vec4S32 result = { x, y, z, w };
  return result;
 }
 
-core_function Vec4S64
+root_function Vec4S64
 V4S64(S64 x, S64 y, S64 z, S64 w)
 {
  Vec4S64 result = { x, y, z, w };
@@ -218,7 +218,7 @@ V4S64(S64 x, S64 y, S64 z, S64 w)
 ////////////////////////////////
 //~ rjf: Matrix Constructors
 
-core_function Mat3x3F32
+root_function Mat3x3F32
 MakeMat3x3F32(F32 d)
 {
  Mat3x3F32 result =
@@ -232,7 +232,7 @@ MakeMat3x3F32(F32 d)
  return result;
 }
 
-core_function Mat3x3F32
+root_function Mat3x3F32
 MakeTranslate3x3F32(Vec2F32 translation)
 {
  Mat3x3F32 result = MakeMat3x3F32(1.f);
@@ -241,7 +241,7 @@ MakeTranslate3x3F32(Vec2F32 translation)
  return result;
 }
 
-core_function Mat3x3F32
+root_function Mat3x3F32
 MakeScale3x3F32(Vec2F32 scale)
 {
  Mat3x3F32 result = MakeMat3x3F32(1.f);
@@ -250,7 +250,7 @@ MakeScale3x3F32(Vec2F32 scale)
  return result;
 }
 
-core_function Mat3x3F32
+root_function Mat3x3F32
 MakeRotate3x3F32(F32 turns)
 {
  Mat3x3F32 result = MakeMat3x3F32(1.f);
@@ -261,7 +261,7 @@ MakeRotate3x3F32(F32 turns)
  return result;
 }
 
-core_function Mat4x4F32
+root_function Mat4x4F32
 MakeMat4x4F32(F32 d)
 {
  Mat4x4F32 result =
@@ -276,7 +276,7 @@ MakeMat4x4F32(F32 d)
  return result;
 }
 
-core_function Mat4x4F32
+root_function Mat4x4F32
 MakeTranslate4x4F32(Vec3F32 translation)
 {
  Mat4x4F32 result = MakeMat4x4F32(1.f);
@@ -286,7 +286,7 @@ MakeTranslate4x4F32(Vec3F32 translation)
  return result;
 }
 
-core_function Mat4x4F32
+root_function Mat4x4F32
 MakeScale4x4F32(Vec3F32 scale)
 {
  Mat4x4F32 result = MakeMat4x4F32(1.f);
@@ -296,7 +296,7 @@ MakeScale4x4F32(Vec3F32 scale)
  return result;
 }
 
-core_function Mat4x4F32
+root_function Mat4x4F32
 MakePerspective4x4F32(F32 fov, F32 aspect_ratio, F32 near_z, F32 far_z)
 {
  Mat4x4F32 result = MakeMat4x4F32(1.f);
@@ -310,7 +310,7 @@ MakePerspective4x4F32(F32 fov, F32 aspect_ratio, F32 near_z, F32 far_z)
  return result;
 }
 
-core_function Mat4x4F32
+root_function Mat4x4F32
 MakeOrthographic4x4F32(F32 left, F32 right, F32 bottom, F32 top, F32 near_z, F32 far_z)
 {
  Mat4x4F32 result = MakeMat4x4F32(1.f);
@@ -327,7 +327,7 @@ MakeOrthographic4x4F32(F32 left, F32 right, F32 bottom, F32 top, F32 near_z, F32
  return result;
 }
 
-core_function Mat4x4F32
+root_function Mat4x4F32
 MakeLookAt4x4F32(Vec3F32 eye, Vec3F32 center, Vec3F32 up)
 {
  Mat4x4F32 result;
@@ -353,7 +353,7 @@ MakeLookAt4x4F32(Vec3F32 eye, Vec3F32 center, Vec3F32 up)
  return result;
 }
 
-core_function Mat4x4F32
+root_function Mat4x4F32
 MakeRotate4x4F32(Vec3F32 axis, F32 turns)
 {
  Mat4x4F32 result = MakeMat4x4F32(1.f);
@@ -376,7 +376,7 @@ MakeRotate4x4F32(Vec3F32 axis, F32 turns)
 ////////////////////////////////
 //~ rjf: Matrix Ops
 
-core_function Mat3x3F32
+root_function Mat3x3F32
 Mul3x3F32(Mat3x3F32 a, Mat3x3F32 b)
 {
  Mat3x3F32 c = {0};
@@ -392,7 +392,7 @@ Mul3x3F32(Mat3x3F32 a, Mat3x3F32 b)
  return c;
 }
 
-core_function Mat3x3F32
+root_function Mat3x3F32
 Scale3x3F32(Mat3x3F32 m, F32 scale)
 {
  for(int j = 0; j < 3; j += 1)
@@ -405,7 +405,7 @@ Scale3x3F32(Mat3x3F32 m, F32 scale)
  return m;
 }
 
-core_function Mat4x4F32
+root_function Mat4x4F32
 Mul4x4F32(Mat4x4F32 a, Mat4x4F32 b)
 {
  Mat4x4F32 c = {0};
@@ -422,7 +422,7 @@ Mul4x4F32(Mat4x4F32 a, Mat4x4F32 b)
  return c;
 }
 
-core_function Mat4x4F32
+root_function Mat4x4F32
 Scale4x4F32(Mat4x4F32 m, F32 scale)
 {
  for(int j = 0; j < 4; j += 1)
@@ -435,7 +435,7 @@ Scale4x4F32(Mat4x4F32 m, F32 scale)
  return m;
 }
 
-core_function Mat4x4F32
+root_function Mat4x4F32
 Inverse4x4F32(Mat4x4F32 m)
 {
  F32 coef00 = m.elements[2][2] * m.elements[3][3] - m.elements[3][2] * m.elements[2][3];
@@ -496,7 +496,7 @@ Inverse4x4F32(Mat4x4F32 m)
  return Scale4x4F32(inverse, one_over_det);
 }
 
-core_function Mat4x4F32
+root_function Mat4x4F32
 RemoveRotation4x4F32(Mat4x4F32 mat)
 {
  Vec3F32 scale =
@@ -520,14 +520,14 @@ RemoveRotation4x4F32(Mat4x4F32 mat)
 ////////////////////////////////
 //~ rjf: Quaternion Constructors
 
-core_function QuatF32
+root_function QuatF32
 MakeQuatF32(F32 x, F32 y, F32 z, F32 w)
 {
  QuatF32 result = {x, y, z, w};
  return result;
 }
 
-core_function QuatF32
+root_function QuatF32
 QuatFromAxisAngleF32(Vec3F32 axis, F32 turns)
 {
  Vec3F32 axis_normalized = Normalize3F32(axis);
@@ -541,7 +541,7 @@ QuatFromAxisAngleF32(Vec3F32 axis, F32 turns)
 ////////////////////////////////
 //~ rjf: Quaternion Ops
 
-core_function QuatF32
+root_function QuatF32
 AddQF32(QuatF32 a, QuatF32 b)
 {
  QuatF32 c;
@@ -552,7 +552,7 @@ AddQF32(QuatF32 a, QuatF32 b)
  return a;
 }
 
-core_function QuatF32
+root_function QuatF32
 SubQF32(QuatF32 a, QuatF32 b)
 {
  QuatF32 c;
@@ -563,7 +563,7 @@ SubQF32(QuatF32 a, QuatF32 b)
  return a;
 }
 
-core_function QuatF32
+root_function QuatF32
 MulQF32(QuatF32 a, QuatF32 b)
 {
  QuatF32 c;
@@ -588,7 +588,7 @@ MulQF32(QuatF32 a, QuatF32 b)
  return c;
 }
 
-core_function QuatF32
+root_function QuatF32
 ScaleQF32(QuatF32 a, F32 scale)
 {
  QuatF32 result;
@@ -599,13 +599,13 @@ ScaleQF32(QuatF32 a, F32 scale)
  return result;
 }
 
-core_function QuatF32
+root_function QuatF32
 NormalizeQF32(QuatF32 q)
 {
  return ScaleQF32(q, 1.f/Length4F32(q.xyzw));
 }
 
-core_function QuatF32
+root_function QuatF32
 MixQF32(QuatF32 a, QuatF32 b, F32 t)
 {
  QuatF32 c;
@@ -617,14 +617,14 @@ MixQF32(QuatF32 a, QuatF32 b, F32 t)
  return c;
 }
 
-core_function F32
+root_function F32
 DotQF32(QuatF32 a, QuatF32 b)
 {
  F32 result = a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
  return result;
 }
 
-core_function Mat4x4F32
+root_function Mat4x4F32
 Mat4x4FromQuatF32(QuatF32 q)
 {
  QuatF32 q_norm = NormalizeQF32(q);
@@ -662,7 +662,7 @@ Mat4x4FromQuatF32(QuatF32 q)
 ////////////////////////////////
 //~ rjf: Range Ops
 
-core_function Rng1F32 R1F32(F32 min, F32 max)
+root_function Rng1F32 R1F32(F32 min, F32 max)
 {
  Rng1F32 result = { min, max };
  if(result.max < result.min)
@@ -671,14 +671,14 @@ core_function Rng1F32 R1F32(F32 min, F32 max)
  }
  return result;
 }
-core_function Rng1F32 Pad1F32(Rng1F32 r, F32 x) { return R1F32(r.min-x, r.max+x); }
-core_function F32 Center1F32(Rng1F32 r) { return (r.min + r.max)/2; }
-core_function B32 Contains1F32(Rng1F32 r, F32 v) { return r.min <= v && v < r.max; }
-core_function F32 Dim1F32(Rng1F32 r) { return AbsoluteValueF32(r.max - r.min); }
-core_function Rng1F32 Union1F32(Rng1F32 a, Rng1F32 b) { return R1F32(Min(a.min, b.min), Max(a.max, b.max)); }
-core_function Rng1F32 Intersection1F32(Rng1F32 a, Rng1F32 b) { return R1F32(Max(a.min, b.min), Min(a.max, b.max)); }
+root_function Rng1F32 Pad1F32(Rng1F32 r, F32 x) { return R1F32(r.min-x, r.max+x); }
+root_function F32 Center1F32(Rng1F32 r) { return (r.min + r.max)/2; }
+root_function B32 Contains1F32(Rng1F32 r, F32 v) { return r.min <= v && v < r.max; }
+root_function F32 Dim1F32(Rng1F32 r) { return AbsoluteValueF32(r.max - r.min); }
+root_function Rng1F32 Union1F32(Rng1F32 a, Rng1F32 b) { return R1F32(Min(a.min, b.min), Max(a.max, b.max)); }
+root_function Rng1F32 Intersection1F32(Rng1F32 a, Rng1F32 b) { return R1F32(Max(a.min, b.min), Min(a.max, b.max)); }
 
-core_function Rng1F64 R1F64(F64 min, F64 max)
+root_function Rng1F64 R1F64(F64 min, F64 max)
 {
  Rng1F64 result = { min, max };
  if(result.max < result.min)
@@ -687,14 +687,14 @@ core_function Rng1F64 R1F64(F64 min, F64 max)
  }
  return result;
 }
-core_function Rng1F64 Pad1F64(Rng1F64 r, F64 x) { return R1F64(r.min-x, r.max+x); }
-core_function F64 Center1F64(Rng1F64 r) { return (r.min + r.max)/2; }
-core_function B32 Contains1F64(Rng1F64 r, F64 v) { return r.min <= v && v < r.max; }
-core_function F64 Dim1F64(Rng1F64 r) { return AbsoluteValueF64(r.max - r.min); }
-core_function Rng1F64 Union1F64(Rng1F64 a, Rng1F64 b) { return R1F64(Min(a.min, b.min), Max(a.max, b.max)); }
-core_function Rng1F64 Intersection1F64(Rng1F64 a, Rng1F64 b) { return R1F64(Max(a.min, b.min), Min(a.max, b.max)); }
+root_function Rng1F64 Pad1F64(Rng1F64 r, F64 x) { return R1F64(r.min-x, r.max+x); }
+root_function F64 Center1F64(Rng1F64 r) { return (r.min + r.max)/2; }
+root_function B32 Contains1F64(Rng1F64 r, F64 v) { return r.min <= v && v < r.max; }
+root_function F64 Dim1F64(Rng1F64 r) { return AbsoluteValueF64(r.max - r.min); }
+root_function Rng1F64 Union1F64(Rng1F64 a, Rng1F64 b) { return R1F64(Min(a.min, b.min), Max(a.max, b.max)); }
+root_function Rng1F64 Intersection1F64(Rng1F64 a, Rng1F64 b) { return R1F64(Max(a.min, b.min), Min(a.max, b.max)); }
 
-core_function Rng1S32 R1S32(S32 min, S32 max)
+root_function Rng1S32 R1S32(S32 min, S32 max)
 {
  Rng1S32 result = { min, max };
  if(result.max < result.min)
@@ -703,14 +703,14 @@ core_function Rng1S32 R1S32(S32 min, S32 max)
  }
  return result;
 }
-core_function Rng1S32 Pad1S32(Rng1S32 r, S32 x) { return R1S32(r.min-x, r.max+x); }
-core_function S32 Center1S32(Rng1S32 r) { return (r.min + r.max)/2; }
-core_function B32 Contains1S32(Rng1S32 r, S32 v) { return r.min <= v && v < r.max; }
-core_function S32 Dim1S32(Rng1S32 r) { return AbsoluteValueS32(r.max - r.min); }
-core_function Rng1S32 Union1S32(Rng1S32 a, Rng1S32 b) { return R1S32(Min(a.min, b.min), Max(a.max, b.max)); }
-core_function Rng1S32 Intersection1S32(Rng1S32 a, Rng1S32 b) { return R1S32(Max(a.min, b.min), Min(a.max, b.max)); }
+root_function Rng1S32 Pad1S32(Rng1S32 r, S32 x) { return R1S32(r.min-x, r.max+x); }
+root_function S32 Center1S32(Rng1S32 r) { return (r.min + r.max)/2; }
+root_function B32 Contains1S32(Rng1S32 r, S32 v) { return r.min <= v && v < r.max; }
+root_function S32 Dim1S32(Rng1S32 r) { return AbsoluteValueS32(r.max - r.min); }
+root_function Rng1S32 Union1S32(Rng1S32 a, Rng1S32 b) { return R1S32(Min(a.min, b.min), Max(a.max, b.max)); }
+root_function Rng1S32 Intersection1S32(Rng1S32 a, Rng1S32 b) { return R1S32(Max(a.min, b.min), Min(a.max, b.max)); }
 
-core_function Rng1S64 R1S64(S64 min, S64 max)
+root_function Rng1S64 R1S64(S64 min, S64 max)
 {
  Rng1S64 result = { min, max };
  if(result.max < result.min)
@@ -719,14 +719,14 @@ core_function Rng1S64 R1S64(S64 min, S64 max)
  }
  return result;
 }
-core_function Rng1S64 Pad1S64(Rng1S64 r, S64 x) { return R1S64(r.min-x, r.max+x); }
-core_function S64 Center1S64(Rng1S64 r) { return (r.min + r.max)/2; }
-core_function B32 Contains1S64(Rng1S64 r, S64 v) { return r.min <= v && v < r.max; }
-core_function S64 Dim1S64(Rng1S64 r) { return AbsoluteValueS64(r.max - r.min); }
-core_function Rng1S64 Union1S64(Rng1S64 a, Rng1S64 b) { return R1S64(Min(a.min, b.min), Max(a.max, b.max)); }
-core_function Rng1S64 Intersection1S64(Rng1S64 a, Rng1S64 b) { return R1S64(Max(a.min, b.min), Min(a.max, b.max)); }
+root_function Rng1S64 Pad1S64(Rng1S64 r, S64 x) { return R1S64(r.min-x, r.max+x); }
+root_function S64 Center1S64(Rng1S64 r) { return (r.min + r.max)/2; }
+root_function B32 Contains1S64(Rng1S64 r, S64 v) { return r.min <= v && v < r.max; }
+root_function S64 Dim1S64(Rng1S64 r) { return AbsoluteValueS64(r.max - r.min); }
+root_function Rng1S64 Union1S64(Rng1S64 a, Rng1S64 b) { return R1S64(Min(a.min, b.min), Max(a.max, b.max)); }
+root_function Rng1S64 Intersection1S64(Rng1S64 a, Rng1S64 b) { return R1S64(Max(a.min, b.min), Min(a.max, b.max)); }
 
-core_function Rng1U32 R1U32(U32 min, U32 max)
+root_function Rng1U32 R1U32(U32 min, U32 max)
 {
  Rng1U32 result = { min, max };
  if(result.max < result.min)
@@ -735,14 +735,14 @@ core_function Rng1U32 R1U32(U32 min, U32 max)
  }
  return result;
 }
-core_function Rng1U32 Pad1U32(Rng1U32 r, U32 x) { return R1U32(r.min-x, r.max+x); }
-core_function U32 Center1U32(Rng1U32 r) { return (r.min + r.max)/2; }
-core_function B32 Contains1U32(Rng1U32 r, U32 v) { return r.min <= v && v < r.max; }
-core_function U32 Dim1U32(Rng1U32 r) { return (r.max - r.min); }
-core_function Rng1U32 Union1U32(Rng1U32 a, Rng1U32 b) { return R1U32(Min(a.min, b.min), Max(a.max, b.max)); }
-core_function Rng1U32 Intersection1U32(Rng1U32 a, Rng1U32 b) { return R1U32(Max(a.min, b.min), Min(a.max, b.max)); }
+root_function Rng1U32 Pad1U32(Rng1U32 r, U32 x) { return R1U32(r.min-x, r.max+x); }
+root_function U32 Center1U32(Rng1U32 r) { return (r.min + r.max)/2; }
+root_function B32 Contains1U32(Rng1U32 r, U32 v) { return r.min <= v && v < r.max; }
+root_function U32 Dim1U32(Rng1U32 r) { return (r.max - r.min); }
+root_function Rng1U32 Union1U32(Rng1U32 a, Rng1U32 b) { return R1U32(Min(a.min, b.min), Max(a.max, b.max)); }
+root_function Rng1U32 Intersection1U32(Rng1U32 a, Rng1U32 b) { return R1U32(Max(a.min, b.min), Min(a.max, b.max)); }
 
-core_function Rng1U64 R1U64(U64 min, U64 max)
+root_function Rng1U64 R1U64(U64 min, U64 max)
 {
  Rng1U64 result = { min, max };
  if(result.max < result.min)
@@ -751,116 +751,116 @@ core_function Rng1U64 R1U64(U64 min, U64 max)
  }
  return result;
 }
-core_function Rng1U64 Pad1U64(Rng1U64 r, U64 x) { return R1U64(r.min-x, r.max+x); }
-core_function U64 Center1U64(Rng1U64 r) { return (r.min + r.max)/2; }
-core_function B32 Contains1U64(Rng1U64 r, U64 v) { return r.min <= v && v < r.max; }
-core_function U64 Dim1U64(Rng1U64 r) { return AbsoluteValueU64(r.max - r.min); }
-core_function Rng1U64 Union1U64(Rng1U64 a, Rng1U64 b) { return R1U64(Min(a.min, b.min), Max(a.max, b.max)); }
-core_function Rng1U64 Intersection1U64(Rng1U64 a, Rng1U64 b) { return R1U64(Max(a.min, b.min), Min(a.max, b.max)); }
+root_function Rng1U64 Pad1U64(Rng1U64 r, U64 x) { return R1U64(r.min-x, r.max+x); }
+root_function U64 Center1U64(Rng1U64 r) { return (r.min + r.max)/2; }
+root_function B32 Contains1U64(Rng1U64 r, U64 v) { return r.min <= v && v < r.max; }
+root_function U64 Dim1U64(Rng1U64 r) { return AbsoluteValueU64(r.max - r.min); }
+root_function Rng1U64 Union1U64(Rng1U64 a, Rng1U64 b) { return R1U64(Min(a.min, b.min), Max(a.max, b.max)); }
+root_function Rng1U64 Intersection1U64(Rng1U64 a, Rng1U64 b) { return R1U64(Max(a.min, b.min), Min(a.max, b.max)); }
 
-core_function Rng2F32
+root_function Rng2F32
 R2F32(Vec2F32 min, Vec2F32 max)
 {
  Rng2F32 result = { min, max };
  return result;
 }
-core_function Rng2F32 Shift2F32(Rng2F32 r, Vec2F32 v) { r.x0 += v.x; r.y0 += v.y; r.x1 += v.x; r.y1 += v.y; return r; }
-core_function Rng2F32 Pad2F32(Rng2F32 r, F32 x) { return R2F32(Sub2F32(r.min, V2F32(x, x)), Add2F32(r.max, V2F32(x, x))); }
-core_function Vec2F32 Center2F32(Rng2F32 r) { return V2F32((r.min.x + r.max.x)/2, (r.min.y + r.max.y)/2); }
-core_function B32 Contains2F32(Rng2F32 r, Vec2F32 v) { return (r.min.x <= v.x && v.x <= r.max.x) && (r.min.y <= v.y && v.y <= r.max.y); }
-core_function Vec2F32 Dim2F32(Rng2F32 r) { return V2F32(AbsoluteValueF32(r.max.x - r.min.x), AbsoluteValueF32(r.max.y - r.min.y)); }
-core_function Rng2F32 Union2F32(Rng2F32 a, Rng2F32 b)
+root_function Rng2F32 Shift2F32(Rng2F32 r, Vec2F32 v) { r.x0 += v.x; r.y0 += v.y; r.x1 += v.x; r.y1 += v.y; return r; }
+root_function Rng2F32 Pad2F32(Rng2F32 r, F32 x) { return R2F32(Sub2F32(r.min, V2F32(x, x)), Add2F32(r.max, V2F32(x, x))); }
+root_function Vec2F32 Center2F32(Rng2F32 r) { return V2F32((r.min.x + r.max.x)/2, (r.min.y + r.max.y)/2); }
+root_function B32 Contains2F32(Rng2F32 r, Vec2F32 v) { return (r.min.x <= v.x && v.x <= r.max.x) && (r.min.y <= v.y && v.y <= r.max.y); }
+root_function Vec2F32 Dim2F32(Rng2F32 r) { return V2F32(AbsoluteValueF32(r.max.x - r.min.x), AbsoluteValueF32(r.max.y - r.min.y)); }
+root_function Rng2F32 Union2F32(Rng2F32 a, Rng2F32 b)
 {
  return R2F32(V2F32(Min(a.min.x, b.min.x), Min(a.min.y, b.min.y)),
               V2F32(Max(a.max.x, b.max.x), Max(a.max.y, b.max.y)));
 }
-core_function Rng2F32 Intersection2F32(Rng2F32 a, Rng2F32 b)
+root_function Rng2F32 Intersection2F32(Rng2F32 a, Rng2F32 b)
 {
  return R2F32(V2F32(Max(a.min.x, b.min.x), Max(a.min.y, b.min.y)),
               V2F32(Min(a.max.x, b.max.x), Min(a.max.y, b.max.y)));
 }
 
-core_function Rng2F64
+root_function Rng2F64
 R2F64(Vec2F64 min, Vec2F64 max)
 {
  Rng2F64 result = { min, max };
  return result;
 }
-core_function Rng2F64 Shift2F64(Rng2F64 r, Vec2F64 v) { r.x0 += v.x; r.y0 += v.y; r.x1 += v.x; r.y1 += v.y; return r; }
-core_function Rng2F64 Pad2F64(Rng2F64 r, F64 x) { return R2F64(Sub2F64(r.min, V2F64(x, x)), Add2F64(r.max, V2F64(x, x))); }
-core_function Vec2F64 Center2F64(Rng2F64 r) { return V2F64((r.min.x + r.max.x)/2, (r.min.y + r.max.y)/2); }
-core_function B32 Contains2F64(Rng2F64 r, Vec2F64 v) { return (r.min.x <= v.x && v.x <= r.max.x) && (r.min.y <= v.y && v.y <= r.max.y); }
-core_function Vec2F64 Dim2F64(Rng2F64 r) { return V2F64(AbsoluteValueF64(r.max.x - r.min.x), AbsoluteValueF64(r.max.y - r.min.y)); }
-core_function Rng2F64 Union2F64(Rng2F64 a, Rng2F64 b)
+root_function Rng2F64 Shift2F64(Rng2F64 r, Vec2F64 v) { r.x0 += v.x; r.y0 += v.y; r.x1 += v.x; r.y1 += v.y; return r; }
+root_function Rng2F64 Pad2F64(Rng2F64 r, F64 x) { return R2F64(Sub2F64(r.min, V2F64(x, x)), Add2F64(r.max, V2F64(x, x))); }
+root_function Vec2F64 Center2F64(Rng2F64 r) { return V2F64((r.min.x + r.max.x)/2, (r.min.y + r.max.y)/2); }
+root_function B32 Contains2F64(Rng2F64 r, Vec2F64 v) { return (r.min.x <= v.x && v.x <= r.max.x) && (r.min.y <= v.y && v.y <= r.max.y); }
+root_function Vec2F64 Dim2F64(Rng2F64 r) { return V2F64(AbsoluteValueF64(r.max.x - r.min.x), AbsoluteValueF64(r.max.y - r.min.y)); }
+root_function Rng2F64 Union2F64(Rng2F64 a, Rng2F64 b)
 {
  return R2F64(V2F64(Min(a.min.x, b.min.x), Min(a.min.y, b.min.y)),
               V2F64(Max(a.max.x, b.max.x), Max(a.max.y, b.max.y)));
 }
-core_function Rng2F64 Intersection2F64(Rng2F64 a, Rng2F64 b)
+root_function Rng2F64 Intersection2F64(Rng2F64 a, Rng2F64 b)
 {
  return R2F64(V2F64(Max(a.min.x, b.min.x), Max(a.min.y, b.min.y)),
               V2F64(Min(a.max.x, b.max.x), Min(a.max.y, b.max.y)));
 }
 
-core_function Rng2S32
+root_function Rng2S32
 R2S32(Vec2S32 min, Vec2S32 max)
 {
  Rng2S32 result = { min, max };
  return result;
 }
-core_function Rng2S32 Pad2S32(Rng2S32 r, S32 x) { return R2S32(Sub2S32(r.min, V2S32(x, x)), Add2S32(r.max, V2S32(x, x))); }
-core_function Vec2S32 Center2S32(Rng2S32 r) { return V2S32((r.min.x + r.max.x)/2, (r.min.y + r.max.y)/2); }
-core_function B32 Contains2S32(Rng2S32 r, Vec2S32 v) { return (r.min.x <= v.x && v.x < r.max.x) && (r.min.y <= v.y && v.y < r.max.y); }
-core_function Vec2S32 Dim2S32(Rng2S32 r) { return V2S32(AbsoluteValueS32(r.max.x - r.min.x), AbsoluteValueS32(r.max.y - r.min.y)); }
-core_function Rng2S32 Union2S32(Rng2S32 a, Rng2S32 b)
+root_function Rng2S32 Pad2S32(Rng2S32 r, S32 x) { return R2S32(Sub2S32(r.min, V2S32(x, x)), Add2S32(r.max, V2S32(x, x))); }
+root_function Vec2S32 Center2S32(Rng2S32 r) { return V2S32((r.min.x + r.max.x)/2, (r.min.y + r.max.y)/2); }
+root_function B32 Contains2S32(Rng2S32 r, Vec2S32 v) { return (r.min.x <= v.x && v.x < r.max.x) && (r.min.y <= v.y && v.y < r.max.y); }
+root_function Vec2S32 Dim2S32(Rng2S32 r) { return V2S32(AbsoluteValueS32(r.max.x - r.min.x), AbsoluteValueS32(r.max.y - r.min.y)); }
+root_function Rng2S32 Union2S32(Rng2S32 a, Rng2S32 b)
 {
  return R2S32(V2S32(Min(a.min.x, b.min.x), Min(a.min.y, b.min.y)),
               V2S32(Max(a.max.x, b.max.x), Max(a.max.y, b.max.y)));
 }
-core_function Rng2S32 Intersection2S32(Rng2S32 a, Rng2S32 b)
+root_function Rng2S32 Intersection2S32(Rng2S32 a, Rng2S32 b)
 {
  return R2S32(V2S32(Max(a.min.x, b.min.x), Max(a.min.y, b.min.y)),
               V2S32(Min(a.max.x, b.max.x), Min(a.max.y, b.max.y)));
 }
 
-core_function Rng2S64
+root_function Rng2S64
 R2S64(Vec2S64 min, Vec2S64 max)
 {
  Rng2S64 result = { min, max };
  return result;
 }
-core_function Rng2S64 Pad2S64(Rng2S64 r, S64 x) { return R2S64(Sub2S64(r.min, V2S64(x, x)), Add2S64(r.max, V2S64(x, x))); }
-core_function Vec2S64 Center2S64(Rng2S64 r) { return V2S64((r.min.x + r.max.x)/2, (r.min.y + r.max.y)/2); }
-core_function B32 Contains2S64(Rng2S64 r, Vec2S64 v) { return (r.min.x <= v.x && v.x < r.max.x) && (r.min.y <= v.y && v.y < r.max.y); }
-core_function Vec2S64 Dim2S64(Rng2S64 r) { return V2S64(AbsoluteValueS64(r.max.x - r.min.x), AbsoluteValueS64(r.max.y - r.min.y)); }
-core_function Rng2S64 Union2S64(Rng2S64 a, Rng2S64 b)
+root_function Rng2S64 Pad2S64(Rng2S64 r, S64 x) { return R2S64(Sub2S64(r.min, V2S64(x, x)), Add2S64(r.max, V2S64(x, x))); }
+root_function Vec2S64 Center2S64(Rng2S64 r) { return V2S64((r.min.x + r.max.x)/2, (r.min.y + r.max.y)/2); }
+root_function B32 Contains2S64(Rng2S64 r, Vec2S64 v) { return (r.min.x <= v.x && v.x < r.max.x) && (r.min.y <= v.y && v.y < r.max.y); }
+root_function Vec2S64 Dim2S64(Rng2S64 r) { return V2S64(AbsoluteValueS64(r.max.x - r.min.x), AbsoluteValueS64(r.max.y - r.min.y)); }
+root_function Rng2S64 Union2S64(Rng2S64 a, Rng2S64 b)
 {
  return R2S64(V2S64(Min(a.min.x, b.min.x), Min(a.min.y, b.min.y)),
               V2S64(Max(a.max.x, b.max.x), Max(a.max.y, b.max.y)));
 }
-core_function Rng2S64 Intersection2S64(Rng2S64 a, Rng2S64 b)
+root_function Rng2S64 Intersection2S64(Rng2S64 a, Rng2S64 b)
 {
  return R2S64(V2S64(Max(a.min.x, b.min.x), Max(a.min.y, b.min.y)),
               V2S64(Min(a.max.x, b.max.x), Min(a.max.y, b.max.y)));
 }
 
-core_function Rng3F32
+root_function Rng3F32
 R3F32(Vec3F32 min, Vec3F32 max)
 {
  Rng3F32 result = { min, max };
  return result;
 }
-core_function Rng3F32 Shift3F32(Rng3F32 r, Vec3F32 v) { r.x0 += v.x; r.y0 += v.y; r.z0 += v.z; r.x1 += v.x; r.y1 += v.y; r.z1 += v.z; return r; }
-core_function Rng3F32 Pad3F32(Rng3F32 r, F32 x) { return R3F32(Sub3F32(r.min, V3F32(x, x, x)), Add3F32(r.max, V3F32(x, x, x))); }
-core_function Vec3F32 Center3F32(Rng3F32 r) { return V3F32((r.min.x + r.max.x)/2, (r.min.y + r.max.y)/2, (r.min.z + r.max.z)/2); }
-core_function B32 Contains3F32(Rng3F32 r, Vec3F32 v) { return (r.min.x <= v.x && v.x <= r.max.x) && (r.min.y <= v.y && v.y <= r.max.y) && (r.min.z <= v.z && v.z <= r.max.z); }
-core_function Vec3F32 Dim3F32(Rng3F32 r) { return V3F32(AbsoluteValueF32(r.max.x - r.min.x), AbsoluteValueF32(r.max.y - r.min.y), AbsoluteValueF32(r.max.z - r.min.z)); }
-core_function Rng3F32 Union3F32(Rng3F32 a, Rng3F32 b)
+root_function Rng3F32 Shift3F32(Rng3F32 r, Vec3F32 v) { r.x0 += v.x; r.y0 += v.y; r.z0 += v.z; r.x1 += v.x; r.y1 += v.y; r.z1 += v.z; return r; }
+root_function Rng3F32 Pad3F32(Rng3F32 r, F32 x) { return R3F32(Sub3F32(r.min, V3F32(x, x, x)), Add3F32(r.max, V3F32(x, x, x))); }
+root_function Vec3F32 Center3F32(Rng3F32 r) { return V3F32((r.min.x + r.max.x)/2, (r.min.y + r.max.y)/2, (r.min.z + r.max.z)/2); }
+root_function B32 Contains3F32(Rng3F32 r, Vec3F32 v) { return (r.min.x <= v.x && v.x <= r.max.x) && (r.min.y <= v.y && v.y <= r.max.y) && (r.min.z <= v.z && v.z <= r.max.z); }
+root_function Vec3F32 Dim3F32(Rng3F32 r) { return V3F32(AbsoluteValueF32(r.max.x - r.min.x), AbsoluteValueF32(r.max.y - r.min.y), AbsoluteValueF32(r.max.z - r.min.z)); }
+root_function Rng3F32 Union3F32(Rng3F32 a, Rng3F32 b)
 {
  return R3F32(V3F32(Min(a.min.x, b.min.x), Min(a.min.y, b.min.y), Min(a.min.z, b.min.z)),
               V3F32(Max(a.max.x, b.max.x), Max(a.max.y, b.max.y), Max(a.max.z, b.max.z)));
 }
-core_function Rng3F32 Intersection3F32(Rng3F32 a, Rng3F32 b)
+root_function Rng3F32 Intersection3F32(Rng3F32 a, Rng3F32 b)
 {
  return R3F32(V3F32(Max(a.min.x, b.min.x), Max(a.min.y, b.min.y), Max(a.min.z, b.min.z)),
               V3F32(Min(a.max.x, b.max.x), Min(a.max.y, b.max.y), Min(a.max.z, b.max.z)));
@@ -869,7 +869,7 @@ core_function Rng3F32 Intersection3F32(Rng3F32 a, Rng3F32 b)
 ////////////////////////////////
 //~ rjf: Lists
 
-core_function void
+root_function void
 Rng1U64ListPushNode(Rng1U64List *list, Rng1U64Node *node)
 {
  QueuePush(list->first, list->last, node);
@@ -877,7 +877,7 @@ Rng1U64ListPushNode(Rng1U64List *list, Rng1U64Node *node)
  list->total_count += Dim1U64(node->v);
 }
 
-core_function void
+root_function void
 Rng1U64ListPushNodeFront(Rng1U64List *list, Rng1U64Node *node)
 {
  QueuePushFront(list->first, list->last, node);
@@ -885,7 +885,7 @@ Rng1U64ListPushNodeFront(Rng1U64List *list, Rng1U64Node *node)
  list->total_count += Dim1U64(node->v);
 }
 
-core_function void
+root_function void
 Rng1U64ListPush(Arena *arena, Rng1U64List *list, Rng1U64 rng)
 {
  Rng1U64Node *n = PushArray(arena, Rng1U64Node, 1);
@@ -893,7 +893,7 @@ Rng1U64ListPush(Arena *arena, Rng1U64List *list, Rng1U64 rng)
  Rng1U64ListPushNode(list, n);
 }
 
-core_function void
+root_function void
 Rng1U64ListPushFront(Arena *arena, Rng1U64List *list, Rng1U64 rng)
 {
  Rng1U64Node *n = PushArray(arena, Rng1U64Node, 1);
@@ -904,7 +904,7 @@ Rng1U64ListPushFront(Arena *arena, Rng1U64List *list, Rng1U64 rng)
 ////////////////////////////////
 //~ rjf: Miscellaneous Ops
 
-core_function Vec3F32
+root_function Vec3F32
 HSVFromRGB(Vec3F32 rgb)
 {
  F32 r = rgb.r;
@@ -933,7 +933,7 @@ HSVFromRGB(Vec3F32 rgb)
  return result;
 }
 
-core_function Vec3F32
+root_function Vec3F32
 RGBFromHSV(Vec3F32 hsv)
 {
  Vec3F32 rgb = {0};
@@ -984,7 +984,7 @@ RGBFromHSV(Vec3F32 hsv)
  return rgb;
 }
 
-core_function Vec4F32
+root_function Vec4F32
 Vec4F32FromHexRGBA(U32 hex)
 {
  Vec4F32 result =
@@ -997,21 +997,21 @@ Vec4F32FromHexRGBA(U32 hex)
  return result;
 }
 
-core_function F32
+root_function F32
 MillisecondsFromMicroseconds(U64 microseconds)
 {
  F32 milliseconds = (F32)((F64)microseconds / 1000.0);
  return milliseconds;
 }
 
-core_function U64
+root_function U64
 MicrosecondsFromMilliseconds(F32 milliseconds)
 {
  U64 microseconds = (U64)((F64)milliseconds * 1000.0);
  return microseconds;
 }
 
-core_function Vec2S64
+root_function Vec2S64
 SideVertexFromCorner(Corner corner)
 {
  Vec2S64 result = {0};

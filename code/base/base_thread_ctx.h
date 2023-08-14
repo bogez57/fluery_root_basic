@@ -13,25 +13,25 @@ struct ThreadCtx
 };
 
 //- rjf: thread context construction & set/get
-core_function ThreadCtx ThreadCtxAlloc(void);
-core_function void ThreadCtxRelease(ThreadCtx *tctx);
+root_function ThreadCtx ThreadCtxAlloc(void);
+root_function void ThreadCtxRelease(ThreadCtx *tctx);
 no_name_mangle void SetThreadCtx(ThreadCtx *tctx);
 no_name_mangle ThreadCtx *GetThreadCtx(void);
 
 //- rjf: thread metadata
-core_function void SetThreadName(String8 string);
-core_function String8 GetThreadName(void);
-core_function B32 IsMainThread(void);
+root_function void SetThreadName(String8 string);
+root_function String8 GetThreadName(void);
+root_function B32 IsMainThread(void);
 
 //- rjf: source code location set helper
-core_function void SetThreadFileAndLine_(char *file, int line);
+root_function void SetThreadFileAndLine_(char *file, int line);
 #define RecordCodeLoc() SetThreadFileAndLine_(__FILE__, __LINE__)
 
 //- rjf: scratch memory
-core_function ArenaTemp GetScratch(Arena **conflicts, U64 conflict_count);
+root_function ArenaTemp GetScratch(Arena **conflicts, U64 conflict_count);
 #define ReleaseScratch(temp) ArenaTempEnd(temp)
 
 //- rjf: main thread entry point
-core_function void BaseMainThreadEntry(void (*entry)(struct CmdLine *cmdln), U64 argument_count, char **arguments);
+root_function void BaseMainThreadEntry(void (*entry)(struct CmdLine *cmdln), U64 argument_count, char **arguments);
 
 #endif // BASE_THREAD_CTX_H
