@@ -243,7 +243,7 @@ OS_Init(void)
   
   // rjf: gather paths
   {
-   ArenaTemp scratch = GetScratch(0, 0);
+   Temp scratch = ScratchBegin(0, 0);
    
    // rjf: gather binary path
    String8 binary_path = {0};
@@ -271,7 +271,7 @@ OS_Init(void)
    os_w32_state->initial_path = os_w32_state->binary_path;
    os_w32_state->app_data_path = PushStr8Copy(arena, app_data_path);
    
-   ReleaseScratch(scratch);
+   ScratchEnd(scratch);
   }
   
   // rjf: enable tight-granularity sleeps
@@ -290,7 +290,7 @@ OS_Abort(void)
 root_function String8
 OS_GetSystemPath(Arena *arena, OS_SystemPath path)
 {
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  String8 result = {0};
  switch(path)
  {
@@ -314,7 +314,7 @@ OS_GetSystemPath(Arena *arena, OS_SystemPath path)
    result = os_w32_state->app_data_path;
   }break;
  }
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return result;
 }
 
@@ -399,10 +399,10 @@ OS_SetMemoryAccessFlags(void *ptr, U64 size, OS_AccessFlags flags)
 root_function OS_Handle
 OS_LibraryOpen(String8 path)
 {
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  String16 path16 = Str16From8(scratch.arena, path);
  HMODULE hmodule = LoadLibraryW((WCHAR*)path16.str);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  OS_Handle handle = {0};
  handle.u64[0] = (U64)hmodule;
  return handle;
@@ -418,11 +418,11 @@ OS_LibraryClose(OS_Handle handle)
 root_function VoidFunction *
 OS_LibraryLoadFunction(OS_Handle handle, String8 name)
 {
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  HMODULE hmodule = (HMODULE)handle.u64[0];
  String8 name_copy = PushStr8Copy(scratch.arena, name);
  VoidFunction *result = (VoidFunction *)GetProcAddress(hmodule, (char *)name_copy.str);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return result;
 }
 
@@ -435,7 +435,7 @@ root_function OS_Handle
 OS_FileOpen(Arena *arena, OS_AccessFlags access_flags, String8 path, OS_ErrorList *out_errors)
 {
  // rjf: unpack args
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  String16 path16 = Str16From8(scratch.arena, path);
  
  // rjf: map to w32 access flags
@@ -484,7 +484,7 @@ OS_FileOpen(Arena *arena, OS_AccessFlags access_flags, String8 path, OS_ErrorLis
  OS_Handle handle = {0};
  handle.u64[0] = (U64)file;
  
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return handle;
 }
 
@@ -599,44 +599,44 @@ OS_AttributesFromFile(OS_Handle file)
 root_function void
 OS_DeleteFile(String8 path)
 {
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  String16 path16 = Str16From8(scratch.arena, path);
  DeleteFileW((WCHAR *)path16.str);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
 }
 
 root_function void
 OS_MoveFile(String8 dst_path, String8 src_path)
 {
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  String16 dst_path_16 = Str16From8(scratch.arena, dst_path);
  String16 src_path_16 = Str16From8(scratch.arena, src_path);
  MoveFileW((WCHAR *)src_path_16.str, (WCHAR *)dst_path_16.str);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
 }
 
 root_function B32
 OS_CopyFile(String8 dst_path, String8 src_path)
 {
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  String16 dst_path_16 = Str16From8(scratch.arena, dst_path);
  String16 src_path_16 = Str16From8(scratch.arena, src_path);
  B32 result = CopyFileW((WCHAR *)src_path_16.str, (WCHAR *)dst_path_16.str, 0);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return result;
 }
 
 root_function B32
 OS_MakeDirectory(String8 path)
 {
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  String16 path16 = Str16From8(scratch.arena, path);
  B32 result = 1;
  if(!CreateDirectoryW((WCHAR *)path16.str, 0))
  {
   result = 0;
  }
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return result;
 }
 
@@ -657,11 +657,11 @@ OS_FileIterBegin(Arena *arena, String8 path)
  path = Str8PathChopPastLastSlash(path);
  if(path.size != 0)
  {
-  ArenaTemp scratch = GetScratch(&arena, 1);
+  Temp scratch = ScratchBegin(&arena, 1);
   path = PushStr8F(scratch.arena, "%S*", path);
   String16 path16 = Str16From8(scratch.arena, path);
   file_find_data->handle = FindFirstFileW((WCHAR *)path16.str, &file_find_data->find_data);
-  ReleaseScratch(scratch);
+  ScratchEnd(scratch);
  }
  return it;
 }
@@ -736,12 +736,12 @@ root_function OS_FileAttributes
 OS_FileAttributesFromPath(String8 path)
 {
  WIN32_FIND_DATAW find_data = {0};
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  String16 path16 = Str16From8(scratch.arena, path);
  HANDLE handle = FindFirstFileW((WCHAR *)path16.str, &find_data);
  FindClose(handle);
  OS_FileAttributes attributes = OS_W32_FileAttributesFromFindData(find_data);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return attributes;
 }
 
@@ -1039,7 +1039,7 @@ OS_ProcessLaunch(String8 command, String8 working_directory)
 {
  OS_W32_Process *w32_proc = OS_W32_ProcessAlloc();
  
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  
  //- rjf: convert inputs
  String8 command_prepped = PushStr8F(scratch.arena, "cmd.exe /C %.*s", Str8VArg(command));
@@ -1118,7 +1118,7 @@ OS_ProcessLaunch(String8 command, String8 working_directory)
   }
  }
  
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  
  OS_Handle result = {0};
  result.u64[0] = IntFromPtr(w32_proc);

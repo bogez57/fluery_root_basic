@@ -66,7 +66,7 @@ OS_W32_WindowProc(HWND hwnd, UINT message, WPARAM w_param, LPARAM l_param)
  OS_Event *event = 0;
  OS_W32_Window *window = (OS_W32_Window *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
  OS_Handle window_handle = OS_W32_HandleFromWindow(window);
- ArenaTemp scratch = GetScratch(&os_w32_tl_events_arena, 1);
+ Temp scratch = ScratchBegin(&os_w32_tl_events_arena, 1);
  OS_EventList fallback_event_list = {0};
  if(os_w32_tl_events_arena == 0)
  {
@@ -465,7 +465,7 @@ OS_W32_WindowProc(HWND hwnd, UINT message, WPARAM w_param, LPARAM l_param)
   os_w32_tl_events_list->count += 1;
  }
  
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return result;
 }
 
@@ -584,13 +584,13 @@ OS_WindowOpen(OS_WindowFlags flags, Vec2S64 size, String8 title)
   HWND hwnd = 0;
   HDC hdc = 0;
   {
-   ArenaTemp scratch = GetScratch(0, 0);
+   Temp scratch = ScratchBegin(0, 0);
    String16 title16 = Str16From8(scratch.arena, title);
    hwnd = CreateWindowW(OS_W32_GraphicalWindowClassName, (LPCWSTR)title16.str, WS_OVERLAPPEDWINDOW,
                         CW_USEDEFAULT, CW_USEDEFAULT, size.x, size.y, 0, 0, os_w32_hinstance, 0);
    hdc = GetDC(hwnd);
    SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)window);
-   ReleaseScratch(scratch);
+   ScratchEnd(scratch);
   }
   
   //- rjf: fill window
@@ -640,17 +640,17 @@ OS_WindowClose(OS_Handle handle)
 root_function void
 OS_WindowSetTitle(OS_Handle handle, String8 title)
 {
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  OS_W32_Window *w = OS_W32_WindowFromHandle(handle);
  String16 title16 = Str16From8(scratch.arena, title);
  SetWindowTextW(w->hwnd, (WCHAR *)title16.str);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
 }
 
 root_function void
 OS_WindowSetIcon(OS_Handle handle, Vec2S32 size, String8 rgba_data)
 {
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
  {
   S32 size_area = size.x*size.y;
@@ -687,7 +687,7 @@ OS_WindowSetIcon(OS_Handle handle, Vec2S32 size, String8 rgba_data)
    SendMessage(window->hwnd, WM_SETICON, ICON_BIG, (LPARAM)icon);
   }
  }
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
 }
 
 root_function void
@@ -845,14 +845,14 @@ OS_WindowToggleFullscreen(OS_Handle handle)
 root_function void
 OS_WindowFirstPaint(OS_Handle handle)
 {
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  OS_EventList evts = {0};
  os_w32_tl_events_list = &evts;
  os_w32_tl_events_arena = scratch.arena;
  OS_W32_Window *window = OS_W32_WindowFromHandle(handle);
  ShowWindow(window->hwnd, SW_SHOW);
  UpdateWindow(window->hwnd);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
 }
 
 //- rjf: accessors

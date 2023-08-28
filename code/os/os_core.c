@@ -21,10 +21,10 @@ OS_HandleMatch(OS_Handle a, OS_Handle b)
 root_function String8
 OS_NormalizedPathFromStr8(Arena *arena, String8 string)
 {
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  String8 source = OS_GetSystemPath(scratch.arena, OS_SystemPath_Current);
  String8 result = NormalizedPathFromStr8(arena, source, string);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return result;
 }
 
@@ -53,7 +53,7 @@ OS_SaveFile(Arena *arena, String8 path, String8List data, OS_ErrorList *out_erro
 root_function B32
 OS_FileExists(String8 path)
 {
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  OS_ErrorList errors = {0};
  OS_Handle file = OS_FileOpen(scratch.arena, OS_AccessFlag_Read, path, &errors);
  B32 result = errors.count != 0 && OS_FileIsValid(file);

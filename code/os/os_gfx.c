@@ -15,7 +15,7 @@ OS_StringFromKey(OS_Key key)
 root_function String8
 OS_StringFromModifiersKey(Arena *arena, OS_Modifiers modifiers, OS_Key key)
 {
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  String8 key_string = OS_StringFromKey(key);
  String8List modifiers_strings = {0};
  if(modifiers & OS_Modifier_Ctrl)
@@ -34,7 +34,7 @@ OS_StringFromModifiersKey(Arena *arena, OS_Modifiers modifiers, OS_Key key)
  join.sep = Str8Lit(" + ");
  String8 modifiers_string = Str8ListJoin(scratch.arena, modifiers_strings, &join);
  String8 final_string = PushStr8F(arena, "%S%s%S", modifiers_string, modifiers_string.size != 0 ? " + " : "", key_string);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return final_string;
 }
 
