@@ -328,7 +328,7 @@ MD_TagCountFromNode(MD_Node *node)
 root_function MD_TokenizeResult
 MD_TokenizeFromText(Arena *arena, String8 text)
 {
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  MD_TokenChunkList tokens = {0};
  MD_MsgList msgs = {0};
  U8 *byte_first = text.str;
@@ -605,7 +605,7 @@ MD_TokenizeFromText(Arena *arena, String8 text)
   result.tokens = MD_TokenArrayFromChunkList(arena, &tokens);
   result.msgs = msgs;
  }
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return result;
 }
 
@@ -615,7 +615,7 @@ MD_TokenizeFromText(Arena *arena, String8 text)
 root_function MD_ParseResult
 MD_ParseFromTextTokens(Arena *arena, String8 filename, String8 text, MD_TokenArray tokens)
 {
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  
  //- rjf: set up outputs
  MD_MsgList msgs = {0};
@@ -916,6 +916,6 @@ if(work_top == 0) {work_top = &broken_work;}\
  MD_ParseResult result = {0};
  result.root = root;
  result.msgs = msgs;
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return result;
 }

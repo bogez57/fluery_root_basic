@@ -64,25 +64,28 @@ D_Init(R_InitReceipt r_init_receipt, F_InitReceipt f_init_receipt)
   d_state = PushArray(arena, D_State, 1);
   d_state->arena = arena;
   U32 white_data[] = {0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
-  d_state->white_texture = R_Texture2DAlloc(V2S64(2, 2), R_Texture2DFormat_RGBA8, R_Texture2DKind_Static, &white_data[0]);
-  D_InitThread();
+  d_state->white_texture = R_Tex2DAlloc(V2S64(2, 2), R_Tex2DFormat_RGBA8, R_Tex2DKind_Static, &white_data[0]);
+  D_EnsureThreadInited();
  }
  D_InitReceipt result = {0};
  return result;
 }
 
 root_function void
-D_InitThread(void)
+D_EnsureThreadInited(void)
 {
- Arena *arena = ArenaAlloc(Megabytes(1));
- d_thread_ctx = PushArray(arena, D_ThreadCtx, 1);
- d_thread_ctx->arena = arena;
- d_thread_ctx->fallback_arena = ArenaAlloc(Megabytes(256));
- D_InitBucketStacks(&d_thread_ctx->fallback_bucket);
- d_thread_ctx->bucket_selection_fallback.arena = d_thread_ctx->fallback_arena;
- d_thread_ctx->bucket_selection_fallback.bucket = &d_thread_ctx->fallback_bucket;
- d_thread_ctx->bucket_selection_top = &d_thread_ctx->bucket_selection_fallback;
- D_InitThreadStackTops;
+ if(d_thread_ctx == 0)
+ {
+  Arena *arena = ArenaAlloc(Megabytes(1));
+  d_thread_ctx = PushArray(arena, D_ThreadCtx, 1);
+  d_thread_ctx->arena = arena;
+  d_thread_ctx->fallback_arena = ArenaAlloc(Megabytes(256));
+  D_InitBucketStacks(&d_thread_ctx->fallback_bucket);
+  d_thread_ctx->bucket_selection_fallback.arena = d_thread_ctx->fallback_arena;
+  d_thread_ctx->bucket_selection_fallback.bucket = &d_thread_ctx->fallback_bucket;
+  d_thread_ctx->bucket_selection_top = &d_thread_ctx->bucket_selection_fallback;
+  D_InitThreadStackTops;
+ }
 }
 
 ////////////////////////////////
@@ -91,11 +94,26 @@ D_InitThread(void)
 root_function void
 D_BeginFrame(void)
 {
+ D_EnsureThreadInited();
 }
 
 root_function void
 D_EndFrame(void)
 {
+}
+
+////////////////////////////////
+//~ rjf: Basic Helpers
+
+root_function U64
+D_HashFromString(U64 seed, String8 string)
+{
+ U64 result = seed;
+ for(U64 i = 0; i < string.size; i += 1)
+ {
+  result = ((result << 5) + result) + string.str[i];
+ }
+ return result;
 }
 
 ////////////////////////////////
@@ -107,6 +125,13 @@ D_BucketMake(Arena *arena)
  D_Bucket *bucket = PushArray(arena, D_Bucket, 1);
  D_InitBucketStacks(bucket);
  return bucket;
+}
+
+root_function void
+D_BucketConcatInPlace(D_Bucket *to_push)
+{
+ D_Bucket *bucket = D_ActiveBucket();
+ R_PassListConcatInPlace(&bucket->passes, &to_push->passes);
 }
 
 root_function void
@@ -158,12 +183,10 @@ D_ActiveBucket(void)
 root_function void
 D_Submit(R_Handle window_r, D_Bucket *bucket)
 {
- R_WindowSubmit(window_r, bucket->cmds);
+ R_WindowSubmit(window_r, &bucket->passes);
 }
 
-////////////////////////////////
-//~ rjf: Command Building Helpers
-
+#if 0
 root_function R_Cmd *
 D_PushCmd(R_CmdKind kind, R_Handle albedo_texture)
 {
@@ -189,9 +212,29 @@ D_PushCmd(R_CmdKind kind, R_Handle albedo_texture)
  bucket->last_cmd_stack_gen = bucket->current_stack_gen;
  return cmd;
 }
+#endif
 
 ////////////////////////////////
-//~ rjf: Command Building
+//~ rjf: Pass Building Helpers
+
+root_function R_Pass *
+D_PassFromBucket(Arena *arena, D_Bucket *bucket, R_PassKind kind)
+{
+ R_PassNode *node = bucket->passes.last;
+ R_Pass *pass = 0;
+ if(node == 0 || node->v.kind != kind)
+ {
+  pass = R_PassListPush(arena, &bucket->passes, kind);
+ }
+ else
+ {
+  pass = &node->v;
+ }
+ return pass;
+}
+
+////////////////////////////////
+//~ rjf: UI Pass Commands
 
 //- rjf: rectangles (2d)
 
@@ -200,17 +243,33 @@ D_Rect2D_(Rng2F32 rect, D_RectParams p)
 {
  Arena *arena = D_ActiveArena();
  D_Bucket *bucket = D_ActiveBucket();
- R_Handle albedo_texture = R_HandleIsZero(p.albedo_texture) ? d_state->white_texture : p.albedo_texture;
- R_Cmd *cmd = D_PushCmd(R_CmdKind_Rect2D, albedo_texture);
- R_Rect2DInst *result = (R_Rect2DInst *)R_CmdInstBatchListPush(arena, &cmd->batches, 64, sizeof(R_Rect2DInst));
- result->dst_rect = rect;
- result->src_rect = p.src_rect;
- result->colors[Corner_00] = result->colors[Corner_01] = result->colors[Corner_10] = result->colors[Corner_11] = p.color;
- result->corner_radii[Corner_00] = result->corner_radii[Corner_01] = result->corner_radii[Corner_10] = result->corner_radii[Corner_11] = p.radius;
- result->border_thickness = p.border_thickness;
- result->softness = p.soft;
- result->omit_texture = (F32)!!R_HandleIsZero(p.albedo_texture);
- return result;
+ R_Pass *pass = D_PassFromBucket(arena, bucket, R_PassKind_UI);
+ R_PassParams_UI *pass_params = pass->params_ui;
+ R_BatchGroup2DNode *batch_group = pass_params->rects.last;
+ R_Handle tex = R_HandleMatch(p.tex, R_HandleZero()) ? d_state->white_texture : p.tex;
+ if(batch_group == 0 ||
+    (!R_HandleMatch(batch_group->params.albedo_tex, tex) &&
+     !R_HandleMatch(tex, d_state->white_texture)) ||
+    bucket->last_cmd_stack_gen != bucket->current_stack_gen)
+ {
+  batch_group = PushArray(arena, R_BatchGroup2DNode, 1);
+  QueuePush(pass_params->rects.first, pass_params->rects.last, batch_group);
+  pass_params->rects.count += 1;
+  batch_group->params.albedo_tex = tex;
+  batch_group->params.albedo_tex_sample_kind = bucket->tex2d_sample_kind_stack_top->v;
+  batch_group->params.xform2d = bucket->xform2d_stack_top->v;
+  batch_group->params.clip = bucket->clip_stack_top->v;
+  batch_group->params.transparency = bucket->transparency_stack_top->v;
+ }
+ R_Rect2DInst *inst = R_BatchListPushStruct(arena, &batch_group->batches, 256, R_Rect2DInst);
+ inst->dst_rect = rect;
+ inst->src_rect = p.src_rect;
+ inst->colors[Corner_00] = inst->colors[Corner_01] = inst->colors[Corner_10] = inst->colors[Corner_11] = p.color;
+ inst->corner_radii[Corner_00] = inst->corner_radii[Corner_01] = inst->corner_radii[Corner_10] = inst->corner_radii[Corner_11] = p.radius;
+ inst->border_thickness = p.border_thickness;
+ inst->softness = p.soft;
+ inst->omit_texture = (F32)!!R_HandleIsZero(p.albedo_texture);
+ return inst;
 }
 
 //- rjf: text (2d)
@@ -220,7 +279,7 @@ D_Text2D(Vec2F32 position, F_Tag font, F32 size, Vec4F32 color, String8 string)
 {
  Arena *arena = D_ActiveArena();
  D_Bucket *bucket = D_ActiveBucket();
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  F_Run run = F_RunFromFontSizeString(scratch.arena, font, size, string);
  Vec2F32 p = position;
  for(F_Piece *piece = run.first_piece; piece != 0; piece = piece->next)
@@ -232,7 +291,7 @@ D_Text2D(Vec2F32 position, F_Tag font, F32 size, Vec4F32 color, String8 string)
   D_Rect2D(rect, .texture = piece->texture, .src_rect = piece->src_rect, .color = color);
   p.x += piece->advance;
  }
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  F32 result = p.x - position.x;
  return result;
 }
@@ -242,37 +301,18 @@ D_Text2DF(Vec2F32 position, F_Tag font, F32 size, Vec4F32 color, char *fmt, ...)
 {
  Arena *arena = D_ActiveArena();
  D_Bucket *bucket = D_ActiveBucket();
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  va_list args;
  va_start(args, fmt);
  String8 string = PushStr8FV(scratch.arena, fmt, args);
  F32 result = D_Text2D(position, font, size, color, string);
  va_end(args);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return result;
 }
 
-//- rjf: passes (3d)
-
-root_function void
-D_BeginPass3D_(R_Pass3DParams p)
-{
- Arena *arena = D_ActiveArena();
- D_Bucket *bucket = D_ActiveBucket();
- R_Cmd *cmd = D_PushCmd(R_CmdKind_Pass3D, R_HandleZero());
- R_Pass3DParams *dst_params = (R_Pass3DParams *)R_CmdInstBatchListPush(arena, &cmd->batches, 1, sizeof(R_Pass3DParams));
- MemoryCopyStruct(dst_params, &p);
- D_Pass3DNode *pass_node = PushArray(arena, D_Pass3DNode, 1);
- pass_node->params = dst_params;
- StackPush(bucket->top_3d_pass, pass_node);
-}
-
-root_function void
-D_EndPass3D(void)
-{
- D_Bucket *bucket = D_ActiveBucket();
- StackPop(bucket->top_3d_pass);
-}
+////////////////////////////////
+//~ rjf: G0 Pass Commands
 
 //- rjf: sprites (3d)
 
@@ -281,19 +321,44 @@ D_Sprite3D_(Vec3F32 pos, Mat4x4F32 xform, D_SpriteParams p)
 {
  Arena *arena = D_ActiveArena();
  D_Bucket *bucket = D_ActiveBucket();
- R_Sprite3DInst *result = 0;
- if(bucket->top_3d_pass != 0)
+ R_Pass *pass = D_PassFromBucket(arena, bucket, R_PassKind_G0);
+ R_PassParams_G0 *pass_params = pass->params_g0;
+ R_BatchGroup3DMap *map = &pass_params->sprites;
+ if(map->slots_count == 0)
  {
-  R_Pass3DParams *pass_params = bucket->top_3d_pass->params;
-  R_Handle albedo_texture = R_HandleIsZero(p.albedo_texture) ? d_state->white_texture : p.albedo_texture;
-  result = R_CmdInstBatchListPush(arena, &pass_params->sprites, 1024, sizeof(R_Sprite3DInst));
-  result->pos.xyz = pos;
-  result->pos.w = 1.f;
-  result->xform = xform;
-  result->src_rect = p.src_rect;
-  result->colors[Corner_00] = result->colors[Corner_01] = result->colors[Corner_10] = result->colors[Corner_11] = p.color;
+  map->slots_count = 64;
+  map->slots = PushArray(arena, R_BatchGroup3DSlot, map->slots_count);
  }
- return result;
+ R_Tex2DSampleKind sample_kind = D_TopTex2DSampleKind();
+ U64 tex_hash = D_HashFromString(5381, Str8Struct(&p.tex));
+ U64 smp_hash = D_HashFromString(tex_hash, Str8Struct(&sample_kind));
+ U64 slot_idx = smp_hash%map->slots_count;
+ R_BatchGroup3DSlot *slot = &map->slots[slot_idx];
+ R_BatchGroup3DNode *node = 0;
+ for(R_BatchGroup3DNode *n = slot->first; n != 0; n = n->next)
+ {
+  if(R_HandleMatch(n->params.albedo_tex, p.tex) &&
+     n->params.albedo_tex_sample_kind == sample_kind)
+  {
+   node = n;
+   break;
+  }
+ }
+ if(node == 0)
+ {
+  node = PushArray(arena, R_BatchGroup3DNode, 1);
+  QueuePush(slot->first, slot->last, node);
+  node->params.albedo_tex = p.tex;
+  node->params.albedo_tex_sample_kind = sample_kind;
+ }
+ R_Sprite3DInst *inst = R_BatchListPushStruct(arena, &node->batches, 1024, R_Sprite3DInst);
+ inst->pos = V4F32(pos.x, pos.y, pos.z, 1);
+ inst->xform = xform;
+ inst->src_rect = p.src_rect;
+ inst->colors[Corner_00] = inst->colors[Corner_01] = inst->colors[Corner_10] = inst->colors[Corner_11] = p.color;
+ inst->omit_texture = (F32)!!R_HandleIsZero(p.albedo_texture);
+ inst->shear = p.shear;
+ return inst;
 }
 
 //- rjf: debug lines (3d)
@@ -303,17 +368,14 @@ D_DebugLine3D(Vec3F32 p0, Vec3F32 p1, Vec4F32 color0, Vec4F32 color1)
 {
  Arena *arena = D_ActiveArena();
  D_Bucket *bucket = D_ActiveBucket();
- R_DebugLine3DInst *result = 0;
- if(bucket->top_3d_pass != 0)
- {
-  R_Pass3DParams *pass_params = bucket->top_3d_pass->params;
-  result = R_CmdInstBatchListPush(arena, &pass_params->debug_lines, 1024, sizeof(R_DebugLine3DInst));
-  result->p0 = V4F32(p0.x, p0.y, p0.z, 1.f);
-  result->p1 = V4F32(p1.x, p1.y, p1.z, 1.f);
-  result->color0 = color0;
-  result->color1 = color1;
- }
- return result;
+ R_Pass *pass = D_PassFromBucket(arena, bucket, R_PassKind_G0);
+ R_PassParams_G0 *pass_params = pass->params_g0;
+ R_DebugLine3DInst *inst = R_BatchListPushStruct(arena, &pass_params->debug_lines, 2048, R_DebugLine3DInst);
+ inst->p0 = V4F32(p0.x, p0.y, p0.z, 1.f);
+ inst->p1 = V4F32(p1.x, p1.y, p1.z, 1.f);
+ inst->color0 = color0;
+ inst->color1 = color1;
+ return inst;
 }
 
 root_function void
@@ -374,13 +436,4 @@ D_DebugSphere3D(Vec3F32 center, F32 radius, Vec4F32 color)
    }
   }
  }
-}
-
-//- rjf: joining many buckets
-
-root_function void
-D_BucketConcatInPlace(D_Bucket *to_push)
-{
- D_Bucket *bucket = D_ActiveBucket();
- R_CmdListConcatInPlace(&bucket->cmds, &to_push->cmds);
 }

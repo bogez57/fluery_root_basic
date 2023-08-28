@@ -56,7 +56,7 @@ FS_TagZero(void)
 root_function FS_Tag
 FS_TagFromPath(String8 path)
 {
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  path = OS_NormalizedPathFromStr8(scratch.arena, path);
  
  //- rjf: build tag
@@ -94,7 +94,7 @@ FS_TagFromPath(String8 path)
   }
  }
  
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return tag;
 }
 
@@ -230,7 +230,7 @@ FS_LoaderThreadEntryPoint(void *p)
 {
  for(;;)
  {
-  ArenaTemp scratch = GetScratch(0, 0);
+  Temp scratch = ScratchBegin(0, 0);
   
   //- rjf: get next request
   FS_Tag tag = FS_DequeueLoadRequest();
@@ -324,7 +324,7 @@ FS_LoaderThreadEntryPoint(void *p)
   }
   AtomicDecEval64(&fs_state->loader_thread_request_count);
   
-  ReleaseScratch(scratch);
+  ScratchEnd(scratch);
  }
 }
 

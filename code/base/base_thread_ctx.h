@@ -28,8 +28,8 @@ root_function void SetThreadFileAndLine_(char *file, int line);
 #define RecordCodeLoc() SetThreadFileAndLine_(__FILE__, __LINE__)
 
 //- rjf: scratch memory
-root_function ArenaTemp GetScratch(Arena **conflicts, U64 conflict_count);
-#define ReleaseScratch(temp) ArenaTempEnd(temp)
+root_function Temp ScratchBegin(Arena **conflicts, U64 conflict_count);
+#define ScratchEnd(temp) TempEnd(temp)
 
 //- rjf: main thread entry point
 root_function void BaseMainThreadEntry(void (*entry)(struct CmdLine *cmdln), U64 argument_count, char **arguments);

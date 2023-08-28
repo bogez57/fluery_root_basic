@@ -21,23 +21,13 @@ struct D_InitReceipt
 typedef struct D_Bucket D_Bucket;
 struct D_Bucket
 {
- // rjf: render commands
- R_CmdList cmds;
+ // rjf: pass list
+ R_PassList passes;
  
- // rjf: 3d pass stack
- struct D_Pass3DNode *top_3d_pass;
- 
- // rjf: parameter stacks
+ // rjf: pass parameter stacks
  U64 last_cmd_stack_gen;
  U64 current_stack_gen;
  D_DeclBucketStacks;
-};
-
-typedef struct D_Pass3DNode D_Pass3DNode;
-struct D_Pass3DNode
-{
- D_Pass3DNode *next;
- R_Pass3DParams *params;
 };
 
 ////////////////////////////////
@@ -123,6 +113,7 @@ struct D_SpriteParams
 {
  Vec4F32 color;
  Vec2F32 scale;
+ F32 shear;
  union
  {
   R_Slice2F32 slice;
@@ -155,7 +146,7 @@ extern per_thread D_ThreadCtx *d_thread_ctx;
 //~ rjf: Initialization
 
 root_function D_InitReceipt D_Init(R_InitReceipt r_init_receipt, F_InitReceipt f_init_receipt);
-root_function void D_InitThread(void);
+root_function void D_EnsureThreadInited(void);
 
 ////////////////////////////////
 //~ rjf: Frame Boundaries
@@ -164,9 +155,15 @@ root_function void D_BeginFrame(void);
 root_function void D_EndFrame(void);
 
 ////////////////////////////////
+//~ rjf: Basic Helpers
+
+root_function U64 D_HashFromString(U64 seed, String8 string);
+
+////////////////////////////////
 //~ rjf: Bucket Creation, Selection, & Submission
 
 root_function D_Bucket *D_BucketMake(Arena *arena);
+root_function void D_BucketConcatInPlace(D_Bucket *to_push);
 root_function void D_PushBucket(Arena *arena, D_Bucket *bucket);
 root_function void D_PopBucket(void);
 #define D_BucketScope(arena, bucket) DeferLoop(D_PushBucket((arena), (bucket)), D_PopBucket())
@@ -175,12 +172,12 @@ root_function D_Bucket *D_ActiveBucket(void);
 root_function void D_Submit(R_Handle window_r, D_Bucket *bucket);
 
 ////////////////////////////////
-//~ rjf: Command Building Helpers
+//~ rjf: Pass Building Helpers
 
-root_function R_Cmd *D_PushCmd(R_CmdKind kind, R_Handle albedo_texture);
+root_function R_Pass *D_PassFromBucket(Arena *arena, D_Bucket *bucket, R_PassKind kind);
 
 ////////////////////////////////
-//~ rjf: Command Building
+//~ rjf: UI Pass Commands
 
 //- rjf: rectangles (2d)
 #define D_Rect2D(r, ...) D_Rect2D_((r), (D_RectParams){.color = {1, 1, 1, 1}, __VA_ARGS__})
@@ -190,11 +187,8 @@ root_function R_Rect2DInst *D_Rect2D_(Rng2F32 rect, D_RectParams p);
 root_function F32 D_Text2D(Vec2F32 position, F_Tag font, F32 size, Vec4F32 color, String8 string);
 root_function F32 D_Text2DF(Vec2F32 position, F_Tag font, F32 size, Vec4F32 color, char *fmt, ...);
 
-//- rjf: passes (3d)
-#define D_Pass3D(viewport_, ...) DeferLoop(D_BeginPass3D_((R_Pass3DParams){.viewport = (viewport_), __VA_ARGS__}), D_EndPass3D())
-#define D_BeginPass3D(viewport_, ...) D_BeginPass3D_((R_Pass3DParams){.viewport = (viewport_), __VA_ARGS__})
-root_function void D_BeginPass3D_(R_Pass3DParams p);
-root_function void D_EndPass3D(void);
+////////////////////////////////
+//~ rjf: G0 Pass Commands
 
 //- rjf: sprites (3d)
 #define D_Sprite3D(pos, xform, ...) D_Sprite3D_((pos), (xform), (D_SpriteParams){.color = {1, 1, 1, 1}, .scale = {1, 1}, __VA_ARGS__})
@@ -205,30 +199,27 @@ root_function R_DebugLine3DInst *D_DebugLine3D(Vec3F32 p0, Vec3F32 p1, Vec4F32 c
 root_function void D_DebugCuboid3D(Rng3F32 rng, Vec4F32 color);
 root_function void D_DebugSphere3D(Vec3F32 center, F32 radius, Vec4F32 color);
 
-//- rjf: joining many buckets
-root_function void D_BucketConcatInPlace(D_Bucket *to_push);
-
 ////////////////////////////////
 //~ rjf: Stacks
 
-root_function R_Texture2DSampleKind  D_PushTexture2DSampleKind(R_Texture2DSampleKind v);
-root_function Mat3x3F32        D_PushTransform2D(Mat3x3F32 v);
-root_function Rng2F32          D_PushClip(Rng2F32 v);
-root_function F32              D_PushOpacity(F32 v);
+root_function R_Tex2DSampleKind          D_PushTex2DSampleKind(R_Tex2DSampleKind v);
+root_function Mat3x3F32                  D_PushTransform2D(Mat3x3F32 v);
+root_function Rng2F32                    D_PushClip(Rng2F32 v);
+root_function F32                        D_PushTransparency(F32 v);
 
-root_function R_Texture2DSampleKind  D_PopTexture2DSampleKind(void);
-root_function Mat3x3F32        D_PopTransform2D(void);
-root_function Rng2F32          D_PopClip(void);
-root_function F32              D_PopOpacity(void);
+root_function R_Tex2DSampleKind          D_PopTex2DSampleKind(void);
+root_function Mat3x3F32                  D_PopTransform2D(void);
+root_function Rng2F32                    D_PopClip(void);
+root_function F32                        D_PopTransparency(void);
 
-root_function R_Texture2DSampleKind  D_TopTexture2DSampleKind(void);
-root_function Mat3x3F32        D_TopTransform2D(void);
-root_function Rng2F32          D_TopClip(void);
-root_function F32              D_TopOpacity(void);
+root_function R_Tex2DSampleKind          D_TopTex2DSampleKind(void);
+root_function Mat3x3F32                  D_TopTransform2D(void);
+root_function Rng2F32                    D_TopClip(void);
+root_function F32                        D_TopTransparency(void);
 
-#define D_Texture2DSampleKind(v)  DeferLoop(D_PushTexture2DSampleKind(v), D_PopTexture2DSampleKind())
-#define D_Transform2D(v)       DeferLoop(D_PushTransform2D(v), D_PopTransform2D())
-#define D_Clip(v)              DeferLoop(D_PushClip(v), D_PopClip())
-#define D_Opacity(v)           DeferLoop(D_PushOpacity(v), D_PopOpacity())
+#define D_Tex2DSampleKind(v)             DeferLoop(D_PushTex2DSampleKind(v), D_PopTex2DSampleKind())
+#define D_Transform2D(v)                 DeferLoop(D_PushTransform2D(v), D_PopTransform2D())
+#define D_Clip(v)                        DeferLoop(D_PushClip(v), D_PopClip())
+#define D_Transparency(v)                DeferLoop(D_PushTransparency(v), D_PopTransparency())
 
 #endif // DRAW_H

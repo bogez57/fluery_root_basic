@@ -1,5 +1,5 @@
 ////////////////////////////////
-//~ rjf: Basic Type Functions
+//~ rjf: Handle Type Functions
 
 root_function R_Handle
 R_HandleZero(void)
@@ -23,41 +23,64 @@ R_HandleIsZero(R_Handle handle)
  return R_HandleMatch(handle, R_HandleZero());
 }
 
+////////////////////////////////
+//~ rjf: Texture Type Functions
+
 root_function U64
-R_BytesPerPixelFromTexture2DFormat(R_Texture2DFormat fmt)
+R_BytesPerPixelFromTex2DFormat(R_Tex2DFormat fmt)
 {
  U64 result = 0;
  switch(fmt)
  {
   default:
-  case R_Texture2DFormat_R8:   {result = 1;}break;
-  case R_Texture2DFormat_RGBA8:{result = 4;}break;
+  case R_Tex2DFormat_R8:   {result = 1;}break;
+  case R_Tex2DFormat_RGBA8:{result = 4;}break;
  }
  return result;
 }
 
 ////////////////////////////////
-//~ rjf: Command Type Functions
+//~ rjf: Pass Building Helper Functions
 
-//- rjf: command kind metadata
+//- rjf: pass list building
 
-root_function U64
-R_InstanceSizeFromCmdKind(R_CmdKind kind)
+root_function R_Pass *
+R_PassListPush(Arena *arena, R_PassList *list, R_PassKind kind)
 {
- U64 result = 0;
+ R_PassNode *node = PushArray(arena, R_PassNode, 1);
+ QueuePush(list->first, list->last, node);
+ list->count += 1;
+ R_Pass *pass = &node->v;
+ pass->kind = kind;
  switch(kind)
  {
-  default:break;
-  case R_CmdKind_Rect2D:{result = sizeof(R_Rect2DInst);}break;
-  case R_CmdKind_Pass3D:{result = sizeof(R_Pass3DParams);}break;
+  default:{}break;
+  case R_PassKind_UI:{pass->params_ui = PushArray(arena, R_PassParams_UI, 1);}break;
+  case R_PassKind_G0:{pass->params_g0 = PushArray(arena, R_PassParams_G0, 1);}break;
  }
- return result;
+ return pass;
 }
 
-//- rjf: command instance batch lists
+root_function void
+R_PassListConcatInPlace(R_PassList *dst, R_PassList *src)
+{
+ if(dst->last == 0)
+ {
+  MemoryCopyStruct(dst, src);
+ }
+ else if(src->first != 0)
+ {
+  dst->last->next = src->first;
+  dst->last = src->last;
+  dst->count += src->count;
+ }
+ MemoryZeroStruct(src);
+}
+
+//- rjf: batch list pushing
 
 root_function void *
-R_CmdInstBatchListPush(Arena *arena, R_CmdInstBatchList *list, U64 cap, U64 instance_size)
+R_BatchListPush(Arena *arena, R_BatchList *list, U64 cap, U64 instance_size)
 {
  void *result = 0;
  
@@ -65,7 +88,7 @@ R_CmdInstBatchListPush(Arena *arena, R_CmdInstBatchList *list, U64 cap, U64 inst
  // (a) no batch -> create batch
  // (b) batch full & can grow -> try to grow batch if it'd be contiguous on the same arena
  // (c) batch full & cannot grow -> create new batch
- R_CmdInstBatch *batch = list->last;
+ R_Batch *batch = list->last;
  if(batch == 0 || batch->inst_count >= batch->inst_cap)
  {
   void *try_new_instance = ArenaPushNoZero(arena, instance_size);
@@ -78,7 +101,7 @@ R_CmdInstBatchListPush(Arena *arena, R_CmdInstBatchList *list, U64 cap, U64 inst
   else
   {
    ArenaPop(arena, instance_size);
-   batch = PushArray(arena, R_CmdInstBatch, 1);
+   batch = PushArray(arena, R_Batch, 1);
    batch->v = PushArrayNoZero(arena, U8, instance_size*cap);
    batch->inst_cap = cap;
    batch->byte_cap = instance_size*cap;
@@ -98,7 +121,7 @@ R_CmdInstBatchListPush(Arena *arena, R_CmdInstBatchList *list, U64 cap, U64 inst
 }
 
 root_function void
-R_CmdInstBatchListConcatInPlace(R_CmdInstBatchList *list, R_CmdInstBatchList *to_push)
+R_BatchListConcatInPlace(R_BatchList *list, R_BatchList *to_push)
 {
  if(list->last && to_push->first)
  {
@@ -116,13 +139,13 @@ R_CmdInstBatchListConcatInPlace(R_CmdInstBatchList *list, R_CmdInstBatchList *to
 }
 
 root_function void
-R_CmdInstBatchListConcatDeepCopy(Arena *arena, R_CmdInstBatchList *list, R_CmdInstBatchList *to_push)
+R_BatchListConcatDeepCopy(Arena *arena, R_BatchList *list, R_BatchList *to_push)
 {
- for(R_CmdInstBatch *src_batch = to_push->first;
+ for(R_Batch *src_batch = to_push->first;
      src_batch != 0;
      src_batch = src_batch->next)
  {
-  R_CmdInstBatch *dst_batch = PushArray(arena, R_CmdInstBatch, 1);
+  R_Batch *dst_batch = PushArray(arena, R_Batch, 1);
   dst_batch->v = PushArrayNoZero(arena, U8, src_batch->byte_count);
   dst_batch->byte_count = src_batch->byte_count;
   dst_batch->byte_cap = src_batch->byte_cap;
@@ -133,32 +156,4 @@ R_CmdInstBatchListConcatDeepCopy(Arena *arena, R_CmdInstBatchList *list, R_CmdIn
   list->inst_count += dst_batch->inst_count;
   list->byte_count += dst_batch->byte_count;
  }
-}
-
-//- rjf: command lists
-
-root_function R_CmdNode *
-R_CmdListPush(Arena *arena, R_CmdList *list, R_Cmd *cmd)
-{
- R_CmdNode *n = PushArray(arena, R_CmdNode, 1);
- n->cmd = *cmd;
- QueuePush(list->first, list->last, n);
- list->count += 1;
- return n;
-}
-
-root_function void
-R_CmdListConcatInPlace(R_CmdList *list, R_CmdList *to_push)
-{
- if(list->last && to_push->first)
- {
-  list->last->next = to_push->first;
-  list->last = to_push->last;
-  list->count += to_push->count;
- }
- else
- {
-  *list = *to_push;
- }
- MemoryZeroStruct(to_push);
 }

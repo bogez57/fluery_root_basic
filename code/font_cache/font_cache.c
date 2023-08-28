@@ -135,7 +135,7 @@ F_MetricsFromTag(F_Tag font, F32 size)
 root_function F_Run
 F_RunFromFontSizeString(Arena *arena, F_Tag font, F32 size, String8 string)
 {
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  F_Run run = {0};
  F_Metrics metrics = F_MetricsFromTag(font, size);
  size = (F32)(S64)size;
@@ -193,7 +193,7 @@ F_RunFromFontSizeString(Arena *arena, F_Tag font, F32 size, String8 string)
      
      // rjf: fill texture memory for this glyph in the cache
      Rng2S64 fill_region = R2S64(region.p0, Add2S64(region.p0, raster.atlas_dim));
-     R_Texture2DFillRegion(atlas->texture, fill_region, raster.atlas);
+     R_Tex2DFillRegion(atlas->texture, fill_region, raster.atlas);
      
      // rjf: push node
      {
@@ -226,16 +226,16 @@ F_RunFromFontSizeString(Arena *arena, F_Tag font, F32 size, String8 string)
    }
   }
  }
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return run;
 }
 
 root_function F32
 F_AdvanceFromFontSizeString(F_Tag font, F32 size, String8 string)
 {
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  F_Run run = F_RunFromFontSizeString(scratch.arena, font, size, string);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return run.advance;
 }
 
@@ -243,7 +243,7 @@ root_function U64
 F_ByteOffFromFontSizeStringAdvance(F_Tag font, F32 size, String8 string, F32 advance)
 {
  U64 result = 0;
- ArenaTemp scratch = GetScratch(0, 0);
+ Temp scratch = ScratchBegin(0, 0);
  F_Run run = F_RunFromFontSizeString(scratch.arena, font, size, string);
  U64 off_bytes = 0;
  F32 off_px = 0;
@@ -263,7 +263,7 @@ F_ByteOffFromFontSizeStringAdvance(F_Tag font, F32 size, String8 string, F32 adv
   off_px += piece->advance;
   off_bytes += piece->decode_size;
  }
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return result;
 }
 
@@ -273,7 +273,7 @@ F_TruncatedStringFromFontSizeStringMax(F_Tag font, F32 size, String8 string, F32
  // rjf: calculate truncated size
  U64 truncated_size = string.size;
  {
-  ArenaTemp scratch  = GetScratch(0, 0);
+  Temp scratch  = ScratchBegin(0, 0);
   F_Run run = F_RunFromFontSizeString(scratch.arena, font, size, string);
   U64 off_bytes = 0;
   F32 off_px = 0;
@@ -294,7 +294,7 @@ F_TruncatedStringFromFontSizeStringMax(F_Tag font, F32 size, String8 string, F32
    off_px    += advance_px;
    off_bytes += advance_bytes;
   }
-  ReleaseScratch(scratch);
+  ScratchEnd(scratch);
  }
  
  // rjf: calculate result
@@ -307,7 +307,7 @@ F_WrappedStringLinesFromFontSizeStringMax(Arena *arena, F_Tag font, F32 size, St
 {
  String8List list = {0};
  {
-  ArenaTemp scratch = GetScratch(&arena, 1);
+  Temp scratch = ScratchBegin(&arena, 1);
   F_Run run = F_RunFromFontSizeString(scratch.arena, font, size, string);
   F32 off_px = 0;
   U64 off_bytes = 0;
@@ -408,7 +408,7 @@ F_WrappedStringLinesFromFontSizeStringMax(Arena *arena, F_Tag font, F32 size, St
     break;
    }
   }
-  ReleaseScratch(scratch);
+  ScratchEnd(scratch);
  }
  return list;
 }
@@ -444,7 +444,7 @@ F_Init(FP_InitReceipt fp_init_receipt, R_InitReceipt r_init_receipt, Vec2S64 gly
   f_state->cache_table_size = 16384;
   f_state->cache_table = PushArray(arena, F_CacheSlot, f_state->cache_table_size);
   f_state->atlas.allocator = AtlasMake(f_state->arena, glyph_atlas_size);
-  f_state->atlas.texture = R_Texture2DAlloc(glyph_atlas_size, R_Texture2DFormat_RGBA8, R_Texture2DKind_Dynamic, 0);
+  f_state->atlas.texture = R_Tex2DAlloc(glyph_atlas_size, R_Tex2DFormat_RGBA8, R_Tex2DKind_Dynamic, 0);
  }
  F_InitReceipt init_receipt = {0};
  return init_receipt;

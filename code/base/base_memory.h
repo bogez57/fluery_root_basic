@@ -26,8 +26,8 @@ struct Arena
  U64 _unused_[3];
 };
 
-typedef struct ArenaTemp ArenaTemp;
-struct ArenaTemp
+typedef struct Temp Temp;
+struct Temp
 {
  Arena *arena;
  U64 pos;
@@ -54,9 +54,9 @@ root_function U64 ArenaPos(Arena *arena);
 ////////////////////////////////
 //~ rjf: Arena Temp Functions
 
-root_function ArenaTemp ArenaTempBegin(Arena *arena);
-root_function void ArenaTempEnd(ArenaTemp temp);
+root_function Temp TempBegin(Arena *arena);
+root_function void TempEnd(Temp temp);
 
-#define ArenaTempBlock(arena, name) ArenaTemp name = {0}; DeferLoop(name = ArenaTempBegin(arena), ArenaTempEnd(name))
+#define ArenaTempBlock(arena, name) Temp name = {0}; DeferLoop(name = TempBegin(arena), TempEnd(name))
 
 #endif // BASE_MEMORY_H

@@ -73,10 +73,10 @@ SetThreadFileAndLine_(char *file, int line)
 
 //- rjf: scratch memory
 
-root_function ArenaTemp
-GetScratch(Arena **conflicts, U64 conflict_count)
+root_function Temp
+ScratchBegin(Arena **conflicts, U64 conflict_count)
 {
- ArenaTemp scratch = {0};
+ Temp scratch = {0};
  ThreadCtx *tctx = GetThreadCtx();
  for(U64 tctx_idx = 0; tctx_idx < ArrayCount(tctx->arenas); tctx_idx += 1)
  {

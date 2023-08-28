@@ -7,11 +7,11 @@
 //~ rjf: Function/Global Macros
 
 #if LANG_C
-# define render_global extern
+# define r_global extern
 #else
-# define render_global no_name_mangle
+# define r_global no_name_mangle
 #endif
-#define render_function no_name_mangle
+#define r_function no_name_mangle
 
 ////////////////////////////////
 //~ rjf: Basic Types
@@ -22,29 +22,8 @@ struct R_InitReceipt
  U64 u64[1];
 };
 
-typedef enum R_Texture2DFormat
-{
- R_Texture2DFormat_Null,
- R_Texture2DFormat_R8,
- R_Texture2DFormat_RGBA8,
- R_Texture2DFormat_COUNT
-}
-R_Texture2DFormat;
-
-typedef enum R_Texture2DSampleKind
-{
- R_Texture2DSampleKind_Nearest,
- R_Texture2DSampleKind_Linear,
- R_Texture2DSampleKind_COUNT
-}
-R_Texture2DSampleKind;
-
-typedef enum R_Texture2DKind
-{
- R_Texture2DKind_Static,
- R_Texture2DKind_Dynamic,
-}
-R_Texture2DKind;
+////////////////////////////////
+//~ rjf: Handle Types
 
 typedef union R_Handle R_Handle;
 union R_Handle
@@ -52,6 +31,33 @@ union R_Handle
  U64 u64[4];
  U32 u32[8];
 };
+
+////////////////////////////////
+//~ rjf: Texture Types
+
+typedef enum R_Tex2DFormat
+{
+ R_Tex2DFormat_Null,
+ R_Tex2DFormat_R8,
+ R_Tex2DFormat_RGBA8,
+ R_Tex2DFormat_COUNT
+}
+R_Tex2DFormat;
+
+typedef enum R_Tex2DSampleKind
+{
+ R_Tex2DSampleKind_Nearest,
+ R_Tex2DSampleKind_Linear,
+ R_Tex2DSampleKind_COUNT
+}
+R_Tex2DSampleKind;
+
+typedef enum R_Tex2DKind
+{
+ R_Tex2DKind_Static,
+ R_Tex2DKind_Dynamic,
+}
+R_Tex2DKind;
 
 typedef struct R_Slice2F32 R_Slice2F32;
 struct R_Slice2F32
@@ -61,16 +67,7 @@ struct R_Slice2F32
 };
 
 ////////////////////////////////
-//~ rjf: Command Types
-
-typedef enum R_CmdKind
-{
- R_CmdKind_Null,
- R_CmdKind_Rect2D,
- R_CmdKind_Pass3D,
- R_CmdKind_COUNT
-}
-R_CmdKind;
+//~ rjf: Instance Types
 
 typedef struct R_Rect2DInst R_Rect2DInst;
 struct R_Rect2DInst
@@ -93,7 +90,8 @@ struct R_Sprite3DInst
  Rng2F32 src_rect;
  Vec4F32 colors[Corner_COUNT];
  F32 omit_texture;
- F32 _unused_[3];
+ F32 shear;
+ F32 _unused_[2];
 };
 
 typedef struct R_DebugLine3DInst R_DebugLine3DInst;
@@ -105,10 +103,13 @@ struct R_DebugLine3DInst
  Vec4F32 color1;
 };
 
-typedef struct R_CmdInstBatch R_CmdInstBatch;
-struct R_CmdInstBatch
+////////////////////////////////
+//~ rjf: Batch Types
+
+typedef struct R_Batch R_Batch;
+struct R_Batch
 {
- R_CmdInstBatch *next;
+ R_Batch *next;
  U8 *v;
  U64 byte_count;
  U64 byte_cap;
@@ -116,18 +117,100 @@ struct R_CmdInstBatch
  U64 inst_cap;
 };
 
-typedef struct R_CmdInstBatchList R_CmdInstBatchList;
-struct R_CmdInstBatchList
+typedef struct R_BatchList R_BatchList;
+struct R_BatchList
 {
- R_CmdInstBatch *first;
- R_CmdInstBatch *last;
+ R_Batch *first;
+ R_Batch *last;
  U64 batch_count;
  U64 inst_count;
  U64 byte_count;
 };
 
-typedef struct R_Pass3DParams R_Pass3DParams;
-struct R_Pass3DParams
+typedef struct R_BatchGroup2DParams R_BatchGroup2DParams;
+struct R_BatchGroup2DParams
+{
+ R_Handle albedo_tex;
+ R_Tex2DSampleKind albedo_tex_sample_kind;
+ Mat3x3F32 xform2d;
+ Rng2F32 clip;
+ F32 transparency;
+};
+
+typedef struct R_BatchGroup2DNode R_BatchGroup2DNode;
+struct R_BatchGroup2DNode
+{
+ R_BatchGroup2DNode *next;
+ R_BatchList batches;
+ R_BatchGroup2DParams params;
+};
+
+typedef struct R_BatchGroup2DList R_BatchGroup2DList;
+struct R_BatchGroup2DList
+{
+ R_BatchGroup2DNode *first;
+ R_BatchGroup2DNode *last;
+ U64 count;
+};
+
+typedef struct R_BatchGroup3DParams R_BatchGroup3DParams;
+struct R_BatchGroup3DParams
+{
+ R_Handle albedo_tex;
+ R_Tex2DSampleKind albedo_tex_sample_kind;
+};
+
+typedef struct R_BatchGroup3DNode R_BatchGroup3DNode;
+struct R_BatchGroup3DNode
+{
+ R_BatchGroup3DNode *next;
+ R_BatchList batches;
+ R_BatchGroup3DParams params;
+};
+
+typedef struct R_BatchGroup3DList R_BatchGroup3DList;
+struct R_BatchGroup3DList
+{
+ R_BatchGroup3DNode *first;
+ R_BatchGroup3DNode *last;
+ U64 count;
+};
+
+typedef struct R_BatchGroup3DSlot R_BatchGroup3DSlot;
+struct R_BatchGroup3DSlot
+{
+ R_BatchGroup3DNode *first;
+ R_BatchGroup3DNode *last;
+};
+
+typedef struct R_BatchGroup3DMap R_BatchGroup3DMap;
+struct R_BatchGroup3DMap
+{
+ U64 slots_count;
+ R_BatchGroup3DSlot *slots;
+};
+
+////////////////////////////////
+//~ rjf: Pass Types
+
+typedef enum R_PassKind
+{
+ R_PassKind_Null,
+ R_PassKind_UI,
+ R_PassKind_G0,
+ R_PassKind_COUNT
+}
+R_PassKind;
+
+typedef struct R_PassParams_UI R_PassParams_UI;
+struct R_PassParams_UI
+{
+ Rng2F32 viewport;
+ R_BatchGroup2DList rects;
+};
+
+typedef struct R_PassParams_G0 R_PassParams_G0;
+struct R_PassParams_G0
 {
  // rjf: viewport
  Rng2F32 viewport;
@@ -144,62 +227,65 @@ struct R_Pass3DParams
  Vec4F32 fog_color;
  F32 pct_fog_per_unit;
  
- // rjf: instance batches
- R_CmdInstBatchList sprites;
- R_CmdInstBatchList debug_lines;
-};
-
-typedef struct R_Cmd R_Cmd;
-struct R_Cmd
-{
- // rjf: payload
- R_CmdKind kind;
- R_CmdInstBatchList batches;
+ // rjf: keylight
+ Vec4F32 keylight_color;
+ Vec3F32 keylight_dir;
  
- // rjf: parameters
- R_Handle albedo_texture;
- R_Texture2DSampleKind albedo_texture_sample_kind;
- Mat3x3F32 xform2d;
- Rng2F32 clip;
- F32 opacity;
+ // rjf: instance batches
+ R_BatchGroup3DMap sprites;
+ R_BatchList debug_lines;
 };
 
-typedef struct R_CmdNode R_CmdNode;
-struct R_CmdNode
+typedef struct R_Pass R_Pass;
+struct R_Pass
 {
- R_CmdNode *next;
- R_Cmd cmd;
+ R_PassKind kind;
+ union
+ {
+  void *params;
+  R_PassParams_UI *params_ui;
+  R_PassParams_G0 *params_g0;
+ };
 };
 
-typedef struct R_CmdList R_CmdList;
-struct R_CmdList
+typedef struct R_PassNode R_PassNode;
+struct R_PassNode
 {
- R_CmdNode *first;
- R_CmdNode *last;
+ R_PassNode *next;
+ R_Pass v;
+};
+
+typedef struct R_PassList R_PassList;
+struct R_PassList
+{
+ R_PassNode *first;
+ R_PassNode *last;
  U64 count;
 };
 
 ////////////////////////////////
-//~ rjf: Basic Type Functions
+//~ rjf: Handle Type Functions
 
 root_function R_Handle R_HandleZero(void);
 root_function B32 R_HandleMatch(R_Handle a, R_Handle b);
 root_function B32 R_HandleIsZero(R_Handle handle);
-root_function U64 R_BytesPerPixelFromTexture2DFormat(R_Texture2DFormat fmt);
 
 ////////////////////////////////
-//~ rjf: Command Type Functions
+//~ rjf: Texture Type Functions
 
-//- rjf: command kind metadata
-root_function U64 R_InstanceSizeFromCmdKind(R_CmdKind kind);
+root_function U64 R_BytesPerPixelFromTex2DFormat(R_Tex2DFormat fmt);
 
-//- rjf: command instance batch lists
-root_function void *R_CmdInstBatchListPush(Arena *arena, R_CmdInstBatchList *list, U64 cap, U64 instance_size);
-root_function void R_CmdInstBatchListConcatInPlace(R_CmdInstBatchList *list, R_CmdInstBatchList *to_push);
-root_function void R_CmdInstBatchListConcatDeepCopy(Arena *arena, R_CmdInstBatchList *list, R_CmdInstBatchList *to_push);
+////////////////////////////////
+//~ rjf: Pass Building Helper Functions
 
-//- rjf: command lists
-root_function R_CmdNode *R_CmdListPush(Arena *arena, R_CmdList *list, R_Cmd *cmd);
-root_function void R_CmdListConcatInPlace(R_CmdList *list, R_CmdList *to_push);
+//- rjf: pass list building
+root_function R_Pass *R_PassListPush(Arena *arena, R_PassList *list, R_PassKind kind);
+root_function void R_PassListConcatInPlace(R_PassList *dst, R_PassList *src);
+
+//- rjf: batch list building
+root_function void *R_BatchListPush(Arena *arena, R_BatchList *list, U64 cap, U64 instance_size);
+#define R_BatchListPushStruct(arena, list, cap, type) (type *)R_BatchListPush((arena), (list), (cap), sizeof(type))
+root_function void R_BatchListConcatInPlace(R_BatchList *list, R_BatchList *to_push);
+root_function void R_BatchListConcatDeepCopy(Arena *arena, R_BatchList *list, R_BatchList *to_push);
 
 #endif // RENDER_TYPES_H

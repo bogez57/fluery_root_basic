@@ -13,7 +13,7 @@ CmdLineHashFromString(String8 string)
 root_function CmdLine
 CmdLineFromStringList(Arena *arena, String8List strings)
 {
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  
  //- rjf: set up
  CmdLine cmdln = {0};
@@ -135,7 +135,7 @@ CmdLineFromStringList(Arena *arena, String8List strings)
   }
  }
  
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return cmdln;
 }
 

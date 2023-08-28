@@ -157,7 +157,6 @@ int main(int argument_count, char **arguments)
  for(MD_String8Node *n = cmdln.inputs.first; n != 0; n = n->next)
  {
   MD_String8 code_dir = n->string;
-  printf("searching %.*s for metacode...\n", MD_S8VArg(code_dir));
   MD_FileIter it = {0};
   MD_FileIterBegin(&it, code_dir);
   for(MD_FileInfo info = {0};;)
@@ -170,7 +169,6 @@ int main(int argument_count, char **arguments)
    if(!(info.flags & MD_FileFlag_Directory) &&
       MD_S8Match(MD_PathSkipLastPeriod(info.filename), MD_S8Lit("mdesk"), MD_StringMatchFlag_CaseInsensitive))
    {
-    printf("parsing %.*s...\n", MD_S8VArg(info.filename));
     MD_String8 path = MD_S8Fmt(cg_arena, "%.*s/%.*s", MD_S8VArg(code_dir), MD_S8VArg(info.filename));
     MD_ParseResult parse = MD_ParseWholeFile(cg_arena, path);
     MD_PushNewReference(cg_arena, file_list, parse.node);

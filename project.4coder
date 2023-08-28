@@ -62,7 +62,7 @@ commands =
  //- rjf: app_template
  .build_app_templates =
  {
-  .win              = "build_app_templates.bat",
+  .win              = "build.bat app_template_basic",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
@@ -82,7 +82,7 @@ commands =
  //- rjf: workbench
  .build_workbench =
  {
-  .win              = "build_workbench.bat",
+  .win              = "build.bat workbench",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
@@ -102,7 +102,7 @@ commands =
  //- rjf: g0
  .build_g0 =
  {
-  .win              = "build_g0.bat",
+  .win              = "build.bat g0",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
@@ -122,7 +122,7 @@ commands =
  //- rjf: hmb_demo
  .build_hmb_demo =
  {
-  .win              = "build_hmb_demo.bat",
+  .win              = "build.bat hmb_demo",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
@@ -142,7 +142,7 @@ commands =
  //- rjf: human profiler
  .build_human_profiler =
  {
-  .win              = "build_human_profiler.bat",
+  .win              = "build.bat human_profiler",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
@@ -159,30 +159,10 @@ commands =
   .cursor_at_end    = true,
  },
  
- //- rjf: harmonia
- .build_harmonia =
- {
-  .win              = "build_harmonia.bat",
-  .linux            = "",
-  .out              = "*compilation*",
-  .footer_panel     = true,
-  .save_dirty_files = true,
-  .cursor_at_end    = false,
- },
- .run_harmonia =
- {
-  .win              = "pushd build && harmonia.exe && popd",
-  .linux            = "",
-  .out              = "*compilation*",
-  .footer_panel     = true,
-  .save_dirty_files = true,
-  .cursor_at_end    = true,
- },
- 
  //- rjf: net scratch
  .build_net_scratch =
  {
-  .win              = "build_net_scratch.bat",
+  .win              = "build.bat net_scratch",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
@@ -199,10 +179,30 @@ commands =
   .cursor_at_end    = true,
  },
  
+ //- rjf: render scratch
+ .build_render_scratch =
+ {
+  .win              = "build.bat render_scratch",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ .run_render_scratch =
+ {
+  .win              = "pushd build && render_scratch.exe && popd",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = true,
+ },
+ 
  //- rjf: subcheck
  .build_subcheck =
  {
-  .win              = "build_subcheck.bat",
+  .win              = "build.bat subcheck",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
@@ -222,7 +222,7 @@ commands =
  //- rjf: subgrant
  .build_subgrant =
  {
-  .win              = "build_subgrant.bat",
+  .win              = "build.bat subgrant",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,

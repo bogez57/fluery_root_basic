@@ -1,18 +1,3 @@
-#define BUILD_CORE 0
-#define OS_FEATURE_GFX 1
-
-#include "base/base_inc.h"
-#include "os/os_inc.h"
-#include "render/render_types.h"
-#include "render/render_core.h"
-
-#include "render_d3d11.h"
-
-#include "base/base_inc.c"
-#include "os/os_inc.c"
-#include "render/render_types.c"
-#include "render/render_core.c"
-
 ////////////////////////////////
 //~ rjf: Input Layout Tables
 
@@ -40,7 +25,9 @@ global D3D11_INPUT_ELEMENT_DESC r_d3d11_g_sprite3d_ilay_elements[] =
  { "COL",  1, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
  { "COL",  2, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
  { "COL",  3, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
- { "OTX",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+ { "OTX",  0,          DXGI_FORMAT_R32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+ { "SHR",  0,          DXGI_FORMAT_R32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+ { "PAD",  0,       DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 };
 
 global D3D11_INPUT_ELEMENT_DESC r_d3d11_g_debugline3d_ilay_elements[] =
@@ -64,31 +51,31 @@ R_D3D11_State *r_d3d11_state = 0;
 ////////////////////////////////
 //~ rjf: Basic Helpers
 
-render_function DXGI_FORMAT
-R_D3D11_DXGIFormatFromTexture2DFormat(R_Texture2DFormat fmt)
+r_function DXGI_FORMAT
+R_D3D11_DXGIFormatFromTexture2DFormat(R_Tex2DFormat fmt)
 {
  DXGI_FORMAT result = DXGI_FORMAT_R8G8B8A8_UNORM;
  switch(fmt)
  {
-  case R_Texture2DFormat_R8:
+  case R_Tex2DFormat_R8:
   {
    result = DXGI_FORMAT_R8_UNORM;
   }break;
   
   default:
-  case R_Texture2DFormat_RGBA8: {}break;
+  case R_Tex2DFormat_RGBA8: {}break;
  }
  return result;
 }
 
-render_function R_D3D11_WindowEquip *
+r_function R_D3D11_WindowEquip *
 R_D3D11_WindowEquipFromHandle(R_Handle handle)
 {
  R_D3D11_WindowEquip *result = (R_D3D11_WindowEquip *)handle.u64[0];
  return result;
 }
 
-render_function R_Handle
+r_function R_Handle
 R_D3D11_HandleFromWindowEquip(R_D3D11_WindowEquip *equip)
 {
  R_Handle h = {0};
@@ -96,21 +83,21 @@ R_D3D11_HandleFromWindowEquip(R_D3D11_WindowEquip *equip)
  return h;
 }
 
-render_function R_D3D11_Texture2D
-R_D3D11_Texture2DFromHandle(R_Handle handle)
+r_function R_D3D11_Tex2D
+R_D3D11_Tex2DFromHandle(R_Handle handle)
 {
- R_D3D11_Texture2D texture = {0};
+ R_D3D11_Tex2D texture = {0};
  texture.texture = (ID3D11Texture2D *)handle.u64[0];
  texture.view = (ID3D11ShaderResourceView *)handle.u64[1];
  texture.size.x = handle.u32[4];
  texture.size.y = handle.u32[5];
- texture.format = (R_Texture2DFormat)handle.u32[6];
- texture.kind = (R_Texture2DKind)handle.u32[7];
+ texture.format = (R_Tex2DFormat)handle.u32[6];
+ texture.kind = (R_Tex2DKind)handle.u32[7];
  return texture;
 }
 
-render_function R_Handle
-R_D3D11_HandleFromTexture2D(R_D3D11_Texture2D texture)
+r_function R_Handle
+R_D3D11_HandleFromTexture2D(R_D3D11_Tex2D texture)
 {
  R_Handle result = {0};
  result.u64[0] = (U64)texture.texture;
@@ -122,7 +109,7 @@ R_D3D11_HandleFromTexture2D(R_D3D11_Texture2D texture)
  return result;
 }
 
-render_function R_D3D11_Buffer
+r_function R_D3D11_Buffer
 R_D3D11_BufferFromHandle(R_Handle handle)
 {
  R_D3D11_Buffer buffer = {0};
@@ -131,7 +118,7 @@ R_D3D11_BufferFromHandle(R_Handle handle)
  return buffer;
 }
 
-render_function R_Handle
+r_function R_Handle
 R_D3D11_HandleFromBuffer(R_D3D11_Buffer buffer)
 {
  R_Handle handle = {0};
@@ -140,7 +127,7 @@ R_D3D11_HandleFromBuffer(R_D3D11_Buffer buffer)
  return handle;
 }
 
-render_function void
+r_function void
 R_D3D11_BufferWriteString(ID3D11DeviceContext1 *device_ctx, ID3D11Buffer *buffer, String8 data)
 {
  D3D11_MAPPED_SUBRESOURCE sub_rsrc = {0};
@@ -150,8 +137,8 @@ R_D3D11_BufferWriteString(ID3D11DeviceContext1 *device_ctx, ID3D11Buffer *buffer
  device_ctx->Unmap(buffer, 0);
 }
 
-render_function ID3D11Buffer *
-R_D3D11_InstanceBufferFromCmdInstBatchList(R_CmdInstBatchList *list)
+r_function ID3D11Buffer *
+R_D3D11_InstanceBufferFromBatchList(R_BatchList *list)
 {
  U64 needed_size = list->byte_count;
  
@@ -185,7 +172,7 @@ R_D3D11_InstanceBufferFromCmdInstBatchList(R_CmdInstBatchList *list)
   D3D11_MAPPED_SUBRESOURCE sub_rsrc = {0};
   r_d3d11_state->device_ctx->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &sub_rsrc);
   U8 *ptr = (U8 *)sub_rsrc.pData;
-  for(R_CmdInstBatch *batch = list->first; batch != 0; batch = batch->next)
+  for(R_Batch *batch = list->first; batch != 0; batch = batch->next)
   {
    MemoryCopy(ptr, batch->v, batch->byte_count);
    ptr += batch->byte_count;
@@ -196,14 +183,14 @@ R_D3D11_InstanceBufferFromCmdInstBatchList(R_CmdInstBatchList *list)
  return buffer;
 }
 
-render_function Mat4x4F32
-R_D3D11_SampleChannelMapFromTexture2DFormat(R_Texture2DFormat fmt)
+r_function Mat4x4F32
+R_D3D11_SampleChannelMapFromTexture2DFormat(R_Tex2DFormat fmt)
 {
  Mat4x4F32 map = MakeMat4x4F32(1.f);
  switch(fmt)
  {
   default: break;
-  case R_Texture2DFormat_R8:
+  case R_Tex2DFormat_R8:
   {
    map =
    {
@@ -222,7 +209,7 @@ R_D3D11_SampleChannelMapFromTexture2DFormat(R_Texture2DFormat fmt)
 ////////////////////////////////
 //~ rjf: Backend Hooks
 
-render_function R_InitReceipt
+r_function R_InitReceipt
 R_Init(OS_InitReceipt os_init, OS_InitGfxReceipt os_gfx_init)
 {
  if(IsMainThread() && r_d3d11_state == 0)
@@ -246,6 +233,14 @@ R_Init(OS_InitReceipt os_init, OS_InitGfxReceipt os_gfx_init)
   r_d3d11_state->base_device->QueryInterface(__uuidof(ID3D11InfoQueue), (void **)(&info));
   info->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, TRUE);
   info->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, TRUE);
+  D3D11_MESSAGE_ID hide[] =
+  {
+   D3D11_MESSAGE_ID_DEVICE_DRAW_RENDERTARGETVIEW_NOT_SET,
+  };
+  D3D11_INFO_QUEUE_FILTER filter = {0};
+  filter.DenyList.NumIDs = ArrayCount(hide);
+  filter.DenyList.pIDList = hide;
+  info->AddStorageFilterEntries(&filter);
   info->Release();
 #endif
   
@@ -484,7 +479,7 @@ R_Init(OS_InitReceipt os_init, OS_InitGfxReceipt os_gfx_init)
    
    // rjf: initialize white texture
    U32 white_texture_data = 0xffffffff;
-   r_d3d11_state->white_texture = R_Texture2DAlloc(V2S64(1, 1), R_Texture2DFormat_RGBA8, R_Texture2DKind_Static, &white_texture_data);
+   r_d3d11_state->white_texture = R_Tex2DAlloc(V2S64(1, 1), R_Tex2DFormat_RGBA8, R_Tex2DKind_Static, &white_texture_data);
    
    // rjf: initialize backup texture
    U8 backup_texture_data[] =
@@ -494,7 +489,7 @@ R_Init(OS_InitReceipt os_init, OS_InitGfxReceipt os_gfx_init)
     0x11, 0x00, 0x11, 0xff,
     0xff, 0x00, 0xff, 0xff,
    };
-   r_d3d11_state->backup_texture = R_Texture2DAlloc(V2S64(2, 2), R_Texture2DFormat_RGBA8, R_Texture2DKind_Static, &backup_texture_data[0]);
+   r_d3d11_state->backup_texture = R_Tex2DAlloc(V2S64(2, 2), R_Tex2DFormat_RGBA8, R_Tex2DKind_Static, &backup_texture_data[0]);
   }
   
   //- rjf: set up overflow state
@@ -504,7 +499,7 @@ R_Init(OS_InitReceipt os_init, OS_InitGfxReceipt os_gfx_init)
  return result;
 }
 
-render_function R_Handle
+r_function R_Handle
 R_WindowEquip(OS_Handle window_handle)
 {
  R_D3D11_WindowEquip *eqp = (R_D3D11_WindowEquip *)OS_Reserve(sizeof(R_D3D11_WindowEquip));
@@ -534,16 +529,48 @@ R_WindowEquip(OS_Handle window_handle)
   //- rjf: get framebuffer & make rtv
   eqp->swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)(&eqp->framebuffer));
   r_d3d11_state->device->CreateRenderTargetView(eqp->framebuffer, 0, &eqp->framebuffer_rtv);
+  
+  //- rjf: make shadow map resources
+  {
+   eqp->shadowmap_resolution = V2S64(1024, 1024);
+   D3D11_TEXTURE2D_DESC depth_desc = {};
+   {
+    depth_desc.Width     = eqp->shadowmap_resolution.x;
+    depth_desc.Height    = eqp->shadowmap_resolution.y;
+    depth_desc.Format    = DXGI_FORMAT_R24G8_TYPELESS;
+    depth_desc.ArraySize = 1;
+    depth_desc.SampleDesc.Count = 1;
+    depth_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_DEPTH_STENCIL;
+   }
+   D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc = {};
+   {
+    dsv_desc.Flags = 0;
+    dsv_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    dsv_desc.Texture2D.MipSlice = 0;
+   }
+   D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
+   {
+    srv_desc.Format                    = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+    srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srv_desc.Texture2D.MostDetailedMip = 0;
+    srv_desc.Texture2D.MipLevels       = -1;
+   }
+   r_d3d11_state->device->CreateTexture2D(&depth_desc, 0, &eqp->shadowmap_depth);
+   r_d3d11_state->device->CreateDepthStencilView(eqp->shadowmap_depth, &dsv_desc, &eqp->shadowmap_depth_dsv);
+   r_d3d11_state->device->CreateShaderResourceView(eqp->shadowmap_depth, &srv_desc, &eqp->shadowmap_depth_srv);
+  }
  }
  return R_D3D11_HandleFromWindowEquip(eqp);
 }
 
-render_function void
+r_function void
 R_WindowUnequip(OS_Handle window, R_Handle window_eqp)
 {
  R_D3D11_WindowEquip *eqp = R_D3D11_WindowEquipFromHandle(window_eqp);
- eqp->dbgbuffer_color_rtv->Release();
- eqp->dbgbuffer_color->Release();
+ eqp->shadowmap_depth_srv->Release();
+ eqp->shadowmap_depth_dsv->Release();
+ eqp->shadowmap_depth->Release();
  eqp->gbuffer_depth_srv->Release();
  eqp->gbuffer_depth_dsv->Release();
  eqp->gbuffer_depth->Release();
@@ -555,16 +582,16 @@ R_WindowUnequip(OS_Handle window, R_Handle window_eqp)
  OS_Release(eqp, sizeof(*eqp));
 }
 
-render_function R_Handle
-R_Texture2DAlloc(Vec2S64 size, R_Texture2DFormat fmt, R_Texture2DKind kind, void *initial_data)
+r_function R_Handle
+R_Tex2DAlloc(Vec2S64 size, R_Tex2DFormat fmt, R_Tex2DKind kind, void *initial_data)
 {
  // rjf: kind => usage
  D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
  switch(kind)
  {
   default:
-  case R_Texture2DKind_Static: {usage = D3D11_USAGE_DYNAMIC;}break;
-  case R_Texture2DKind_Dynamic:{usage = D3D11_USAGE_DEFAULT;}break;
+  case R_Tex2DKind_Static: {usage = D3D11_USAGE_DYNAMIC;}break;
+  case R_Tex2DKind_Dynamic:{usage = D3D11_USAGE_DEFAULT;}break;
  }
  D3D11_TEXTURE2D_DESC texture_desc = {};
  {
@@ -581,10 +608,10 @@ R_Texture2DAlloc(Vec2S64 size, R_Texture2DFormat fmt, R_Texture2DKind kind, void
  D3D11_SUBRESOURCE_DATA initial_subrsrc_data = {};
  {
   initial_subrsrc_data.pSysMem = initial_data;
-  initial_subrsrc_data.SysMemPitch = R_BytesPerPixelFromTexture2DFormat(fmt) * size.x;
+  initial_subrsrc_data.SysMemPitch = R_BytesPerPixelFromTex2DFormat(fmt) * size.x;
   initial_subrsrc_data.SysMemSlicePitch = 0;
  }
- R_D3D11_Texture2D texture = {0};
+ R_D3D11_Tex2D texture = {0};
  OS_MutexBlock(r_d3d11_state->device_mutex)
  {
   r_d3d11_state->device->CreateTexture2D(&texture_desc, initial_data ? &initial_subrsrc_data : 0, &texture.texture);
@@ -595,24 +622,24 @@ R_Texture2DAlloc(Vec2S64 size, R_Texture2DFormat fmt, R_Texture2DKind kind, void
  return R_D3D11_HandleFromTexture2D(texture);
 }
 
-render_function void
-R_Texture2DRelease(R_Handle texture_handle)
+r_function void
+R_Tex2DRelease(R_Handle texture_handle)
 {
  OS_MutexBlock(r_d3d11_state->device_mutex)
  {
-  R_D3D11_Texture2D texture = R_D3D11_Texture2DFromHandle(texture_handle);
+  R_D3D11_Tex2D texture = R_D3D11_Tex2DFromHandle(texture_handle);
   texture.texture->Release();
   texture.view->Release();
  }
 }
 
-render_function void
-R_Texture2DFillRegion(R_Handle texture_handle, Rng2S64 region, void *data)
+r_function void
+R_Tex2DFillRegion(R_Handle texture_handle, Rng2S64 region, void *data)
 {
  OS_MutexBlock(r_d3d11_state->device_mutex)
  {
-  R_D3D11_Texture2D tex = R_D3D11_Texture2DFromHandle(texture_handle);
-  U64 bytes_per_pixel = R_BytesPerPixelFromTexture2DFormat(tex.format);
+  R_D3D11_Tex2D tex = R_D3D11_Tex2DFromHandle(texture_handle);
+  U64 bytes_per_pixel = R_BytesPerPixelFromTex2DFormat(tex.format);
   Vec2S64 dim = Dim2S64(region);
   D3D11_BOX dst_box =
   {
@@ -623,27 +650,27 @@ R_Texture2DFillRegion(R_Handle texture_handle, Rng2S64 region, void *data)
  }
 }
 
-render_function Vec2S64
-R_SizeFromTexture2D(R_Handle texture_handle)
+r_function Vec2S64
+R_SizeFromTex2D(R_Handle texture_handle)
 {
- R_D3D11_Texture2D tex = R_D3D11_Texture2DFromHandle(texture_handle);
+ R_D3D11_Tex2D tex = R_D3D11_Tex2DFromHandle(texture_handle);
  return Vec2S64FromVec(tex.size);
 }
 
-render_function R_Texture2DFormat
-R_FormatFromTexture2D(R_Handle texture_handle)
+r_function R_Tex2DFormat
+R_FormatFromTex2D(R_Handle texture_handle)
 {
- R_D3D11_Texture2D tex = R_D3D11_Texture2DFromHandle(texture_handle);
+ R_D3D11_Tex2D tex = R_D3D11_Tex2DFromHandle(texture_handle);
  return tex.format;
 }
 
-render_function void
+r_function void
 R_BeginFrame(void)
 {
  // NOTE(rjf): no-op
 }
 
-render_function void
+r_function void
 R_EndFrame(void)
 {
  for(R_D3D11_OverflowBufferNode *node = r_d3d11_state->first_overflow_buffer;
@@ -656,7 +683,7 @@ R_EndFrame(void)
  r_d3d11_state->first_overflow_buffer = r_d3d11_state->last_overflow_buffer = 0;
 }
 
-render_function void
+r_function void
 R_WindowStart(R_Handle window_eqp, Vec2S64 resolution)
 {
  OS_MutexBlock(r_d3d11_state->device_mutex)
@@ -687,12 +714,32 @@ R_WindowStart(R_Handle window_eqp, Vec2S64 resolution)
    if(wnd->gbuffer_depth_srv)        {wnd->gbuffer_depth_srv->Release();}
    if(wnd->gbuffer_depth_dsv)        {wnd->gbuffer_depth_dsv->Release();}
    if(wnd->gbuffer_depth)            {wnd->gbuffer_depth->Release();}
+   if(wnd->gbuffer_color_srv)        {wnd->gbuffer_color_srv->Release();}
    if(wnd->gbuffer_color_rtv)        {wnd->gbuffer_color_rtv->Release();}
    if(wnd->gbuffer_color)            {wnd->gbuffer_color->Release();}
    
    // rjf: create g-buffer color target
    {
-    
+    D3D11_TEXTURE2D_DESC color_desc = {};
+    {
+     wnd->framebuffer->GetDesc(&color_desc);
+     color_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+     color_desc.BindFlags = D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
+    }
+    D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = {};
+    {
+     rtv_desc.Format         = color_desc.Format;
+     rtv_desc.ViewDimension  = D3D11_RTV_DIMENSION_TEXTURE2D;
+    }
+    D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
+    {
+     srv_desc.Format                    = DXGI_FORMAT_R8G8B8A8_UNORM;
+     srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+     srv_desc.Texture2D.MipLevels       = -1;
+    }
+    device->CreateTexture2D(&color_desc, 0, &wnd->gbuffer_color);
+    device->CreateRenderTargetView(wnd->gbuffer_color, &rtv_desc, &wnd->gbuffer_color_rtv);
+    device->CreateShaderResourceView(wnd->gbuffer_color, &srv_desc, &wnd->gbuffer_color_srv);
    }
    
    // rjf: create g-buffer depth target
@@ -726,165 +773,419 @@ R_WindowStart(R_Handle window_eqp, Vec2S64 resolution)
   //- rjf: clear
   Vec4F32 clear_color = {0};
   d_ctx->ClearRenderTargetView(wnd->framebuffer_rtv, clear_color.v);
-  d_ctx->ClearDepthStencilView(wnd->gbuffer_depth_dsv, D3D11_CLEAR_DEPTH, 1.f, 0);
  }
 }
 
-render_function void
-R_WindowSubmit(R_Handle window_eqp, R_CmdList commands)
+r_function void
+R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
 {
  OS_MutexBlock(r_d3d11_state->device_mutex)
  {
   R_D3D11_WindowEquip *wnd = R_D3D11_WindowEquipFromHandle(window_eqp);
   ID3D11DeviceContext1 *d_ctx = r_d3d11_state->device_ctx;
   
-  //- rjf: set up viewport & rasterizer
+  //- rjf: do all of the passes
+  for(R_PassNode *pass_node = passes->first; pass_node != 0; pass_node = pass_node->next)
   {
-   Vec2S64 resolution = wnd->last_resolution;
-   D3D11_VIEWPORT d3d11_viewport = { 0.0f, 0.0f, (F32)resolution.x, (F32)resolution.y, 0.0f, 1.0f };
-   d_ctx->RSSetViewports(1, &d3d11_viewport);
-   d_ctx->RSSetState(r_d3d11_state->rasterizer);
-  }
-  
-  //- rjf: process commands
-  for(R_CmdNode *cmd_node = commands.first;
-      cmd_node != 0;
-      cmd_node = cmd_node->next)
-  {
-   //- rjf: unpack command
-   R_Cmd *cmd = &cmd_node->cmd;
-   Rng2F32 clip = R2F32(V2F32(Clamp(0, Min(cmd->clip.x0, cmd->clip.x1), wnd->last_resolution.x),
-                              Clamp(0, Min(cmd->clip.y0, cmd->clip.y1), wnd->last_resolution.y)),
-                        V2F32(Clamp(0, Max(cmd->clip.x0, cmd->clip.x1), wnd->last_resolution.x),
-                              Clamp(0, Max(cmd->clip.y0, cmd->clip.y1), wnd->last_resolution.y)));
-   
-   //- rjf: setup scissor rect
+   R_Pass *pass = &pass_node->v;
+   switch(pass->kind)
    {
-    D3D11_RECT rect =
+    default:
     {
-     /* .left   = */ 0,
-     /* .top    = */ 0,
-     /* .right  = */ (LONG)wnd->last_resolution.x,
-     /* .bottom = */ (LONG)wnd->last_resolution.y,
-    };
-    if(clip.x0 != 0 || clip.y0 != 0 || clip.x1 != 0 || clip.y1 != 0)
-    {
-     rect.left = (LONG)clip.x0;
-     rect.right = (LONG)clip.x1;
-     rect.top = (LONG)clip.y0;
-     rect.bottom = (LONG)clip.y1;
-    }
-    d_ctx->RSSetScissorRects(1, &rect);
-   }
-   
-   //- rjf: setup output merger
-   {
-    d_ctx->OMSetRenderTargets(1, &wnd->framebuffer_rtv, 0);
-    d_ctx->OMSetBlendState(r_d3d11_state->blend_state, 0, 0xffffffff);
-   }
-   
-   //- rjf: process command
-   switch(cmd->kind)
-   {
-    default:break;
-    
-    //- rjf: rects (2d)
-    case R_CmdKind_Rect2D:
-    {
-     // rjf: unpack command batch data
-     ID3D11Buffer *instance_buffer = R_D3D11_InstanceBufferFromCmdInstBatchList(&cmd->batches);
-     U64 instance_count = cmd->batches.inst_count;
-     U64 bytes_per_instance = R_InstanceSizeFromCmdKind(cmd->kind);
-     U64 floats_per_instance = bytes_per_instance / sizeof(F32);
-     R_Handle albedo_texture_handle = R_HandleIsZero(cmd->albedo_texture) ? r_d3d11_state->backup_texture : cmd->albedo_texture;
-     R_D3D11_Texture2D albedo_texture = R_D3D11_Texture2DFromHandle(albedo_texture_handle);
-     Mat4x4F32 albedo_sample_channel_map = R_D3D11_SampleChannelMapFromTexture2DFormat(albedo_texture.format);
-     R_Texture2DSampleKind sample_kind = cmd->albedo_texture_sample_kind;
-     ID3D11SamplerState *sampler = r_d3d11_state->linear_sampler;
-     switch(sample_kind)
-     {
-      default:
-      case R_Texture2DSampleKind_Nearest: {sampler = r_d3d11_state->nearest_sampler;}break;
-      case R_Texture2DSampleKind_Linear:  {sampler = r_d3d11_state->linear_sampler;}break;
-     }
-     
-     // rjf: grab pipeline objects
-     ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_Rect2D];
-     ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_Rect2D];
-     ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_Rect2D];
-     ID3D11InputLayout *ilay = r_d3d11_state->ilay_table[R_D3D11_ShaderPairKind_Rect2D];
-     
-     // rjf: send per-cmd globals
-     R_D3D11_CmdGlobals_Rect2D cmd_globals = {0};
-     {
-      cmd_globals.viewport_size             = Vec2F32FromVec(wnd->last_resolution);
-      cmd_globals.opacity                   = cmd->opacity;
-      cmd_globals.albedo_sample_channel_map = albedo_sample_channel_map;
-      cmd_globals.albedo_t2d_size           = Vec2F32FromVec(albedo_texture.size);
-      cmd_globals.xform[0] = V4F32(cmd->xform2d.elements[0][0], cmd->xform2d.elements[1][0], cmd->xform2d.elements[2][0], 0);
-      cmd_globals.xform[1] = V4F32(cmd->xform2d.elements[0][1], cmd->xform2d.elements[1][1], cmd->xform2d.elements[2][1], 0);
-      cmd_globals.xform[2] = V4F32(cmd->xform2d.elements[0][2], cmd->xform2d.elements[1][2], cmd->xform2d.elements[2][2], 0);
-      Vec2F32 xform_2x2_col0 = V2F32(cmd_globals.xform[0].x, cmd_globals.xform[1].x);
-      Vec2F32 xform_2x2_col1 = V2F32(cmd_globals.xform[0].y, cmd_globals.xform[1].y);
-      cmd_globals.xform_scale.x = Length2F32(xform_2x2_col0);
-      cmd_globals.xform_scale.y = Length2F32(xform_2x2_col1);
-     }
-     R_D3D11_BufferWriteString(d_ctx, cmd_global_buffer, Str8Struct(&cmd_globals));
-     
-     // rjf: setup input assembly
-     U32 stride = bytes_per_instance;
-     U32 offset = 0;
-     d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-     d_ctx->IASetInputLayout(ilay);
-     d_ctx->IASetVertexBuffers(0, 1, &instance_buffer, &stride, &offset);
-     
-     // rjf: setup shaders
-     d_ctx->VSSetShader(vshad, 0, 0);
-     d_ctx->VSSetConstantBuffers(0, 1, &cmd_global_buffer);
-     d_ctx->PSSetShader(pshad, 0, 0);
-     d_ctx->PSSetConstantBuffers(0, 1, &cmd_global_buffer);
-     d_ctx->PSSetShaderResources(0, 1, &albedo_texture.view);
-     d_ctx->PSSetSamplers(0, 1, &sampler);
-     
-     // rjf: draw
-     d_ctx->DrawInstanced(4, instance_count, 0, 0);
+     // NOTE(rjf): this pass is not supported
     }break;
     
-    //- rjf: passes (3d)
-    case R_CmdKind_Pass3D:
+    //- rjf: UI pass
+    case R_PassKind_UI:
     {
-     //- rjf: clear buffers
-     {
-      
-     }
+     R_PassParams_UI *params = pass->params_ui;
      
-     //- rjf: g-buffer := g-buffer * sprites
+     //- rjf: draw rectangle batches
+     for(R_BatchGroup2DNode *group_n = params->rects.first; group_n != 0; group_n = group_n->next)
      {
+      // rjf: unpack
+      R_BatchList *batches = &group_n->batches;
+      R_BatchGroup2DParams *batch_params = &group_n->params;
+      ID3D11Buffer *instance_buffer = R_D3D11_InstanceBufferFromBatchList(batches);
+      U64 instance_count = batches->inst_count;
+      U64 bytes_per_instance = batches->byte_count/batches->inst_count;
+      R_Handle albedo_texture_handle = R_HandleIsZero(batch_params->albedo_tex) ? r_d3d11_state->backup_texture : batch_params->albedo_tex;
+      R_D3D11_Tex2D albedo_texture = R_D3D11_Tex2DFromHandle(albedo_texture_handle);
+      Mat4x4F32 albedo_sample_channel_map = R_D3D11_SampleChannelMapFromTexture2DFormat(albedo_texture.format);
+      R_Tex2DSampleKind sample_kind = batch_params->albedo_tex_sample_kind;
+      ID3D11SamplerState *sampler = r_d3d11_state->linear_sampler;
+      switch(sample_kind)
+      {
+       default:
+       case R_Tex2DSampleKind_Nearest: {sampler = r_d3d11_state->nearest_sampler;}break;
+       case R_Tex2DSampleKind_Linear:  {sampler = r_d3d11_state->linear_sampler;}break;
+      }
+      Rng2F32 clip = R2F32(V2F32(Clamp(0, Min(batch_params->clip.x0, batch_params->clip.x1), wnd->last_resolution.x),
+                                 Clamp(0, Min(batch_params->clip.y0, batch_params->clip.y1), wnd->last_resolution.y)),
+                           V2F32(Clamp(0, Max(batch_params->clip.x0, batch_params->clip.x1), wnd->last_resolution.x),
+                                 Clamp(0, Max(batch_params->clip.y0, batch_params->clip.y1), wnd->last_resolution.y)));
       
-     }
-     
-     //- rjf: dbg-buffer := dbg-buffer * lines
-     {
+      // rjf: set up viewport & rasterizer
+      {
+       Vec2S64 resolution = wnd->last_resolution;
+       D3D11_VIEWPORT d3d11_viewport = { 0.0f, 0.0f, (F32)resolution.x, (F32)resolution.y, 0.0f, 1.0f };
+       if(params->viewport.x0 != 0 || params->viewport.x1 != 0 ||
+          params->viewport.y0 != 0 || params->viewport.y1 != 0)
+       {
+        Vec2F32 dim = Dim2F32(params->viewport);
+        d3d11_viewport.TopLeftX = params->viewport.x0;
+        d3d11_viewport.TopLeftY = params->viewport.y0;
+        d3d11_viewport.Width = dim.x;
+        d3d11_viewport.Height = dim.y;
+       }
+       d_ctx->RSSetViewports(1, &d3d11_viewport);
+       d_ctx->RSSetState(r_d3d11_state->rasterizer);
+      }
       
-     }
-     
-     //- rjf: g-buffer * dbg-buffer -> framebuffer 
-     {
+      // rjf: setup scissor rect
+      {
+       D3D11_RECT rect =
+       {
+        /* .left   = */ 0,
+        /* .top    = */ 0,
+        /* .right  = */ (LONG)wnd->last_resolution.x,
+        /* .bottom = */ (LONG)wnd->last_resolution.y,
+       };
+       if(clip.x0 != 0 || clip.y0 != 0 || clip.x1 != 0 || clip.y1 != 0)
+       {
+        rect.left = (LONG)clip.x0;
+        rect.right = (LONG)clip.x1;
+        rect.top = (LONG)clip.y0;
+        rect.bottom = (LONG)clip.y1;
+       }
+       d_ctx->RSSetScissorRects(1, &rect);
+      }
       
-     }
-     
-     //- rjf: blit artifact onto final framebuffer in viewport
-     {
+      // rjf: setup output merger
+      {
+       d_ctx->OMSetRenderTargets(1, &wnd->framebuffer_rtv, 0);
+       d_ctx->OMSetBlendState(r_d3d11_state->blend_state, 0, 0xffffffff);
+      }
       
+      // rjf: grab pipeline objects
+      ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_Rect2D];
+      ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_Rect2D];
+      ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_Rect2D];
+      ID3D11InputLayout *ilay = r_d3d11_state->ilay_table[R_D3D11_ShaderPairKind_Rect2D];
+      
+      // rjf: send per-cmd globals
+      R_D3D11_CmdGlobals_Rect2D cmd_globals = {0};
+      {
+       cmd_globals.viewport_size             = Vec2F32FromVec(wnd->last_resolution);
+       cmd_globals.opacity                   = 1-batch_params->transparency;
+       cmd_globals.albedo_sample_channel_map = albedo_sample_channel_map;
+       cmd_globals.albedo_t2d_size           = Vec2F32FromVec(albedo_texture.size);
+       cmd_globals.xform[0] = V4F32(batch_params->xform2d.elements[0][0], batch_params->xform2d.elements[1][0], batch_params->xform2d.elements[2][0], 0);
+       cmd_globals.xform[1] = V4F32(batch_params->xform2d.elements[0][1], batch_params->xform2d.elements[1][1], batch_params->xform2d.elements[2][1], 0);
+       cmd_globals.xform[2] = V4F32(batch_params->xform2d.elements[0][2], batch_params->xform2d.elements[1][2], batch_params->xform2d.elements[2][2], 0);
+       Vec2F32 xform_2x2_col0 = V2F32(cmd_globals.xform[0].x, cmd_globals.xform[1].x);
+       Vec2F32 xform_2x2_col1 = V2F32(cmd_globals.xform[0].y, cmd_globals.xform[1].y);
+       cmd_globals.xform_scale.x = Length2F32(xform_2x2_col0);
+       cmd_globals.xform_scale.y = Length2F32(xform_2x2_col1);
+      }
+      R_D3D11_BufferWriteString(d_ctx, cmd_global_buffer, Str8Struct(&cmd_globals));
+      
+      // rjf: setup input assembly
+      U32 stride = bytes_per_instance;
+      U32 offset = 0;
+      d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+      d_ctx->IASetInputLayout(ilay);
+      d_ctx->IASetVertexBuffers(0, 1, &instance_buffer, &stride, &offset);
+      
+      // rjf: setup shaders
+      d_ctx->VSSetShader(vshad, 0, 0);
+      d_ctx->VSSetConstantBuffers(0, 1, &cmd_global_buffer);
+      d_ctx->PSSetShader(pshad, 0, 0);
+      d_ctx->PSSetConstantBuffers(0, 1, &cmd_global_buffer);
+      d_ctx->PSSetShaderResources(0, 1, &albedo_texture.view);
+      d_ctx->PSSetSamplers(0, 1, &sampler);
+      
+      // rjf: draw
+      d_ctx->DrawInstanced(4, instance_count, 0, 0);
      }
     }break;
     
+    //- rjf: G0 pass
+    case R_PassKind_G0:
+    {
+     R_PassParams_G0 *params = pass->params_g0;
+     Mat4x4F32 view_projection = Mul4x4F32(params->xform_projection, params->xform_view);
+     Vec2S64 resolution = wnd->last_resolution;
+     D3D11_VIEWPORT d3d11_viewport = { 0.0f, 0.0f, (F32)resolution.x, (F32)resolution.y, 0.0f, 1.0f };
+     if(params->viewport.x0 != 0 || params->viewport.x1 != 0 ||
+        params->viewport.y0 != 0 || params->viewport.y1 != 0)
+     {
+      Vec2F32 dim = Dim2F32(params->viewport);
+      d3d11_viewport.TopLeftX = params->viewport.x0;
+      d3d11_viewport.TopLeftY = params->viewport.y0;
+      d3d11_viewport.Width = dim.x;
+      d3d11_viewport.Height = dim.y;
+     }
+     Vec3F32 keylight_eye = Scale3F32(Normalize3F32(params->keylight_dir), -1.f*20.f);
+     Mat4x4F32 shadowmap_view = MakeLookAt4x4F32(keylight_eye, V3F32(0, 0, 0), V3F32(0, 0, 1));
+     Mat4x4F32 shadowmap_proj = MakeOrthographic4x4F32(-30.f, +30.f, -30.f, +30.f, -100.f, 100.f);
+     Mat4x4F32 shadowmap_view_proj = Mul4x4F32(shadowmap_proj, shadowmap_view);
+     
+     //- rjf: clear
+     {
+      Vec4F32 clear_color = {0};
+      d_ctx->ClearRenderTargetView(wnd->gbuffer_color_rtv, clear_color.v);
+      d_ctx->ClearDepthStencilView(wnd->gbuffer_depth_dsv, D3D11_CLEAR_DEPTH, 1.f, 0);
+      d_ctx->ClearDepthStencilView(wnd->shadowmap_depth_dsv, D3D11_CLEAR_DEPTH, 1.f, 0);
+     }
+     
+     //- rjf: setup scissor rect
+     {
+      D3D11_RECT rect =
+      {
+       /* .left   = */ 0,
+       /* .top    = */ 0,
+       /* .right  = */ (LONG)wnd->last_resolution.x,
+       /* .bottom = */ (LONG)wnd->last_resolution.y,
+      };
+      if(params->viewport.x0 != 0 || params->viewport.x1 != 0 ||
+         params->viewport.y0 != 0 || params->viewport.y1 != 0)
+      {
+       rect.left   = params->viewport.x0;
+       rect.top    = params->viewport.y0;
+       rect.right  = params->viewport.x1;
+       rect.bottom = params->viewport.y1;
+      }
+      d_ctx->RSSetScissorRects(1, &rect);
+     }
+     
+     //- rjf: set up rasterizer
+     {
+      d_ctx->RSSetState(r_d3d11_state->rasterizer);
+     }
+     
+     //- rjf: gbuffer <= sprites
+     {
+      d_ctx->RSSetViewports(1, &d3d11_viewport);
+      d_ctx->OMSetRenderTargets(1, &wnd->gbuffer_color_rtv, wnd->gbuffer_depth_dsv);
+      d_ctx->OMSetBlendState(r_d3d11_state->blend_state, 0, 0xffffffff);
+      for(U64 slot_idx = 0; slot_idx < params->sprites.slots_count; slot_idx += 1)
+      {
+       R_BatchGroup3DSlot *slot = &params->sprites.slots[slot_idx];
+       for(R_BatchGroup3DNode *node = slot->first; node != 0; node = node->next)
+       {
+        R_BatchList *batches = &node->batches;
+        R_BatchGroup3DParams *params = &node->params;
+        
+        // rjf: unpack command batch data
+        U64 bytes_per_instance = batches->byte_count/batches->inst_count;
+        ID3D11Buffer *instance_buffer = R_D3D11_InstanceBufferFromBatchList(batches);
+        R_Handle albedo_tex_handle = R_HandleIsZero(params->albedo_tex) ? r_d3d11_state->backup_texture : params->albedo_tex;
+        R_D3D11_Tex2D albedo_tex = R_D3D11_Tex2DFromHandle(albedo_tex_handle);
+        Mat4x4F32 albedo_sample_channel_map = R_D3D11_SampleChannelMapFromTexture2DFormat(albedo_tex.format);
+        R_Tex2DSampleKind sample_kind = params->albedo_tex_sample_kind;
+        ID3D11SamplerState *sampler = r_d3d11_state->linear_sampler;
+        switch(sample_kind)
+        {
+         default:
+         case R_Tex2DSampleKind_Nearest: {sampler = r_d3d11_state->nearest_sampler;}break;
+         case R_Tex2DSampleKind_Linear:  {sampler = r_d3d11_state->linear_sampler;}break;
+        }
+        
+        // rjf: grab pipeline objects
+        ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_Sprite3D];
+        ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_Sprite3D];
+        ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_Sprite3D];
+        ID3D11InputLayout *ilay = r_d3d11_state->ilay_table[R_D3D11_ShaderPairKind_Sprite3D];
+        
+        // rjf: send per-cmd globals
+        R_D3D11_CmdGlobals_Sprite3D cmd_globals = {0};
+        {
+         cmd_globals.xform                     = view_projection;
+         cmd_globals.albedo_sample_channel_map = albedo_sample_channel_map;
+         cmd_globals.albedo_t2d_size           = Vec2F32FromVec(albedo_tex.size);
+        }
+        R_D3D11_BufferWriteString(d_ctx, cmd_global_buffer, Str8Struct(&cmd_globals));
+        
+        // rjf: setup input assembly
+        U32 stride = bytes_per_instance;
+        U32 offset = 0;
+        d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+        d_ctx->IASetInputLayout(ilay);
+        d_ctx->IASetVertexBuffers(0, 1, &instance_buffer, &stride, &offset);
+        
+        // rjf: setup shaders
+        d_ctx->VSSetShader(vshad, 0, 0);
+        d_ctx->VSSetConstantBuffers(0, 1, &cmd_global_buffer);
+        d_ctx->PSSetShader(pshad, 0, 0);
+        d_ctx->PSSetConstantBuffers(0, 1, &cmd_global_buffer);
+        d_ctx->PSSetShaderResources(0, 1, &albedo_tex.view);
+        d_ctx->PSSetSamplers(0, 1, &sampler);
+        
+        // rjf: draw
+        d_ctx->DrawInstanced(4, batches->inst_count, 0, 0);
+       }
+      }
+     }
+     
+     //- rjf: shadowmap <= sprites
+     {
+      D3D11_VIEWPORT d3d11_viewport = { 0.0f, 0.0f, (F32)wnd->shadowmap_resolution.x, (F32)wnd->shadowmap_resolution.y, 0.0f, 1.0f };
+      d_ctx->RSSetViewports(1, &d3d11_viewport);
+      d_ctx->OMSetRenderTargets(0, 0, wnd->shadowmap_depth_dsv);
+      for(U64 slot_idx = 0; slot_idx < params->sprites.slots_count; slot_idx += 1)
+      {
+       R_BatchGroup3DSlot *slot = &params->sprites.slots[slot_idx];
+       for(R_BatchGroup3DNode *node = slot->first; node != 0; node = node->next)
+       {
+        R_BatchList *batches = &node->batches;
+        R_BatchGroup3DParams *params = &node->params;
+        
+        // rjf: unpack command batch data
+        U64 bytes_per_instance = batches->byte_count/batches->inst_count;
+        ID3D11Buffer *instance_buffer = R_D3D11_InstanceBufferFromBatchList(batches);
+        R_Handle albedo_tex_handle = R_HandleIsZero(params->albedo_tex) ? r_d3d11_state->backup_texture : params->albedo_tex;
+        R_D3D11_Tex2D albedo_tex = R_D3D11_Tex2DFromHandle(albedo_tex_handle);
+        Mat4x4F32 albedo_sample_channel_map = R_D3D11_SampleChannelMapFromTexture2DFormat(albedo_tex.format);
+        R_Tex2DSampleKind sample_kind = params->albedo_tex_sample_kind;
+        ID3D11SamplerState *sampler = r_d3d11_state->linear_sampler;
+        switch(sample_kind)
+        {
+         default:
+         case R_Tex2DSampleKind_Nearest: {sampler = r_d3d11_state->nearest_sampler;}break;
+         case R_Tex2DSampleKind_Linear:  {sampler = r_d3d11_state->linear_sampler;}break;
+        }
+        
+        // rjf: grab pipeline objects
+        ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_Sprite3D];
+        ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_Sprite3D];
+        ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_Sprite3D];
+        ID3D11InputLayout *ilay = r_d3d11_state->ilay_table[R_D3D11_ShaderPairKind_Sprite3D];
+        
+        // rjf: send per-cmd globals
+        R_D3D11_CmdGlobals_Sprite3D cmd_globals = {0};
+        {
+         cmd_globals.xform                     = shadowmap_view_proj;
+         cmd_globals.albedo_sample_channel_map = albedo_sample_channel_map;
+         cmd_globals.albedo_t2d_size           = Vec2F32FromVec(albedo_tex.size);
+        }
+        R_D3D11_BufferWriteString(d_ctx, cmd_global_buffer, Str8Struct(&cmd_globals));
+        
+        // rjf: setup input assembly
+        U32 stride = bytes_per_instance;
+        U32 offset = 0;
+        d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+        d_ctx->IASetInputLayout(ilay);
+        d_ctx->IASetVertexBuffers(0, 1, &instance_buffer, &stride, &offset);
+        
+        // rjf: setup shaders
+        d_ctx->VSSetShader(vshad, 0, 0);
+        d_ctx->VSSetConstantBuffers(0, 1, &cmd_global_buffer);
+        d_ctx->PSSetShader(pshad, 0, 0);
+        d_ctx->PSSetConstantBuffers(0, 1, &cmd_global_buffer);
+        d_ctx->PSSetShaderResources(0, 1, &albedo_tex.view);
+        d_ctx->PSSetSamplers(0, 1, &sampler);
+        
+        // rjf: draw
+        d_ctx->DrawInstanced(4, batches->inst_count, 0, 0);
+       }
+      }
+     }
+     
+     //- rjf: framebuffer <=composite= gbuffer
+     {
+      D3D11_VIEWPORT d3d11_viewport = { 0.0f, 0.0f, (F32)resolution.x, (F32)resolution.y, 0.0f, 1.0f };
+      d_ctx->RSSetViewports(1, &d3d11_viewport);
+      d_ctx->OMSetRenderTargets(1, &wnd->framebuffer_rtv, 0);
+      d_ctx->OMSetBlendState(r_d3d11_state->blend_state, 0, 0xffffffff);
+      
+      // rjf: grab pipeline objects
+      ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_Composite3D];
+      ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_Composite3D];
+      ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_Composite3D];
+      ID3D11InputLayout *ilay = r_d3d11_state->ilay_table[R_D3D11_ShaderPairKind_Composite3D];
+      
+      // rjf: send per-cmd globals
+      R_D3D11_CmdGlobals_Composite3D cmd_globals = {0};
+      {
+       Vec2F32 resolution = Vec2F32FromVec(wnd->last_resolution);
+       cmd_globals.inverse_view_projection   = Inverse4x4F32(view_projection);
+       cmd_globals.shadowmap_view_projection = shadowmap_view_proj;
+       cmd_globals.fog_color                 = params->fog_color;
+       cmd_globals.pct_fog_per_unit          = params->pct_fog_per_unit;
+       cmd_globals.near_z                    = params->near_z;
+       cmd_globals.far_z                     = params->far_z;
+      }
+      R_D3D11_BufferWriteString(d_ctx, cmd_global_buffer, Str8Struct(&cmd_globals));
+      
+      // rjf: setup input assembly
+      d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+      d_ctx->IASetInputLayout(0);
+      
+      // rjf: setup shaders
+      d_ctx->VSSetShader(vshad, 0, 0);
+      d_ctx->VSSetConstantBuffers(0, 1, &cmd_global_buffer);
+      d_ctx->PSSetShader(pshad, 0, 0);
+      d_ctx->PSSetConstantBuffers(0, 1, &cmd_global_buffer);
+      d_ctx->PSSetShaderResources(0, 1, &wnd->gbuffer_color_srv);
+      d_ctx->PSSetSamplers(0, 1, &r_d3d11_state->linear_sampler);
+      d_ctx->PSSetShaderResources(1, 1, &wnd->gbuffer_depth_srv);
+      d_ctx->PSSetSamplers(1, 1, &r_d3d11_state->linear_sampler);
+      d_ctx->PSSetShaderResources(2, 1, &wnd->shadowmap_depth_srv);
+      d_ctx->PSSetSamplers(2, 1, &r_d3d11_state->linear_sampler);
+      
+      // rjf: draw
+      d_ctx->Draw(4, 0);
+     }
+     
+     //- rjf: framebuffer <= debug lines
+     if(params->debug_lines.inst_count != 0)
+     {
+      R_BatchList *batch_list = &params->debug_lines;
+      d_ctx->OMSetRenderTargets(1, &wnd->framebuffer_rtv, 0);
+      d_ctx->OMSetBlendState(r_d3d11_state->blend_state, 0, 0xffffffff);
+      
+      // rjf: unpack command batch data
+      U64 bytes_per_instance = batch_list->byte_count/batch_list->inst_count;
+      U64 instance_count = batch_list->inst_count;
+      ID3D11Buffer *instance_buffer = R_D3D11_InstanceBufferFromBatchList(batch_list);
+      
+      // rjf: grab pipeline objects
+      ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_DebugLine3D];
+      ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_DebugLine3D];
+      ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_DebugLine3D];
+      ID3D11InputLayout *ilay = r_d3d11_state->ilay_table[R_D3D11_ShaderPairKind_DebugLine3D];
+      
+      // rjf: send per-cmd globals
+      R_D3D11_CmdGlobals_DebugLine3D cmd_globals = {0};
+      {
+       cmd_globals.xform = view_projection;
+      }
+      R_D3D11_BufferWriteString(d_ctx, cmd_global_buffer, Str8Struct(&cmd_globals));
+      
+      // rjf: setup input assembly
+      U32 stride = bytes_per_instance;
+      U32 offset = 0;
+      d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+      d_ctx->IASetInputLayout(ilay);
+      d_ctx->IASetVertexBuffers(0, 1, &instance_buffer, &stride, &offset);
+      
+      // rjf: setup shaders
+      d_ctx->VSSetShader(vshad, 0, 0);
+      d_ctx->VSSetConstantBuffers(0, 1, &cmd_global_buffer);
+      d_ctx->PSSetShader(pshad, 0, 0);
+      d_ctx->PSSetConstantBuffers(0, 1, &cmd_global_buffer);
+      
+      // rjf: draw
+      d_ctx->DrawInstanced(2, instance_count, 0, 0);
+     }
+    }break;
    }
   }
  }
 }
 
-render_function void
+r_function void
 R_WindowFinish(R_Handle window_eqp)
 {
  OS_MutexBlock(r_d3d11_state->device_mutex)
@@ -895,166 +1196,3 @@ R_WindowFinish(R_Handle window_eqp)
   d_ctx->ClearState();
  }
 }
-
-////////////////////////////////
-//~ rjf: TODO 3d rendering notes:
-
-#if 0
-
-#if 0
-//- rjf: set up output merger (3d)
-if(flags_change)
-{
- if(new_flags & R_CmdFlag_DepthWrite && new_flags & R_CmdFlag_DepthTest)
- {
-  d_ctx->OMSetDepthStencilState(r_d3d11_state->plain_depth_stencil_state, 1);
- }
- if(new_flags & R_CmdFlag_DepthWrite && !(new_flags & R_CmdFlag_DepthTest))
- {
-  d_ctx->OMSetDepthStencilState(r_d3d11_state->write_depth_stencil_state, 1);
- }
- if(!(new_flags & R_CmdFlag_DepthWrite) && !(new_flags & R_CmdFlag_DepthTest))
- {
-  d_ctx->OMSetDepthStencilState(r_d3d11_state->noop_depth_stencil_state, 1);
- }
- d_ctx->OMSetRenderTargets(1, &framebuffer_view, (new_flags & R_CmdFlag_DepthWrite ? depth_buffer_write_view : 0));
- d_ctx->OMSetBlendState(r_d3d11_state->blend_state, 0, 0xffffffff);
-}
-#endif
-
-//- rjf: sprites (3d)
-#if 0
-case R_CmdKind_Sprite3D:
-{
- // rjf: unpack command batch data
- U64 bytes_per_instance = R_InstanceSizeFromCmdKind(cmd->kind);
- U64 floats_per_instance = bytes_per_instance / sizeof(F32);
- R_Handle albedo_texture_handle = R_HandleIsZero(cmd->albedo_texture) ? r_d3d11_state->backup_texture : cmd->albedo_texture;
- R_D3D11_Texture2D albedo_texture = R_D3D11_Texture2DFromHandle(albedo_texture_handle);
- Mat4x4F32 albedo_sample_channel_map = R_D3D11_SampleChannelMapFromTexture2DFormat(albedo_texture.format);
- R_Texture2DSampleKind sample_kind = cmd->albedo_texture_sample_kind;
- ID3D11SamplerState *sampler = r_d3d11_state->linear_sampler;
- switch(sample_kind)
- {
-  default:
-  case R_Texture2DSampleKind_Nearest: {sampler = r_d3d11_state->nearest_sampler;}break;
-  case R_Texture2DSampleKind_Linear:  {sampler = r_d3d11_state->linear_sampler;}break;
- }
- 
- // rjf: grab pipeline objects
- ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_Sprite3D];
- ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_Sprite3D];
- ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_Sprite3D];
- ID3D11InputLayout *ilay = r_d3d11_state->ilay_table[R_D3D11_ShaderPairKind_Sprite3D];
- 
- // rjf: send per-cmd globals
- R_D3D11_CmdGlobals_Sprite3D cmd_globals = {0};
- {
-  cmd_globals.xform                     = view_projection;
-  cmd_globals.albedo_sample_channel_map = albedo_sample_channel_map;
-  cmd_globals.albedo_t2d_size           = Vec2F32FromVec(albedo_texture.size);
- }
- R_D3D11_WriteGPUBuffer(d_ctx, cmd_global_buffer, 0, Str8Struct(&cmd_globals));
- 
- // rjf: setup input assembly
- U32 stride = bytes_per_instance;
- U32 offset = 0;
- d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
- d_ctx->IASetInputLayout(ilay);
- d_ctx->IASetVertexBuffers(0, 1, &instance_buffer, &stride, &offset);
- 
- // rjf: setup shaders
- d_ctx->VSSetShader(vshad, 0, 0);
- d_ctx->VSSetConstantBuffers(0, 1, &cmd_global_buffer);
- d_ctx->PSSetShader(pshad, 0, 0);
- d_ctx->PSSetConstantBuffers(0, 1, &cmd_global_buffer);
- d_ctx->PSSetShaderResources(0, 1, &albedo_texture.view);
- d_ctx->PSSetSamplers(0, 1, &sampler);
- 
- // rjf: draw
- d_ctx->DrawInstanced(4, instance_count, 0, 0);
-}break;
-#endif
-
-#if 0
-//- rjf: fog (3d)
-case R_CmdKind_Fog3D:
-{
- // rjf: grab pipeline objects
- ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_Fog3D];
- ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_Fog3D];
- ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_Fog3D];
- ID3D11InputLayout *ilay = r_d3d11_state->ilay_table[R_D3D11_ShaderPairKind_Fog3D];
- 
- // rjf: send per-cmd globals
- R_D3D11_CmdGlobals_Fog3D cmd_globals = {0};
- {
-  R_Fog3DInst params = {0};
-  if(cmd->first_batch != 0 && cmd->first_batch->instance_count != 0 && cmd->first_batch->ext != 0)
-  {
-   MemoryCopy(&params, cmd->first_batch->ext, sizeof(params));
-  }
-  cmd_globals.color = params.color;
-  cmd_globals.pct_fog_per_unit = params.pct_fog_per_unit;
-  cmd_globals.near_z = params.near_z;
-  cmd_globals.far_z = params.far_z;
- }
- R_D3D11_WriteGPUBuffer(d_ctx, cmd_global_buffer, 0, Str8Struct(&cmd_globals));
- 
- // rjf: setup input assembly
- d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
- d_ctx->IASetInputLayout(0);
- 
- // rjf: setup shaders
- d_ctx->VSSetShader(vshad, 0, 0);
- d_ctx->VSSetConstantBuffers(0, 1, &cmd_global_buffer);
- d_ctx->PSSetShader(pshad, 0, 0);
- d_ctx->PSSetConstantBuffers(0, 1, &cmd_global_buffer);
- d_ctx->PSSetShaderResources(0, 1, &wnd->depth_buffer_read_view);
- d_ctx->PSSetSamplers(0, 1, &sampler);
- 
- // rjf: draw
- d_ctx->Draw(4, 0);
-}break;
-#endif
-
-#if 0
-//- rjf: debug lines (3d)
-case R_CmdKind_DebugLine3D:
-{
- // rjf: unpack command batch data
- U64 bytes_per_instance = R_InstanceSizeFromCmdKind(cmd->kind);
- U64 floats_per_instance = bytes_per_instance / sizeof(F32);
- 
- // rjf: grab pipeline objects
- ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_DebugLine3D];
- ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_DebugLine3D];
- ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_DebugLine3D];
- ID3D11InputLayout *ilay = r_d3d11_state->ilay_table[R_D3D11_ShaderPairKind_DebugLine3D];
- 
- // rjf: send per-cmd globals
- R_D3D11_CmdGlobals_DebugLine3D cmd_globals = {0};
- {
-  cmd_globals.xform = view_projection;
- }
- R_D3D11_WriteGPUBuffer(d_ctx, cmd_global_buffer, 0, Str8Struct(&cmd_globals));
- 
- // rjf: setup input assembly
- U32 stride = bytes_per_instance;
- U32 offset = 0;
- d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
- d_ctx->IASetInputLayout(ilay);
- d_ctx->IASetVertexBuffers(0, 1, &instance_buffer, &stride, &offset);
- 
- // rjf: setup shaders
- d_ctx->VSSetShader(vshad, 0, 0);
- d_ctx->VSSetConstantBuffers(0, 1, &cmd_global_buffer);
- d_ctx->PSSetShader(pshad, 0, 0);
- d_ctx->PSSetConstantBuffers(0, 1, &cmd_global_buffer);
- 
- // rjf: draw
- d_ctx->DrawInstanced(2, instance_count, 0, 0);
-}break;
-#endif
-
-#endif

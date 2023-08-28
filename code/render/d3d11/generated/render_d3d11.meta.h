@@ -3,7 +3,7 @@ typedef enum R_D3D11_CmdGlobalKind
 R_D3D11_CmdGlobalKind_Nil,
 R_D3D11_CmdGlobalKind_Rect2D,
 R_D3D11_CmdGlobalKind_Sprite3D,
-R_D3D11_CmdGlobalKind_Fog3D,
+R_D3D11_CmdGlobalKind_Composite3D,
 R_D3D11_CmdGlobalKind_DebugLine3D,
 R_D3D11_CmdGlobalKind_COUNT
 }
@@ -14,7 +14,7 @@ typedef enum R_D3D11_ShaderPairKind
 R_D3D11_ShaderPairKind_Nil,
 R_D3D11_ShaderPairKind_Rect2D,
 R_D3D11_ShaderPairKind_Sprite3D,
-R_D3D11_ShaderPairKind_Fog3D,
+R_D3D11_ShaderPairKind_Composite3D,
 R_D3D11_ShaderPairKind_DebugLine3D,
 R_D3D11_ShaderPairKind_COUNT
 }

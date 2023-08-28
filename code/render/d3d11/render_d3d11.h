@@ -47,9 +47,11 @@ struct R_D3D11_CmdGlobals_Sprite3D
  Vec2F32 albedo_t2d_size;
 };
 
-struct R_D3D11_CmdGlobals_Fog3D
+struct R_D3D11_CmdGlobals_Composite3D
 {
- Vec4F32 color;
+ Mat4x4F32 inverse_view_projection;
+ Mat4x4F32 shadowmap_view_projection;
+ Vec4F32 fog_color;
  F32 pct_fog_per_unit;
  F32 near_z;
  F32 far_z;
@@ -68,13 +70,13 @@ struct R_D3D11_CmdGlobals_DebugLine3D
 ////////////////////////////////
 //~ rjf: Resource Types
 
-struct R_D3D11_Texture2D
+struct R_D3D11_Tex2D
 {
  ID3D11Texture2D *texture;
  ID3D11ShaderResourceView *view;
  Vec2S32 size;
- R_Texture2DFormat format;
- R_Texture2DKind kind;
+ R_Tex2DFormat format;
+ R_Tex2DKind kind;
 };
 
 struct R_D3D11_Buffer
@@ -160,13 +162,16 @@ struct R_D3D11_WindowEquip
  // rjf: g-buffer
  ID3D11Texture2D *gbuffer_color;
  ID3D11RenderTargetView *gbuffer_color_rtv;
+ ID3D11ShaderResourceView *gbuffer_color_srv;
  ID3D11Texture2D *gbuffer_depth;
  ID3D11DepthStencilView *gbuffer_depth_dsv;
  ID3D11ShaderResourceView *gbuffer_depth_srv;
  
- // rjf: dbg-buffer
- ID3D11Texture2D *dbgbuffer_color;
- ID3D11RenderTargetView *dbgbuffer_color_rtv;
+ // rjf: shadow maps
+ Vec2S64 shadowmap_resolution;
+ ID3D11Texture2D *shadowmap_depth;
+ ID3D11DepthStencilView *shadowmap_depth_dsv;
+ ID3D11ShaderResourceView *shadowmap_depth_srv;
  
  // rjf: last state
  Vec2S64 last_resolution;
@@ -175,26 +180,26 @@ struct R_D3D11_WindowEquip
 ////////////////////////////////
 //~ rjf: Globals
 
-render_global R_D3D11_State *r_d3d11_state;
+r_global R_D3D11_State *r_d3d11_state;
 
 ////////////////////////////////
 //~ rjf: Basic Helpers
 
-render_function DXGI_FORMAT R_D3D11_DXGIFormatFromTexture2DFormat(R_Texture2DFormat fmt);
+r_function DXGI_FORMAT R_D3D11_DXGIFormatFromTexture2DFormat(R_Tex2DFormat fmt);
 
-render_function R_D3D11_WindowEquip *R_D3D11_WindowEquipFromHandle(R_Handle handle);
-render_function R_Handle R_D3D11_HandleFromWindowEquip(R_D3D11_WindowEquip *equip);
+r_function R_D3D11_WindowEquip *R_D3D11_WindowEquipFromHandle(R_Handle handle);
+r_function R_Handle R_D3D11_HandleFromWindowEquip(R_D3D11_WindowEquip *equip);
 
-render_function R_D3D11_Texture2D R_D3D11_Texture2DFromHandle(R_Handle handle);
-render_function R_Handle R_D3D11_HandleFromTexture2D(R_D3D11_Texture2D texture);
+r_function R_D3D11_Tex2D R_D3D11_Tex2DFromHandle(R_Handle handle);
+r_function R_Handle R_D3D11_HandleFromTexture2D(R_D3D11_Tex2D texture);
 
-render_function R_D3D11_Buffer R_D3D11_BufferFromHandle(R_Handle handle);
-render_function R_Handle R_D3D11_HandleFromBuffer(R_D3D11_Buffer buffer);
+r_function R_D3D11_Buffer R_D3D11_BufferFromHandle(R_Handle handle);
+r_function R_Handle R_D3D11_HandleFromBuffer(R_D3D11_Buffer buffer);
 
-render_function void R_D3D11_BufferWriteString(ID3D11DeviceContext1 *device_ctx, ID3D11Buffer *buffer, String8 data);
-render_function ID3D11Buffer *R_D3D11_InstanceBufferFromCmdInstBatchList(R_CmdInstBatchList *list);
+r_function void R_D3D11_BufferWriteString(ID3D11DeviceContext1 *device_ctx, ID3D11Buffer *buffer, String8 data);
+r_function ID3D11Buffer *R_D3D11_InstanceBufferFromBatchList(R_BatchList *list);
 
-render_function Mat4x4F32 R_D3D11_SampleChannelMapFromTexture2DFormat(R_Texture2DFormat fmt);
+r_function Mat4x4F32 R_D3D11_SampleChannelMapFromTexture2DFormat(R_Tex2DFormat fmt);
 
 ////////////////////////////////
 //~ rjf: Backend Hooks

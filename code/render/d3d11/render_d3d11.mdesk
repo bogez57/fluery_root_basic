@@ -6,7 +6,7 @@ R_D3D11_CmdGlobalsTable:
 {
  {Rect2D       rect2d       R_D3D11_CmdGlobals_Rect2D      }
  {Sprite3D     sprite3d     R_D3D11_CmdGlobals_Sprite3D    }
- {Fog3D        fog3d        R_D3D11_CmdGlobals_Fog3D       }
+ {Composite3D  composite3d  R_D3D11_CmdGlobals_Composite3D }
  {DebugLine3D  debugline3d  R_D3D11_CmdGlobals_DebugLine3D }
 }
 
@@ -15,7 +15,7 @@ R_D3D11_ShaderPairTable:
 {
  {Rect2D       rect2d        r_d3d11_g_rect2d_shader_src      r_d3d11_g_rect2d_ilay_elements      }
  {Sprite3D     sprite3d      r_d3d11_g_sprite3d_shader_src    r_d3d11_g_sprite3d_ilay_elements    }
- {Fog3D        fog3d         r_d3d11_g_fog3d_shader_src       /                                   }
+ {Composite3D  composite3d   r_d3d11_g_composite3d_shader_src /                                   }
  {DebugLine3D  debugline3d   r_d3d11_g_debugline3d_shader_src r_d3d11_g_debugline3d_ilay_elements }
 }
 
@@ -252,7 +252,9 @@ struct CPU2Vertex
  float4 color01         : COL1;
  float4 color10         : COL2;
  float4 color11         : COL3;
- float4 omit_texture    : OTX;
+ float omit_texture     : OTX;
+ float shear            : SHR;
+ float2 _unused_        : PAD;
  uint vertex_id         : SV_VertexID;
 };
 
@@ -280,9 +282,9 @@ vs_main(CPU2Vertex cpu2vertex)
  //- rjf: bundle per-vertex attribute arrays, to sample from via vertex ID
  float3 dst_p_verts_rs[] =
  {
-  mul(cpu2vertex.xform, float4(-0.5f, -0.5f, 0.f, 1.f)).xyz,
+  mul(cpu2vertex.xform, float4(-0.5f+cpu2vertex.shear, -0.5f, 0.f, 1.f)).xyz,
   mul(cpu2vertex.xform, float4(-0.5f, +0.5f, 0.f, 1.f)).xyz,
-  mul(cpu2vertex.xform, float4(+0.5f, -0.5f, 0.f, 1.f)).xyz,
+  mul(cpu2vertex.xform, float4(+0.5f+cpu2vertex.shear, -0.5f, 0.f, 1.f)).xyz,
   mul(cpu2vertex.xform, float4(+0.5f, +0.5f, 0.f, 1.f)).xyz,
  };
  float2 src_p_verts_px[] =
@@ -358,26 +360,31 @@ ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
  final_color *= tint;
  return final_color;
 }
-
 """
 
 ////////////////////////////////
-//~ rjf: Fog Shader
+//~ rjf: Compositor Shader
 
-@embed_string @c r_d3d11_g_fog3d_shader_src:
+@embed_string @c r_d3d11_g_composite3d_shader_src:
 """
 //- rjf: resources
 
 cbuffer CmdGlobals : register(b0)
 {
+ float4x4 inverse_view_projection;
+ float4x4 shadowmap_view_projection;
  float4 fog_color;
  float pct_fog_per_unit;
  float near_z;
  float far_z;
 }
 
-Texture2D depth_t2d : register(t0);
-SamplerState depth_t2d_sampler : register(s0);
+Texture2D albedo_t2d    : register(t0);
+Texture2D depth_t2d     : register(t1);
+Texture2D shadowmap_t2d : register(t2);
+SamplerState albedo_t2d_sampler    : register(s0);
+SamplerState depth_t2d_sampler     : register(s1);
+SamplerState shadowmap_t2d_sampler : register(s2);
 
 //- rjf: cpu -> vshad -> pshad types
 
@@ -391,6 +398,31 @@ struct Vertex2Pixel
  float4 pos_rs          : SV_POSITION;
  float2 texcoord_pct    : TEX;
 };
+
+//- rjf: noise functions (adapted from https://www.shadertoy.com/view/lsf3WH)
+
+float
+HashFromInt2(int2 p)
+{
+ // 2D -> 1D
+ int n = p.x*3 + p.y*113;
+ 
+ // 1D hash by Hugo Elias
+	n = (n << 13) ^ n;
+ n = n * (n * n * 15731 + 789221) + 1376312589;
+ return -1.0+2.0*float(n & 0x0fffffff)/float(0x0fffffff);
+}
+
+float NoiseFromFloat2(float2 p)
+{
+ int2 i = int2(floor(p));
+ float2 f = frac(p);
+ float2 u = f*f*(3.0-2.0*f);
+ return lerp(lerp(HashFromInt2(i + int2(0, 0)), 
+                  HashFromInt2(i + int2(1, 0)), u.x),
+             lerp(HashFromInt2(i + int2(0, 1)), 
+                  HashFromInt2(i + int2(1, 1)), u.x), u.y);
+}
 
 //- rjf: vertex shader
 
@@ -418,14 +450,86 @@ vs_main(CPU2Vertex cpu2vertex)
 float4
 ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
 {
+ // rjf: sample albedo buffer
+ float4 albedo = albedo_t2d.Sample(albedo_t2d_sampler, vertex2pixel.texcoord_pct);
+ 
  // rjf: sample depth buffer
  float depth = depth_t2d.Sample(depth_t2d_sampler, vertex2pixel.texcoord_pct).r;
  
- // rjf: linearized depth
- float linear_depth = (near_z * far_z) / (far_z + depth * (near_z - far_z));
+ // rjf: clip-space -> world-space
+ float4 world_space_pos = float4(0, 0, 0, 0);
+ {
+  float4 clip_space_pos = float4(2*vertex2pixel.texcoord_pct.x-1,
+                                 -(2*vertex2pixel.texcoord_pct.y-1),
+                                 depth,
+                                 1);
+  world_space_pos = mul(inverse_view_projection, clip_space_pos);
+  world_space_pos /= world_space_pos.w;
+ }
+ 
+ // rjf: world-space -> shadowmap-clip-space
+ float4 shadowmap_clip_space_pos = mul(shadowmap_view_projection, world_space_pos);
+ shadowmap_clip_space_pos /= shadowmap_clip_space_pos.w;
+ 
+ // rjf: sample shadow map
+ float shadow = 0;
+ {
+  float2 shadowmap_sample_pos_center = float2((shadowmap_clip_space_pos.x+1)/2, 1-(shadowmap_clip_space_pos.y+1)/2);
+  float shadow_sum = 0;
+  float shadow_count = 0;
+  for(int x = -2; x <= 2; x += 1)
+  {
+   for(int y = -2; y <= 2; y += 1)
+   {
+    float shadowmap_sample = shadowmap_t2d.Sample(shadowmap_t2d_sampler, shadowmap_sample_pos_center + float2(x/750.f, y/750.f)).r;
+    float difference_from_real_depth = shadowmap_clip_space_pos.z-shadowmap_sample;
+    if(difference_from_real_depth > 0.003f)
+    {
+     shadow_sum += 1.f;
+    }
+    shadow_count += 1;
+   }
+  }
+  shadow = shadow_sum/shadow_count;
+ }
+ 
+ // rjf: generate world-space noise
+ float world_space_noise = 0;
+ {
+  float2 noisecoord = world_space_pos.xy;
+  float2x2 m = float2x2(1.6f, 1.2f, -1.2f, 1.6f);
+  world_space_noise = 0.5000f*NoiseFromFloat2(noisecoord);
+  noisecoord = mul(m, noisecoord);
+  world_space_noise += 0.2500f*NoiseFromFloat2(noisecoord);
+  noisecoord = mul(m, noisecoord);
+  world_space_noise += 0.1250f*NoiseFromFloat2(noisecoord);
+  noisecoord = mul(m, noisecoord);
+  world_space_noise += 0.0625f*NoiseFromFloat2(noisecoord);
+  noisecoord = mul(m, noisecoord);
+  world_space_noise = (world_space_noise+1)/2;
+ }
+ 
+ // rjf: depth -> linearized depth -> fog_pct
+ float linear_depth = (near_z*far_z) / (far_z + depth*(near_z-far_z));
+ float fog_pct = saturate(pct_fog_per_unit*linear_depth);
+ 
+ // rjf: albedo -> shaded
+ float4 shaded = float4(albedo.x * (1 - shadow*0.5),
+                        albedo.y * (1 - shadow*0.5),
+                        albedo.z * (1 - shadow*0.5),
+                        albedo.w * (1 - shadow*0.5));
+ 
+ // rjf: shaded -> fogged
+ float4 fogged = float4(shaded.x + (fog_color.x-shaded.x)*fog_pct,
+                        shaded.y + (fog_color.y-shaded.y)*fog_pct,
+                        shaded.z + (fog_color.z-shaded.z)*fog_pct,
+                        shaded.w + (fog_color.w-shaded.w)*fog_pct);
  
  // rjf: form color
- float4 final_color = float4(linear_depth/10.f, linear_depth/10.f, linear_depth/10.f, 1);
+ float4 final_color = fogged;
+ //final_color = float4(shadow, shadow, shadow, shadow);
+ //final_color = float4(world_space_pos.x, world_space_pos.y, world_space_pos.z, 1);
+ //final_color = float4(shadowmap_clip_space_pos.x, shadowmap_clip_space_pos.y, shadowmap_clip_space_pos.z, 1);
  return final_color;
 }
 """

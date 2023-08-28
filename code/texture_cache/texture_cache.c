@@ -29,7 +29,7 @@ T_Init(C_InitReceipt c_init_receipt, R_InitReceipt r_init_receipt)
    0xff0000ff, 0x000000ff, 0xff0000ff, 0x000000ff, 0xff0000ff, 0x000000ff, 0xff0000ff, 0x000000ff,
    0x000000ff, 0xff0000ff, 0x000000ff, 0xff0000ff, 0x000000ff, 0xff0000ff, 0x000000ff, 0xff0000ff,
   };
-  t_state->invalid_texture = R_Texture2DAlloc(V2S64(8, 8), R_Texture2DFormat_RGBA8, R_Texture2DKind_Static, &invalid_texture_rgba[0]);
+  t_state->invalid_texture = R_Tex2DAlloc(V2S64(8, 8), R_Tex2DFormat_RGBA8, R_Tex2DKind_Static, &invalid_texture_rgba[0]);
   
   //- rjf: initialize load request queue
   t_state->req_ring_size = Kilobytes(256);
@@ -91,7 +91,7 @@ T_Slice2F32FromHash(C_Hash hash, U64 endt_microseconds)
  //- rjf: check slot for this hash
  R_Slice2F32 result = {0};
  {
-  Vec2S64 invalid_texture_size = R_SizeFromTexture2D(t_state->invalid_texture);
+  Vec2S64 invalid_texture_size = R_SizeFromTex2D(t_state->invalid_texture);
   result.texture = t_state->invalid_texture;
   result.region = R2F32(V2F32(0, 0), Vec2F32FromVec(invalid_texture_size));
  }
@@ -311,7 +311,7 @@ T_ThreadEntryPoint(void *p)
       a->arena = atlas_arena;
       a->atlas_dim = V2S64(1024, 1024);
       a->atlas = AtlasMake(a->arena, a->atlas_dim);
-      a->texture = R_Texture2DAlloc(a->atlas_dim, R_Texture2DFormat_RGBA8, R_Texture2DKind_Dynamic, 0);
+      a->texture = R_Tex2DAlloc(a->atlas_dim, R_Tex2DFormat_RGBA8, R_Tex2DKind_Dynamic, 0);
       DLLPushBack_NPZ(t_state->first_atlas, t_state->last_atlas, a, next, prev, CheckNull, SetNull);
      }
      
@@ -327,7 +327,7 @@ T_ThreadEntryPoint(void *p)
       // rjf: success => upload contents to atlas
       if(success)
       {
-       R_Texture2DFillRegion(a->texture, R2S64(atlas_alloc_region.p0, Add2S64(atlas_alloc_region.p0, size)), raw_data.str);
+       R_Tex2DFillRegion(a->texture, R2S64(atlas_alloc_region.p0, Add2S64(atlas_alloc_region.p0, size)), raw_data.str);
       }
      }
      
@@ -357,7 +357,7 @@ T_ThreadEntryPoint(void *p)
      }break;
      case T_NodeAllocKind_Standalone:
      {
-      node->alloc_standalone.texture = R_Texture2DAlloc(size, R_Texture2DFormat_RGBA8, R_Texture2DKind_Static, raw_data.str);
+      node->alloc_standalone.texture = R_Tex2DAlloc(size, R_Tex2DFormat_RGBA8, R_Tex2DKind_Static, raw_data.str);
      }break;
     }
    }

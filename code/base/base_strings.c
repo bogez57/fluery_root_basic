@@ -232,7 +232,7 @@ FindSubstr8(String8 haystack, String8 needle, U64 start_pos, MatchFlags flags)
 root_function FuzzyMatchList
 FindFuzzy8(Arena *arena, String8 haystack, String8 needle, U64 start_pos, MatchFlags flags)
 {
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  FuzzyMatchList matches = {0};
  {
   String8 splits[] =
@@ -270,7 +270,7 @@ FindFuzzy8(Arena *arena, String8 haystack, String8 needle, U64 start_pos, MatchF
    }
   }
  }
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return matches;
 }
 
@@ -1025,7 +1025,7 @@ AbsolutePathPartsFromSourcePartsKind(Arena *arena, String8 source, String8List p
 root_function String8List
 DotResolvedPathPartsFromParts(Arena *arena, String8List parts)
 {
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  typedef struct NodeNode NodeNode;
  struct NodeNode
  {
@@ -1055,14 +1055,14 @@ DotResolvedPathPartsFromParts(Arena *arena, String8List parts)
  {
   Str8ListPushFront(arena, &result, nn->node->string);
  }
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return result;
 }
 
 root_function String8
 NormalizedPathFromStr8(Arena *arena, String8 source, String8 path)
 {
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  path = Str8SkipWhitespace(path);
  B32 trailing_slash = path.size > 0 && (path.str[path.size-1] == '/' || path.str[path.size-1] == '\\');
  PathKind kind = PathKindFromStr8(path);
@@ -1076,7 +1076,7 @@ NormalizedPathFromStr8(Arena *arena, String8 source, String8 path)
   join.post = Str8Lit("/");
  }
  String8 absolute_resolved_path = Str8ListJoin(scratch.arena, absolute_resolved_path_parts, &join);
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return absolute_resolved_path;
 }
 

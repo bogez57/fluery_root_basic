@@ -2,20 +2,6 @@
 // https://github.com/4th-dimention/examps/tree/master/win32-direct-write.
 // This API would've been mind-numbing to crack without it.
 
-#define BUILD_CORE 0
-
-#include "base/base_inc.h"
-#include "os/os_inc.h"
-#include "content/content_inc.h"
-#include "font_provider/font_provider_inc.h"
-
-#include "font_provider_dwrite.h"
-
-#include "base/base_inc.c"
-#include "os/os_inc.c"
-#include "content/content_inc.c"
-#include "font_provider/font_provider_inc.c"
-
 ////////////////////////////////
 //~ rjf: Globals
 
@@ -181,7 +167,7 @@ FP_DWrite_HandleFromFont(FP_DWrite_Font font)
 ////////////////////////////////
 //~ rjf: Hooks
 
-font_provider_function FP_InitReceipt
+fp_function FP_InitReceipt
 FP_Init(C_InitReceipt c_init)
 {
  if(IsMainThread() && fp_dwrite_state == 0)
@@ -222,7 +208,7 @@ FP_Init(C_InitReceipt c_init)
  return receipt;
 }
 
-font_provider_function FP_Handle
+fp_function FP_Handle
 FP_FontOpen(C_Hash hash)
 {
  HRESULT error = 0;
@@ -247,7 +233,7 @@ FP_FontOpen(C_Hash hash)
  return result;
 }
 
-font_provider_function void
+fp_function void
 FP_FontClose(FP_Handle handle)
 {
  FP_DWrite_Font font = FP_DWrite_FontFromHandle(handle);
@@ -255,7 +241,7 @@ FP_FontClose(FP_Handle handle)
  font.font_file->Release();
 }
 
-font_provider_function FP_Metrics
+fp_function FP_Metrics
 FP_MetricsFromFont(FP_Handle handle, F32 size)
 {
  FP_DWrite_Font font = FP_DWrite_FontFromHandle(handle);
@@ -281,10 +267,10 @@ FP_MetricsFromFont(FP_Handle handle, F32 size)
  return result;
 }
 
-font_provider_function FP_RasterResult
+fp_function FP_RasterResult
 FP_Raster(Arena *arena, FP_Handle handle, F32 size, String8 string)
 {
- ArenaTemp scratch = GetScratch(&arena, 1);
+ Temp scratch = ScratchBegin(&arena, 1);
  HRESULT error = 0;
  String32 str32 = Str32From8(scratch.arena, string);
  FP_DWrite_Font font = FP_DWrite_FontFromHandle(handle);
@@ -428,6 +414,6 @@ FP_Raster(Arena *arena, FP_Handle handle, F32 size, String8 string)
   }
   render_target->Release();
  }
- ReleaseScratch(scratch);
+ ScratchEnd(scratch);
  return result;
 }

@@ -146,17 +146,17 @@ ArenaPos(Arena *arena)
 ////////////////////////////////
 //~ rjf: Arena Temp Functions
 
-root_function ArenaTemp
-ArenaTempBegin(Arena *arena)
+root_function Temp
+TempBegin(Arena *arena)
 {
- ArenaTemp temp = {0};
+ Temp temp = {0};
  temp.arena = arena;
  temp.pos = arena->pos;
  return temp;
 }
 
 root_function void
-ArenaTempEnd(ArenaTemp temp)
+TempEnd(Temp temp)
 {
  ArenaPopTo(temp.arena, temp.pos);
 }

@@ -56,7 +56,7 @@ EntryPoint(CmdLine *cmdln)
  //- rjf: main loop
  for(B32 quit = 0; quit == 0;)
  {
-  ArenaTemp scratch = GetScratch(0, 0);
+  Temp scratch = ScratchBegin(0, 0);
   
   //- rjf: get events
   OS_EventList events = OS_GetEvents(scratch.arena);
@@ -95,6 +95,6 @@ EntryPoint(CmdLine *cmdln)
    }
   }
   
-  ReleaseScratch(scratch);
+  ScratchEnd(scratch);
  }
 }
