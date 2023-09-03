@@ -1,0 +1,209 @@
+////////////////////////////////
+//~ rjf: Embedded Data
+
+@embed_file ui_g_icon_font: "../data/ui/icons.ttf"
+@embed_file ui_g_mono_font: "../data/ui/liberation_mono.ttf"
+
+////////////////////////////////
+//~ rjf: Tables
+
+@table(name, string)
+UI_IconTable:
+{
+ { Null          " " }
+ { Check         "X" }
+ { FilledCircle  "." }
+ { FilledStar    "*" }
+ { HollowStar    "8" }
+ { Plus          "+" }
+ { Pencil        "e" }
+ { TrashCan      "3" }
+ { ClosedFolder  "M" }
+ { OpenFolder    "N" }
+ { FilePlain     "f" }
+ { FileCopy      "F" }
+ { FileTxt       "t" }
+ { FileImg       "i" }
+ { FileSound     ")" }
+ { FileArchive   "z" }
+ { Gears         "@" }
+ { Sound0        "s" }
+ { Sound1        "S" }
+ { Sound2        "Z" }
+ { DownTri       "d" }
+ { UpTri         "u" }
+ { LeftTri       "l" }
+ { RightTri      "r" }
+ { LeftCaret     "<" }
+ { RightCaret    ">" }
+ { UpCaret       "^" }
+ { DownCaret     "v" }
+ { Refresh       "R" }
+ { Undo          "{" }
+ { Redo          "}" }
+ { Machine       "m" }
+ { X             "x" }
+ { Maximize      "w" }
+ { Restore       "b" }
+ { Minimize      "g" }
+ { Lock          "p" }
+ { Unlock        "q" }
+ { Tag           "T" }
+ { Save          "D" }
+ { Gamepad       "G" }
+ { Keyboard      "k" }
+ { UnfilledCheck "!" }
+ { FilledCheck   "1" }
+ { Warning       "W" }
+ { Question      "?" }
+ { Info          "I" }
+ { Eye           "V" }
+ { EyeCovered    "H" }
+}
+
+@table(name, name_lower, type, default)
+UI_StackTable:
+{
+ {Parent                  parent                           `UI_Box *`                    `&ui_g_nil_box`                                                                   }
+ {Flags                   flags                            `UI_BoxFlags`                 `0`                                                                               }
+ {FixedX                  fixed_x                          `F32`                         `0`                                                                               }
+ {FixedY                  fixed_y                          `F32`                         `0`                                                                               }
+ {PrefWidth               pref_width                       `UI_Size`                     `UI_Pixels(200.f, 1.f)`                                                           }
+ {PrefHeight              pref_height                      `UI_Size`                     `UI_Pixels(2.f, 1.f)`                                                             }
+ {Opacity                 opacity                          `F32`                         `1.f`                                                                             }
+ {TextColor               text_color                       `Vec4F32`                     `V4F32(1, 1, 1, 1)`                                                               }
+ {BackgroundColor         background_color                 `Vec4F32`                     `V4F32(0.3f, 0.3f, 0.3f, 0.8f)`                                                   }
+ {BorderColor             border_color                     `Vec4F32`                     `V4F32(1, 1, 1, 0.3f)`                                                            }
+ {OverlayColor            overlay_color                    `Vec4F32`                     `V4F32(0, 0, 0, 0)`                                                               }
+ {FillColor               fill_color                       `Vec4F32`                     `V4F32(0.3f, 0.7f, 0.9f, 0.4f)`                                                   }
+ {CursorColor             cursor_color                     `Vec4F32`                     `V4F32(0.4f, 0.9f, 0.3f, 0.8f)`                                                   }
+ {CornerRadius00          corner_radius_00                 `F32`                         `0`                                                                               }
+ {CornerRadius01          corner_radius_01                 `F32`                         `0`                                                                               }
+ {CornerRadius10          corner_radius_10                 `F32`                         `0`                                                                               }
+ {CornerRadius11          corner_radius_11                 `F32`                         `0`                                                                               }
+ {BorderThickness         border_thickness                 `F32`                         `1`                                                                               }
+ {Slice2F32               slice2f32                        `R_Slice2F32`                 `(R_Slice2F32){0}`                                                                }
+ {Font                    font                             `F_Tag`                       `F_TagFromHash(C_HashMake(ui_g_mono_font_hash[0], ui_g_mono_font_hash[1]))`       }
+ {FontSize                font_size                        `F32`                         `16.f`                                                                            }
+ {ChildLayoutAxis         child_layout_axis                `Axis2`                       `Axis2_X`                                                                         }
+ {HoverCursor             hover_cursor                     `OS_CursorKind`               `OS_CursorKind_Null`                                                              }
+ {TextAlign               text_align                       `UI_TextAlignment`            `UI_TextAlignment_Left`                                                           }
+ {TextEdgePadding         text_edge_padding                `F32`                         `0.f`                                                                             }
+ {SeedKey                 seed_key                         `UI_Key`                      `UI_KeyZero()`                                                                    }
+}
+
+////////////////////////////////
+//~ rjf: Generators
+
+//- rjf: icon enum
+
+@table_gen_enum
+UI_IconKind:
+{
+ @expand(UI_IconTable a)
+  `UI_IconKind_$(a.name),`;
+ `UI_IconKind_COUNT`;
+}
+
+//- rjf: icon string table
+
+@table_gen_data(String8) @core
+ui_g_icon_kind_string_table:
+{
+ @expand(UI_IconTable a)
+  `Str8LitComp("$(a.string)"),`;
+}
+
+//- rjf: declaring stack node types
+
+@table_gen
+{
+ @expand(UI_StackTable a) `typedef struct UI_$(a.name)Node UI_$(a.name)Node; struct UI_$(a.name)Node{UI_$(a.name)Node *next; $(a.type) v;};`
+}
+
+//- rjf: declaring all default stack tops
+
+@table_gen
+{
+ `#define UI_DeclStackNils \\`;
+ `struct\\`;
+ `{\\`;
+  @expand(UI_StackTable a) `UI_$(a.name)Node $(a.name_lower)_nil_stack_top;\\`;
+  `}`;
+}
+
+//- rjf: initializing all default stack tops
+
+@table_gen
+{
+ `#define UI_InitStackNils(state) \\`;
+ @expand(UI_StackTable a) `state->$(a.name_lower)_nil_stack_top.v = $(a.default);\\`;
+ ``;
+}
+
+//- rjf: declaring all stack nodes & free lists
+
+@table_gen
+{
+ `#define UI_DeclStacks \\`;
+ `struct\\`;
+ `{\\`;
+  @expand(UI_StackTable a) `struct { UI_$(a.name)Node *top; UI_$(a.name)Node *free; B32 auto_pop; } $(a.name_lower)_stack;\\`;
+  `}`;
+}
+
+//- rjf: initing all stack nodes
+
+@table_gen
+{
+ `#define UI_InitStacks(state) \\`;
+ @expand(UI_StackTable a) `state->$(a.name_lower)_stack.top = &state->$(a.name_lower)_nil_stack_top; state->$(a.name_lower)_stack.free = 0; state->$(a.name_lower)_stack.auto_pop = 0;\\`;
+ ``;
+}
+
+//- rjf: auto-popping all stacks
+
+@table_gen
+{
+ `#define UI_AutoPopStacks(state) \\`
+ @expand(UI_StackTable a)
+  `if(state->$(a.name_lower)_stack.auto_pop) { UI_Pop$(a.name)(); state->$(a.name_lower)_stack.auto_pop = 0; }\\`;
+}
+
+//- rjf: decls for the stack function operation headers
+
+@table_gen
+{
+ @expand(UI_StackTable a)
+  `root_function $(a.type) $(=>35) UI_Top$(a.name)(void);`
+  @expand(UI_StackTable a)
+  `root_function $(a.type) $(=>35) UI_Push$(a.name)($(a.type) v);`
+  @expand(UI_StackTable a)
+  `root_function $(a.type) $(=>35) UI_Pop$(a.name)(void);`
+  @expand(UI_StackTable a)
+  `root_function $(a.type) $(=>35) UI_SetNext$(a.name)($(a.type) v);`
+}
+
+//- rjf: defer-loop helpers
+
+@table_gen @c
+{
+ `#if 0`;
+ @expand(UI_StackTable a)
+  `#define UI_$(a.name)(v) DeferLoop(UI_Push$(a.name)(v), UI_Pop$(a.name)())`
+ `#endif`;
+}
+
+//- rjf: decls for the stack operation implementations
+
+@table_gen @c
+{
+ @expand(UI_StackTable a)
+  `root_function $(a.type) UI_Top$(a.name)(void) { UI_StackTopImpl(ui_state, $(a.name), $(a.name_lower)) }`;
+ @expand(UI_StackTable a)
+  `root_function $(a.type) UI_Push$(a.name)($(a.type) v) { UI_StackPushImpl(ui_state, $(a.name), $(a.name_lower), $(a.type), v) }`;
+ @expand(UI_StackTable a)
+  `root_function $(a.type) UI_Pop$(a.name)(void) { UI_StackPopImpl(ui_state, $(a.name), $(a.name_lower)) }`;
+ @expand(UI_StackTable a)
+  `root_function $(a.type) UI_SetNext$(a.name)($(a.type) v) { UI_StackSetNextImpl(ui_state, $(a.name), $(a.name_lower), $(a.type), v) }`;
+}
