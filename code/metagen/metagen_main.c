@@ -42,13 +42,14 @@ EntryPoint(CmdLine *cmdln)
 {
  OS_Init();
  mg_arena = ArenaAllocDefault();
+ mg_bucket_map.slots_count = 256;
+ mg_bucket_map.slots = PushArray(mg_arena, MG_BucketSlot, mg_bucket_map.slots_count);
  //ProfBeginCapture("metagen");
  
  //- rjf: find directories
  String8 binary_path = OS_NormalizedPathFromStr8(mg_arena, OS_StringFromSystemPathKind(mg_arena, OS_SystemPathKind_Binary));
  String8 project_path = Str8PathChopLastSlash(Str8PathChopLastSlash(binary_path));
  String8 code_path = PushStr8F(mg_arena, "%S/code/", project_path);
- mg_project_path = project_path;
  
  //- rjf: gather all paths to look at
  String8List path_list = {0};
@@ -128,13 +129,61 @@ EntryPoint(CmdLine *cmdln)
   }
  }
  
- //- rjf: send all metadesk parses to backends
+ //- rjf: generate
  ProfScope("[embed] generate") MG_EMBED_Generate(md_file_list);
  ProfScope("[tbl] generate")   MG_TBL_Generate(md_file_list);
  ProfScope("[tweak] generate") MG_TWK_Generate(&c_files);
  
- //- rjf: flush all files
- ProfScope("flush all files")  MG_CloseAllFiles();
+ //- rjf: bake all files
+ ProfScope("bake all files")
+ {
+  for(U64 slot_idx = 0; slot_idx < mg_bucket_map.slots_count; slot_idx += 1)
+  {
+   for(MG_Bucket *bucket = mg_bucket_map.slots[slot_idx].first;
+       bucket != 0;
+       bucket = bucket->next)
+   {
+    String8 layer_path = bucket->layer_path;
+    String8 layer_name = MG_LayerNameFromPath(layer_path);
+    String8 gen_folder = PushStr8F(mg_arena, "%S/generated", layer_path);
+    OS_MakeDirectory(gen_folder);
+    String8 h_path = PushStr8F(mg_arena, "%S/%S.meta.h", gen_folder, layer_name);
+    String8 c_path = PushStr8F(mg_arena, "%S/%S.meta.c", gen_folder, layer_name);
+    FILE *h = fopen((char *)h_path.str, "w");
+    FILE *c = fopen((char *)c_path.str, "w");
+    {
+     for(String8Node *n = bucket->enums.first; n != 0; n = n->next)
+     {
+      fwrite(n->string.str, n->string.size, 1, h);
+     }
+     for(String8Node *n = bucket->structs.first; n != 0; n = n->next)
+     {
+      fwrite(n->string.str, n->string.size, 1, h);
+     }
+     for(String8Node *n = bucket->h_functions.first; n != 0; n = n->next)
+     {
+      fwrite(n->string.str, n->string.size, 1, h);
+     }
+     for(String8Node *n = bucket->c_functions.first; n != 0; n = n->next)
+     {
+      fwrite(n->string.str, n->string.size, 1, c);
+     }
+     for(String8Node *n = bucket->h_tables.first; n != 0; n = n->next)
+     {
+      fwrite(n->string.str, n->string.size, 1, h);
+     }
+     for(String8Node *n = bucket->c_tables.first; n != 0; n = n->next)
+     {
+      fwrite(n->string.str, n->string.size, 1, c);
+     }
+    }
+    fflush(h);
+    fflush(c);
+    fclose(h);
+    fclose(c);
+   }
+  }
+ }
  
  //ProfEndCapture();
 }

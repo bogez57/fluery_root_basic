@@ -471,7 +471,6 @@ MG_TBL_Generate(MD_Node *file_list)
   MD_ExprOprPush(mg_arena, &ops_list, MD_ExprOprKind_Prefix, 9,  MD_S8Lit("=>"), MG_TableOp_Bump, 0);
   MD_ExprOprPush(mg_arena, &ops_list, MD_ExprOprKind_Binary, 6,  MD_S8Lit("??"), MG_TableOp_CheckIfTrue, 0);
   MD_ExprOprPush(mg_arena, &ops_list, MD_ExprOprKind_Binary, 7,  MD_S8Lit(".."), MG_TableOp_Concat, 0);
-  
   MD_ExprOprPush(mg_arena, &ops_list, MD_ExprOprKind_Binary, 8,  MD_S8Lit("=="), MG_TableOp_Equal, 0);
   MD_ExprOprPush(mg_arena, &ops_list, MD_ExprOprKind_Binary, 8,  MD_S8Lit("!="), MG_TableOp_IsNotEqual, 0);
   MD_ExprOprPush(mg_arena, &ops_list, MD_ExprOprKind_Binary, 5,  MD_S8Lit("&&"), MG_TableOp_BooleanAnd, 0);
@@ -525,14 +524,14 @@ MG_TBL_Generate(MD_Node *file_list)
       slot = MD_MapScan(slot->next, layer_key))
   {
    MD_Node *gen = (MD_Node *)slot->val;
-   MG_FilePair f = MG_FilePairFromNode(gen);
-   FILE *file = MG_FileFromNodePair(gen, &f);
-   fprintf(file, "typedef enum %.*s\n{\n", Str8VArg(gen->string));
+   String8 layer_path = MG_LayerPathFromMDNode(gen);
+   MG_Bucket *bucket = MG_BucketFromLayerPath(layer_path);
    String8List gen_strings = MG_GenStringListFromNode(table_expr_op_table, gen);
    StringJoin join = { Str8Lit(""), Str8Lit("\n"), Str8Lit("") };
    String8 gen_string = Str8ListJoin(mg_arena, gen_strings, &join);
-   fprintf(file, "%.*s", Str8VArg(gen_string));
-   fprintf(file, "\n}\n%.*s;\n\n", Str8VArg(gen->string));
+   Str8ListPushF(mg_arena, &bucket->enums, "typedef enum %S\n{\n", gen->string);
+   Str8ListPush (mg_arena, &bucket->enums, gen_string);
+   Str8ListPushF(mg_arena, &bucket->enums, "\n}\n%S;\n\n", gen->string);
   }
   
   //- rjf: generate all data tables
@@ -541,36 +540,29 @@ MG_TBL_Generate(MD_Node *file_list)
       slot = MD_MapScan(slot->next, layer_key))
   {
    MD_Node *gen = (MD_Node *)slot->val;
+   String8 layer_path = MG_LayerPathFromMDNode(gen);
+   MG_Bucket *bucket = MG_BucketFromLayerPath(layer_path);
    MD_Node *tag = MD_TagFromString(gen, mg_tbl_tag__table_gen_data, 0);
    MD_Node *data_table_type_node = tag->first_child;
    String8 data_table_type = Str8FromMD(data_table_type_node->string);
    String8List gen_strings = MG_GenStringListFromNode(table_expr_op_table, gen);
    B32 is_core = MD_NodeHasTag(gen, mg_tbl_tag__core, MD_StringMatchFlag_CaseInsensitive);
-   
-   String8 h_decl_specifier = Str8Lit("extern");
-   if(is_core)
-   {
-    h_decl_specifier = Str8Lit("root_global");
-   }
-   
-   MG_FilePair f = MG_FilePairFromNode(gen);
-   fprintf(f.h, "%.*s %.*s %.*s[%I64u];\n\n", Str8VArg(h_decl_specifier), Str8VArg(data_table_type), Str8VArg(gen->string), gen_strings.node_count);
-   
-   if(is_core)
-   {
-    fprintf(f.c, "#if BUILD_CORE\n");
-    // fprintf(f.c, "exported ");
-   }
-   fprintf(f.c, "%.*s %.*s[%I64u] =\n{\n", Str8VArg(data_table_type), Str8VArg(gen->string), gen_strings.node_count);
+   String8 h_decl_specifier = is_core ? Str8Lit("root_global") : Str8Lit("extern");
    StringJoin join = { Str8Lit(""), Str8Lit("\n"), Str8Lit("") };
    String8 gen_string = Str8ListJoin(mg_arena, gen_strings, &join);
-   fprintf(f.c, "%.*s", Str8VArg(gen_string));
-   fprintf(f.c, "\n};\n");
+   Str8ListPushF(mg_arena, &bucket->h_tables, "%S %S %S[%I64u];\n\n", h_decl_specifier, data_table_type, gen->string, gen_strings.node_count);
    if(is_core)
    {
-    fprintf(f.c, "#endif // BUILD_CORE\n");
+    Str8ListPushF(mg_arena, &bucket->c_tables, "#if BUILD_CORE\n");
    }
-   fprintf(f.c, "\n");
+   Str8ListPushF(mg_arena, &bucket->c_tables, "%S %S[%I64u] =\n{\n", data_table_type, gen->string, gen_strings.node_count);
+   Str8ListPush(mg_arena, &bucket->c_tables, gen_string);
+   Str8ListPush(mg_arena, &bucket->c_tables, Str8Lit("\n};\n"));
+   if(is_core)
+   {
+    Str8ListPushF(mg_arena, &bucket->c_tables, "#endif // BUILD_CORE\n");
+   }
+   Str8ListPush(mg_arena, &bucket->c_tables, Str8Lit("\n"));
   }
   
   //- rjf: generate all general generations
@@ -579,15 +571,15 @@ MG_TBL_Generate(MD_Node *file_list)
       slot = MD_MapScan(slot->next, layer_key))
   {
    MD_Node *gen = (MD_Node *)slot->val;
-   MG_FilePair f = MG_FilePairFromNode(gen);
-   FILE *file = MG_FileFromNodePair(gen, &f);
+   String8 layer_path = MG_LayerPathFromMDNode(gen);
+   MG_Bucket *bucket = MG_BucketFromLayerPath(layer_path);
    String8List gen_strings = MG_GenStringListFromNode(table_expr_op_table, gen);
    StringJoin join = { Str8Lit(""), Str8Lit("\n"), Str8Lit("") };
    String8 gen_string = Str8ListJoin(mg_arena, gen_strings, &join);
-   fprintf(file, "%.*s", Str8VArg(gen_string));
-   fprintf(file, "\n\n");
+   B32 c_file = MD_NodeHasTag(gen, MD_S8Lit("c"), 0);
+   String8List *out = c_file ? &bucket->c_functions : &bucket->h_functions;
+   Str8ListPush(mg_arena, out, gen_string);
+   Str8ListPush(mg_arena, out, Str8Lit("\n\n"));
   }
-  
  }
- 
 }

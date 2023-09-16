@@ -1,5 +1,5 @@
 ////////////////////////////////
-//~ rjf: Helpers
+//~ rjf: Basic Type Helpers
 
 function String8
 Str8FromMD(MD_String8 string)
@@ -13,6 +13,37 @@ MDFromStr8(String8 string)
 {
  MD_String8 result = MD_S8(string.str, string.size);
  return result;
+}
+
+function U64
+MG_HashFromString(String8 string)
+{
+ U64 result = 5381;
+ for(U64 i = 0; i < string.size; i += 1)
+ {
+  result = ((result << 5) + result) + string.str[i];
+ }
+ return result;
+}
+
+////////////////////////////////
+//~ rjf: Layer Bucket Lookups
+
+function String8
+MG_LayerPathFromMDNode(MD_Node *node)
+{
+ MD_CodeLoc loc = MD_CodeLocFromNode(node);
+ String8 filename = Str8FromMD(loc.filename);
+ String8 layer_path = Str8PathChopLastSlash(filename);
+ return layer_path;
+}
+
+function String8
+MG_LayerPathFromCFile(MG_CFile *file)
+{
+ String8 path = file->path;
+ String8 layer_path = Str8PathChopLastSlash(path);
+ return layer_path;
 }
 
 function String8
@@ -39,99 +70,100 @@ MG_LayerNameFromPath(String8 layer_path)
  return name;
 }
 
-function MG_FilePair
-MG_FilePairFromLayerPath(String8 layer_path)
+function MG_Bucket *
+MG_BucketFromLayerPath(String8 layer_path)
 {
- MG_FilePair result = {0};
- B32 found = 0;
- for(U64 i = 0; i < mg_file_pair_count; i += 1)
+ MG_Bucket *bucket = 0;
  {
-  if(Str8Match(layer_path, mg_file_pairs[i].layer_path, 0))
+  U64 hash = MG_HashFromString(layer_path);
+  U64 slot_idx = hash%mg_bucket_map.slots_count;
+  MG_BucketSlot *slot = &mg_bucket_map.slots[slot_idx];
+  for(MG_Bucket *b = slot->first; b != 0; b = b->next)
   {
-   result = mg_file_pairs[i];
-   found = 1;
-   break;
+   if(Str8Match(b->layer_path, layer_path, 0))
+   {
+    bucket = b;
+    break;
+   }
+  }
+  if(bucket == 0)
+  {
+   bucket = PushArray(mg_arena, MG_Bucket, 1);
+   QueuePush(slot->first, slot->last, bucket);
+   bucket->layer_path = PushStr8Copy(mg_arena, layer_path);
   }
  }
- if(found == 0)
+ if(bucket->layer_path.size == 0)
  {
-  String8 layer_name = MG_LayerNameFromPath(layer_path);
-  String8 gen_folder = PushStr8F(mg_arena, "%S/generated", layer_path);
-  String8 h_filename = PushStr8F(mg_arena, "%S/%S.meta.h", gen_folder, layer_name);
-  String8 c_filename = PushStr8F(mg_arena, "%S/%S.meta.c", gen_folder, layer_name);
-  result.layer_path = layer_path;
-  result.h = fopen((char *)h_filename.str, "w");
-  result.c = fopen((char *)c_filename.str, "w");
-  if(result.h == 0)
-  {
-   int x = 0;
-  }
-  mg_file_pairs[mg_file_pair_count] = result;
-  mg_file_pair_count += 1;
+  int x = 0;
  }
+ return bucket;
+}
+
+////////////////////////////////
+//~ rjf: String Transforms
+
+function String8
+MG_CStringLiteralFromMultilineString(String8 string)
+{
+ String8List strings = {0};
+ {
+  Str8ListPush(mg_arena, &strings, Str8Lit("\"\"\n"));
+  U64 active_line_start_off = 0;
+  for(U64 off = 0; off <= string.size; off += 1)
+  {
+   B32 is_newline = (off < string.size && (string.str[off] == '\n' || string.str[off] == '\r'));
+   B32 is_ender = (off >= string.size || is_newline);
+   if(is_ender)
+   {
+    String8 line = Substr8(string, R1U64(active_line_start_off, off));
+    Str8ListPush(mg_arena, &strings, Str8Lit("\""));
+    Str8ListPush(mg_arena, &strings, line);
+    if(is_newline)
+    {
+     Str8ListPush(mg_arena, &strings, Str8Lit("\\n\"\n"));
+    }
+    else
+    {
+     Str8ListPush(mg_arena, &strings, Str8Lit("\"\n"));
+    }
+    active_line_start_off = off+1;
+   }
+   if(is_newline && string.str[off] == '\r')
+   {
+    active_line_start_off += 1;
+    off += 1;
+   }
+  }
+ }
+ String8 result = Str8ListJoin(mg_arena, strings, 0);
  return result;
 }
 
-function MG_FilePair
-MG_FilePairFromNode(MD_Node *node)
+function String8
+MG_CArrayLiteralContentsFromData(String8 data)
 {
- MD_CodeLoc loc = MD_CodeLocFromNode(node);
- String8 filename = Str8FromMD(loc.filename);
- String8 layer_path = Str8PathChopLastSlash(filename);
- MG_FilePair result = MG_FilePairFromLayerPath(layer_path);
- return result;
-}
-
-function MG_FilePair
-MG_FilePairFromCFile(MG_CFile *file)
-{
- String8 path = file->path;
- String8 layer_path = Str8PathChopLastSlash(path);
- MG_FilePair result = MG_FilePairFromLayerPath(layer_path);
- return result;
-}
-
-function FILE *
-MG_FileFromNodePair(MD_Node *node, MG_FilePair *pair)
-{
- FILE *result = pair->h;
- if(MD_NodeHasTag(node, MD_S8Lit("c"), MD_StringMatchFlag_CaseInsensitive))
+ Temp scratch = ScratchBegin(0, 0);
+ String8List strings = {0};
  {
-  result = pair->c;
- }
- return result;
-}
-
-function void
-MG_CloseAllFiles(void)
-{
- for(int i = 0; i < mg_file_pair_count; i += 1)
- {
-  fclose(mg_file_pairs[i].h);
-  fclose(mg_file_pairs[i].c);
- }
-}
-
-function void
-MG_GenerateMultilineStringAsCLiteral(FILE *file, String8 string)
-{
- fprintf(file, "\"\"\n\"");
- for(U64 i = 0; i < string.size; i += 1)
- {
-  if(string.str[i] == '\n')
+  for(U64 off = 0; off < data.size;)
   {
-   fprintf(file, "\\n\"\n\"");
-  }
-  else if(string.str[i] == '\r')
-  {
-   continue;
-  }
-  else
-  {
-   fprintf(file, "%c", string.str[i]);
+   U64 chunk_size = Min(data.size-off, 64);
+   U8 *chunk_bytes = data.str+off;
+   String8 chunk_text_string = PushStr8FillByte(mg_arena, chunk_size*5, 0);
+   for(U64 byte_idx = 0; byte_idx < chunk_size; byte_idx += 1)
+   {
+    String8 byte_str = PushStr8F(scratch.arena, "0x%02x,", chunk_bytes[byte_idx]);
+    MemoryCopy(chunk_text_string.str+byte_idx*5, byte_str.str, byte_str.size);
+   }
+   off += chunk_size;
+   Str8ListPush(mg_arena, &strings, chunk_text_string);
+   Str8ListPush(mg_arena, &strings, Str8Lit("\n"));
   }
  }
- fprintf(file, "\"\n");
+ String8 result = Str8ListJoin(mg_arena, strings, 0);
+ ScratchEnd(scratch);
+ return result;
 }
 
 function String8

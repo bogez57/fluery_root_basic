@@ -86,11 +86,28 @@ struct CL_TokenPtrList
  U64 count;
 };
 
+typedef struct CL_TokenPtrListNode CL_TokenPtrListNode;
+struct CL_TokenPtrListNode
+{
+ CL_TokenPtrListNode *next;
+ CL_TokenPtrList v;
+};
+
+typedef struct CL_TokenPtrListList CL_TokenPtrListList;
+struct CL_TokenPtrListList
+{
+ CL_TokenPtrListNode *first;
+ CL_TokenPtrListNode *last;
+ U64 node_count;
+ U64 total_count;
+};
+
 ////////////////////////////////
 //~ rjf: Token Type Functions
 
 function void CL_TokenListPush(Arena *arena, CL_TokenList *list, CL_Token *token);
 function void CL_TokenPtrListPush(Arena *arena, CL_TokenPtrList *list, CL_Token *token);
+function void CL_TokenPtrListListPush(Arena *arena, CL_TokenPtrListList *list, CL_TokenPtrList *v);
 function void CL_TokenChunkListPush(Arena *arena, CL_TokenChunkList *list, U64 cap, CL_Token *token);
 function CL_TokenArray CL_TokenArrayFromChunkList(Arena *arena, CL_TokenChunkList *list);
 

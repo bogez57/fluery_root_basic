@@ -20,7 +20,7 @@ R_D3D11_ShaderPairKind_COUNT
 }
 R_D3D11_ShaderPairKind;
 
-extern R_D3D11_CmdGlobalKindInfo r_d3d11_g_cmd_global_kind_info_table[5];
+extern String8 r_d3d11_g_rect2d_shader_src;extern String8 r_d3d11_g_sprite3d_shader_src;extern String8 r_d3d11_g_composite3d_shader_src;extern String8 r_d3d11_g_debugline3d_shader_src;extern R_D3D11_CmdGlobalKindInfo r_d3d11_g_cmd_global_kind_info_table[5];
 
 extern R_D3D11_ShaderPairKindInfo r_d3d11_g_shader_pair_kind_info_table[5];
 

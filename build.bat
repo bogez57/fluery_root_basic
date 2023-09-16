@@ -15,14 +15,10 @@ xcopy /y /q /s /e data build
 rem --- Prep Local Directory --------------------------------------------------
 if not exist local mkdir local
 
-rem --- Build Metaprogram -----------------------------------------------------
+rem --- Build & Run Metaprogram -----------------------------------------------
 pushd build
 cl %cl_flags% %console% ..\code\metagen\metagen_main.c /link /out:metagen.exe
-popd
-
-rem --- Run Metaprogram -------------------------------------------------------
-pushd code
-..\build\metagen.exe
+metagen.exe
 popd
 
 rem --- Build Everything ------------------------------------------------------

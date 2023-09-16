@@ -142,7 +142,7 @@ UI_SizeMake(UI_SizeKind kind, F32 value, F32 strictness)
 root_function F_Tag
 UI_IconFont(void)
 {
- C_Hash hash = {ui_g_icon_font_hash[0], ui_g_icon_font_hash[1]};
+ C_Hash hash = {ui_g_icon_font_hash.v[0], ui_g_icon_font_hash.v[1]};
  return F_TagFromHash(hash);
 }
 
@@ -189,8 +189,8 @@ UI_StateAlloc(void)
   state->frame_arenas[idx] = ArenaAlloc(Gigabytes(8));
  }
  state->drag_data_arena = ArenaAlloc(Megabytes(64));
- C_SubmitStaticData(ui_g_mono_font, C_HashMake(ui_g_mono_font_hash[0], ui_g_mono_font_hash[1]));
- C_SubmitStaticData(ui_g_icon_font, C_HashMake(ui_g_icon_font_hash[0], ui_g_icon_font_hash[1]));
+ C_SubmitStaticData(ui_g_mono_font, C_HashMake(ui_g_mono_font_hash.v[0], ui_g_mono_font_hash.v[1]));
+ C_SubmitStaticData(ui_g_icon_font, C_HashMake(ui_g_icon_font_hash.v[0], ui_g_icon_font_hash.v[1]));
  UI_InitStackNils(state);
  return state;
 }

@@ -1,4 +1,4 @@
-read_only global String8 r_d3d11_g_rect2d_shader_src =
+read_only String8 r_d3d11_g_rect2d_shader_src =
 Str8LitComp(""
 "\n"
 "//- rjf: resources\n"
@@ -171,7 +171,7 @@ Str8LitComp(""
 ""
 );
 
-read_only global String8 r_d3d11_g_sprite3d_shader_src =
+read_only String8 r_d3d11_g_sprite3d_shader_src =
 Str8LitComp(""
 "\n"
 "//- rjf: resources\n"
@@ -308,7 +308,7 @@ Str8LitComp(""
 ""
 );
 
-read_only global String8 r_d3d11_g_composite3d_shader_src =
+read_only String8 r_d3d11_g_composite3d_shader_src =
 Str8LitComp(""
 "\n"
 "//- rjf: resources\n"
@@ -479,7 +479,7 @@ Str8LitComp(""
 ""
 );
 
-read_only global String8 r_d3d11_g_debugline3d_shader_src =
+read_only String8 r_d3d11_g_debugline3d_shader_src =
 Str8LitComp(""
 "\n"
 "//- rjf: resources\n"

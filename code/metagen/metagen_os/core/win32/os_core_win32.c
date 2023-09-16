@@ -661,7 +661,11 @@ OS_MakeDirectory(String8 path)
  B32 result = 1;
  if(!CreateDirectoryW((WCHAR *)path16.str, 0))
  {
-  result = 0;
+  DWORD error = GetLastError();
+  if(error != ERROR_ALREADY_EXISTS)
+  {
+   result = 0;
+  }
  }
  ScratchEnd(scratch);
  return result;

@@ -20,6 +20,16 @@ CL_TokenPtrListPush(Arena *arena, CL_TokenPtrList *list, CL_Token *token)
 }
 
 function void
+CL_TokenPtrListListPush(Arena *arena, CL_TokenPtrListList *list, CL_TokenPtrList *v)
+{
+ CL_TokenPtrListNode *n = PushArray(arena, CL_TokenPtrListNode, 1);
+ MemoryCopyStruct(&n->v, v);
+ QueuePush(list->first, list->last, n);
+ list->node_count += 1;
+ list->total_count += v->count;
+}
+
+function void
 CL_TokenChunkListPush(Arena *arena, CL_TokenChunkList *list, U64 cap, CL_Token *token)
 {
  CL_TokenChunkNode *node = list->last;

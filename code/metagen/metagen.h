@@ -4,15 +4,37 @@
 #define METAGEN_H
 
 ////////////////////////////////
-//~ rjf: Types
+//~ rjf: Generation Buckets
 
-typedef struct MG_FilePair MG_FilePair;
-struct MG_FilePair
+typedef struct MG_Bucket MG_Bucket;
+struct MG_Bucket
 {
+ MG_Bucket *next;
  String8 layer_path;
- FILE *h;
- FILE *c;
+ String8List enums;
+ String8List structs;
+ String8List h_functions;
+ String8List c_functions;
+ String8List h_tables;
+ String8List c_tables;
 };
+
+typedef struct MG_BucketSlot MG_BucketSlot;
+struct MG_BucketSlot
+{
+ MG_Bucket *first;
+ MG_Bucket *last;
+};
+
+typedef struct MG_BucketMap MG_BucketMap;
+struct MG_BucketMap
+{
+ U64 slots_count;
+ MG_BucketSlot *slots;
+};
+
+////////////////////////////////
+//~ rjf: Parsed C File Types
 
 typedef struct MG_CFile MG_CFile;
 struct MG_CFile
@@ -35,24 +57,28 @@ struct MG_CFileList
 //~ rjf: Globals
 
 global Arena *mg_arena = 0;
-global String8 mg_project_path = {0};
-global U64 mg_file_pair_count = 0;
-global MG_FilePair mg_file_pairs[4096] = {0};
+global MG_BucketMap mg_bucket_map = {0};
 
 ////////////////////////////////
-//~ rjf: Helpers
+//~ rjf: Basic Type Helpers
 
 function String8 Str8FromMD(MD_String8 string);
 function MD_String8 MDFromStr8(String8 string);
+function U64 MG_HashFromString(String8 string);
 
+////////////////////////////////
+//~ rjf: Layer Bucket Lookups
+
+function String8 MG_LayerPathFromMDNode(MD_Node *node);
+function String8 MG_LayerPathFromCFile(MG_CFile *file);
 function String8 MG_LayerNameFromPath(String8 layer_path);
-function MG_FilePair MG_FilePairFromLayerPath(String8 layer_path);
-function MG_FilePair MG_FilePairFromNode(MD_Node *node);
-function MG_FilePair MG_FilePairFromCFile(MG_CFile *file);
+function MG_Bucket *MG_BucketFromLayerPath(String8 layer_path);
 
-function FILE *MG_FileFromNodePair(MD_Node *node, MG_FilePair *pair);
-function void MG_CloseAllFiles(void);
-function void MG_GenerateMultilineStringAsCLiteral(FILE *file, String8 string);
+////////////////////////////////
+//~ rjf: String Transforms
+
+function String8 MG_CStringLiteralFromMultilineString(String8 string);
+function String8 MG_CArrayLiteralContentsFromData(String8 data);
 function String8 MG_EscapedFromString(Arena *arena, String8 string);
 
 #endif // METAGEN_H

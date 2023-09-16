@@ -240,6 +240,8 @@ typedef S64      B64;
 typedef float    F32;
 typedef double   F64;
 typedef void VoidFunction(void);
+typedef struct U128 U128;
+struct U128 {U64 v[2];};
 
 ////////////////////////////////
 //~ rjf: Limits

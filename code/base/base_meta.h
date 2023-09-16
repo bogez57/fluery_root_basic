@@ -11,4 +11,13 @@ struct TweakB32Info
  B32 *value_ptr;
 };
 
+typedef struct TweakF32Info TweakF32Info;
+struct TweakF32Info
+{
+ String8 name;
+ F32 default_value;
+ Rng1F32 value_range;
+ F32 *value_ptr;
+};
+
 #endif //BASE_META_H
