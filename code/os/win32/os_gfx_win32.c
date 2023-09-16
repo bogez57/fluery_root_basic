@@ -945,6 +945,7 @@ OS_MouseFromWindow(OS_Handle handle)
 root_function OS_EventList
 OS_GetEvents(Arena *arena)
 {
+ ProfBeginFunction();
  OS_EventList list = {0};
  os_w32_tl_events_arena = arena;
  os_w32_tl_events_list = &list;
@@ -955,6 +956,7 @@ OS_GetEvents(Arena *arena)
  }
  os_w32_tl_events_arena = 0;
  os_w32_tl_events_list = 0;
+ ProfEnd();
  return list;
 }
 

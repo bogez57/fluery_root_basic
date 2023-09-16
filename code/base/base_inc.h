@@ -2,6 +2,7 @@
 #define BASE_INC_H
 
 #include "base_ctx_crack.h"
+#include "base_markup.h"
 
 #include "base_types.h"
 #include "base_memory.h"
@@ -12,5 +13,6 @@
 #include "base_ring.h"
 #include "base_thread_ctx.h"
 #include "base_command_line.h"
+#include "base_meta.h"
 
 #endif // BASE_INC_H

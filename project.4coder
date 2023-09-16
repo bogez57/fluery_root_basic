@@ -35,6 +35,8 @@ patterns =
 blacklist_patterns =
 {
  ".*",
+ "metagen_base_*",
+ "metagen_os_*",
 };
 
 ////////////////////////////////
@@ -58,6 +60,17 @@ load_paths =
 
 commands =
 {
+ 
+ //- rjf: clean build
+ .build_clean =
+ {
+  .win              = "build.bat",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
  
  //- rjf: app_template
  .build_app_templates =

@@ -217,7 +217,6 @@ root_function String8 Str8SkipChopNewlines(String8 str);
 
 root_function String8 Str8PathChopLastPeriod(String8 str);
 root_function String8 Str8PathSkipLastSlash(String8 str);
-root_function String8 Str8PathChopLastSlash(String8 str);
 root_function String8 Str8PathSkipLastPeriod(String8 str);
 root_function String8 Str8PathChopPastLastSlash(String8 str);
 
