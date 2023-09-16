@@ -1,6 +1,6 @@
-#include "metagen/metagen_base/metagen_base_inc.h"
-#include "metagen/metagen_os/metagen_os_inc.h"
-#include "metagen/metagen_c_lex/metagen_c_lex.h"
+#include "metagen/metagen_base/base_inc.h"
+#include "metagen/metagen_os/os_inc.h"
+#include "metagen/metagen_c_lex/c_lex.h"
 
 #define MD_DEFAULT_SPRINTF 0
 #define MD_DEFAULT_ARENA 0
@@ -21,9 +21,9 @@
 #include "metagen_table.h"
 #include "metagen_tweak.h"
 
-#include "metagen/metagen_base/metagen_base_inc.c"
-#include "metagen/metagen_os/metagen_os_inc.c"
-#include "metagen/metagen_c_lex/metagen_c_lex.c"
+#include "metagen/metagen_base/base_inc.c"
+#include "metagen/metagen_os/os_inc.c"
+#include "metagen/metagen_c_lex/c_lex.c"
 
 #include "third_party/metadesk/md.c"
 
@@ -32,7 +32,7 @@
 #include "metagen_table.c"
 #include "metagen_tweak.c"
 
-#include "metagen/metagen_os/metagen_os_entry_point.c"
+#include "metagen/metagen_os/core/os_entry_point.c"
 
 ////////////////////////////////
 //~ rjf: Entry Point
@@ -45,7 +45,7 @@ EntryPoint(CmdLine *cmdln)
  //ProfBeginCapture("metagen");
  
  //- rjf: find directories
- String8 binary_path = OS_NormalizedPathFromStr8(mg_arena, OS_GetSystemPath(mg_arena, OS_SystemPath_Binary));
+ String8 binary_path = OS_NormalizedPathFromStr8(mg_arena, OS_StringFromSystemPathKind(mg_arena, OS_SystemPathKind_Binary));
  String8 project_path = Str8PathChopLastSlash(Str8PathChopLastSlash(binary_path));
  String8 code_path = PushStr8F(mg_arena, "%S/code/", project_path);
  mg_project_path = project_path;
@@ -89,7 +89,6 @@ EntryPoint(CmdLine *cmdln)
  MG_CFileList c_files = {0};
  ProfScope("load & lex all C files")
  {
-  OS_ErrorList errors = {0};
   for(String8Node *n = path_list.first; n != 0; n = n->next)
   {
    String8 path = n->string;
@@ -106,7 +105,7 @@ EntryPoint(CmdLine *cmdln)
     MG_CFile *c_file = PushArray(mg_arena, MG_CFile, 1);
     QueuePush(c_files.first, c_files.last, c_file);
     c_file->path = path;
-    c_file->data = OS_LoadFile(mg_arena, path, &errors);
+    c_file->data = OS_DataFromFilePath(mg_arena, path);
     c_file->tokens = CL_TokenArrayFromString(mg_arena, c_file->data);
     c_files.count += 1;
    }

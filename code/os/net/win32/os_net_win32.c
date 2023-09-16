@@ -103,7 +103,7 @@ OS_SocketRelease(OS_Handle s)
 }
 
 root_function void
-OS_SocketBind(OS_Handle s, OS_NetAddr addr, OS_ErrorList *errors_out)
+OS_SocketBind(OS_Handle s, OS_NetAddr addr)
 {
  SOCKET sock = (SOCKET)s.u64[0];
  struct sockaddr_in addrin = OS_W32_SockAddrInFromNetAddr(&addr);
@@ -111,7 +111,7 @@ OS_SocketBind(OS_Handle s, OS_NetAddr addr, OS_ErrorList *errors_out)
 }
 
 root_function OS_AcceptResult
-OS_SocketAccept(OS_Handle s, OS_ErrorList *errors_out)
+OS_SocketAccept(OS_Handle s)
 {
  SOCKET sock = (SOCKET)s.u64[0];
  int error = 0;
@@ -126,14 +126,14 @@ OS_SocketAccept(OS_Handle s, OS_ErrorList *errors_out)
 }
 
 root_function void
-OS_SocketSend(OS_Handle s, String8 data, OS_ErrorList *errors_out)
+OS_SocketSend(OS_Handle s, String8 data)
 {
  SOCKET sock = (SOCKET)s.u64[0];
  int error = send(sock, data.str, data.size, 0);
 }
 
 root_function void
-OS_SocketSendTo(OS_Handle s, OS_NetAddr addr, String8 data, OS_ErrorList *errors_out)
+OS_SocketSendTo(OS_Handle s, OS_NetAddr addr, String8 data)
 {
  SOCKET sock = (SOCKET)s.u64[0];
  struct sockaddr_in dst_addr = OS_W32_SockAddrInFromNetAddr(&addr);
@@ -141,7 +141,7 @@ OS_SocketSendTo(OS_Handle s, OS_NetAddr addr, String8 data, OS_ErrorList *errors
 }
 
 root_function OS_ReceiveResult
-OS_SocketReceive(Arena *arena, OS_Handle s, U64 cap, OS_ErrorList *errors_out)
+OS_SocketReceive(Arena *arena, OS_Handle s, U64 cap)
 {
  SOCKET sock = (SOCKET)s.u64[0];
  U8 *buffer = PushArrayNoZero(arena, U8, cap);
@@ -157,7 +157,7 @@ OS_SocketReceive(Arena *arena, OS_Handle s, U64 cap, OS_ErrorList *errors_out)
 }
 
 root_function OS_ReceiveResult
-OS_SocketReceiveFrom(Arena *arena, OS_Handle s, U64 cap, OS_ErrorList *errors_out)
+OS_SocketReceiveFrom(Arena *arena, OS_Handle s, U64 cap)
 {
  SOCKET sock = (SOCKET)s.u64[0];
  U8 *buffer = PushArrayNoZero(arena, U8, cap);

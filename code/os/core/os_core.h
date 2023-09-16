@@ -23,7 +23,7 @@ enum
  OS_AccessFlag_Write     = (1<<1),
  OS_AccessFlag_Execute   = (1<<2),
  OS_AccessFlag_CreateNew = (1<<3),
- OS_AccessFlag_All       = 0xFFFFFFFF,
+ OS_AccessFlag_Shared    = (1<<4),
 };
 
 ////////////////////////////////
@@ -86,19 +86,34 @@ struct OS_FileInfo
  OS_FileAttributes attributes;
 };
 
+typedef struct OS_FileInfoNode OS_FileInfoNode;
+struct OS_FileInfoNode
+{
+ OS_FileInfoNode *next;
+ OS_FileInfo v;
+};
+
+typedef struct OS_FileInfoList OS_FileInfoList;
+struct OS_FileInfoList
+{
+ OS_FileInfoNode *first;
+ OS_FileInfoNode *last;
+ U64 count;
+};
+
 ////////////////////////////////
 //~ rjf: System Path Types
 
-typedef enum OS_SystemPath
+typedef enum OS_SystemPathKind
 {
- OS_SystemPath_Null,
- OS_SystemPath_Initial,
- OS_SystemPath_Current,
- OS_SystemPath_Binary,
- OS_SystemPath_AppData,
- OS_SystemPath_COUNT,
+ OS_SystemPathKind_Null,
+ OS_SystemPathKind_Initial,
+ OS_SystemPathKind_Current,
+ OS_SystemPathKind_Binary,
+ OS_SystemPathKind_AppData,
+ OS_SystemPathKind_COUNT,
 }
-OS_SystemPath;
+OS_SystemPathKind;
 
 ////////////////////////////////
 //~ rjf: Thread & Process Types
@@ -138,13 +153,17 @@ struct OS_StripeTable
 root_function OS_Handle OS_HandleZero(void);
 root_function B32 OS_HandleMatch(OS_Handle a, OS_Handle b);
 
+//- rjf: file info list functions
+root_function void OS_FileInfoListPush(Arena *arena, OS_FileInfoList *list, OS_FileInfo *v);
+
 //- rjf: path normalizations
 root_function String8 OS_NormalizedPathFromStr8(Arena *arena, String8 string);
 
 //- rjf: file system interaction bundlers
-root_function String8 OS_LoadFile(Arena *arena, String8 path, OS_ErrorList *out_errors);
-root_function void OS_SaveFile(Arena *arena, String8 path, String8List data, OS_ErrorList *out_errors);
-root_function B32 OS_FileExists(String8 path);
+root_function String8 OS_DataFromFilePath(Arena *arena, String8 path);
+root_function void OS_WriteDataToFilePath(String8 path, String8List data);
+root_function B32 OS_FileExistsAtPath(String8 path);
+root_function OS_FileInfoList OS_FileInfoListFromPath(Arena *arena, String8 path);
 
 //- rjf: stripe table
 root_function OS_StripeTable *OS_StripeTableAlloc(Arena *arena, U64 count);
@@ -155,21 +174,32 @@ root_function DateTime OS_DateTimeFromTimestamp(OS_Timestamp timestamp);
 root_function OS_Timestamp OS_TimestampFromDateTime(DateTime date_time);
 
 ////////////////////////////////
-//~ rjf: @os_per_backend General Program API
+//~ rjf: @os_per_backend Main Layer Initialization
 
 root_function OS_InitReceipt OS_Init(void);
-root_function void           OS_Abort(void);
-root_function String8        OS_GetSystemPath(Arena *arena, OS_SystemPath path);
+
+////////////////////////////////
+//~ rjf: @os_per_backend Aborting
+
+root_function void OS_Abort(void);
+
+////////////////////////////////
+//~ rjf: @os_per_backend System Info
+
+root_function String8 OS_StringFromSystemPathKind(Arena *arena, OS_SystemPathKind path);
+root_function U64 OS_PageSize(void);
+root_function F32 OS_CaretBlinkTime(void);
+root_function F32 OS_DoubleClickTime(void);
+root_function U64 OS_LogicalProcessorCount(void);
 
 ////////////////////////////////
 //~ rjf: @os_per_backend Memory
 
-root_function U64   OS_PageSize(void);
 root_function void *OS_Reserve(U64 size);
 root_function void  OS_Release(void *ptr, U64 size);
 root_function void  OS_Commit(void *ptr, U64 size);
 root_function void  OS_Decommit(void *ptr, U64 size);
-root_function void  OS_SetMemoryAccessFlags(void *ptr, U64 size, OS_AccessFlags flags);
+root_function void  OS_Protect(void *ptr, U64 size, OS_AccessFlags flags);
 
 ////////////////////////////////
 //~ rjf: @os_per_backend Libraries
@@ -181,33 +211,31 @@ root_function VoidFunction *OS_LibraryLoadFunction(OS_Handle handle, String8 nam
 ////////////////////////////////
 //~ rjf: @os_per_backend File System
 
-//- rjf: granular handle operations
-root_function OS_Handle OS_FileOpen(Arena *arena, OS_AccessFlags access_flags, String8 path, OS_ErrorList *out_errors);
-root_function void OS_FileClose(OS_Handle file);
-root_function String8 OS_FileRead(Arena *arena, OS_Handle file, Rng1U64 range, OS_ErrorList *out_errors);
-root_function void OS_FileWrite(Arena *arena, OS_Handle file, U64 off, String8List data, OS_ErrorList *out_errors);
-root_function B32 OS_FileIsValid(OS_Handle file);
+//- rjf: handle-based operations
+root_function OS_Handle         OS_FileOpen(OS_AccessFlags access_flags, String8 path);
+root_function void              OS_FileClose(OS_Handle file);
+root_function String8           OS_FileRead(Arena *arena, OS_Handle file, Rng1U64 range);
+root_function void              OS_FileWrite(OS_Handle file, U64 off, String8List data);
+root_function B32               OS_FileIsValid(OS_Handle file);
 root_function OS_FileAttributes OS_AttributesFromFile(OS_Handle file);
 
-//- rjf: whole-file operations
+//- rjf: path-based operations
 root_function void OS_DeleteFile(String8 path);
 root_function void OS_MoveFile(String8 dst_path, String8 src_path);
 root_function B32  OS_CopyFile(String8 dst_path, String8 src_path);
 root_function B32  OS_MakeDirectory(String8 path);
-root_function B32  OS_DeleteDirectory(String8 path);
 
 //- rjf: file system introspection
 root_function OS_FileIter *     OS_FileIterBegin(Arena *arena, String8 path);
 root_function B32               OS_FileIterNext(Arena *arena, OS_FileIter *it, OS_FileInfo *out_info);
 root_function void              OS_FileIterEnd(OS_FileIter *it);
-root_function OS_FileAttributes OS_FileAttributesFromPath(String8 path);
+root_function OS_FileAttributes OS_AttributesFromFilePath(String8 path);
 
 ////////////////////////////////
 //~ rjf: @os_per_backend Time
 
 root_function DateTime OS_DateTimeCurrent(void);
 root_function U64 OS_TimeMicroseconds(void);
-root_function U64 OS_TimeCycles(void);
 root_function void OS_Sleep(U64 milliseconds);
 root_function void OS_Wait(U64 end_time_microseconds);
 
@@ -223,19 +251,19 @@ root_function void OS_ThreadDetach(OS_Handle thread);
 //- rjf: mutexes
 root_function OS_Handle OS_MutexAlloc(void);
 root_function void OS_MutexRelease(OS_Handle mutex);
-root_function void OS_MutexBlockEnter(OS_Handle mutex);
-root_function void OS_MutexBlockLeave(OS_Handle mutex);
-#define OS_MutexBlock(m) DeferLoop(OS_MutexBlockEnter(m), OS_MutexBlockLeave(m))
+root_function void OS_MutexScopeEnter(OS_Handle mutex);
+root_function void OS_MutexScopeLeave(OS_Handle mutex);
+#define OS_MutexScope(m) DeferLoop(OS_MutexScopeEnter(m), OS_MutexScopeLeave(m))
 
 //- rjf: slim reader/writer mutexes
 root_function OS_Handle OS_SRWMutexAlloc(void);
 root_function void OS_SRWMutexRelease(OS_Handle mutex);
-root_function void OS_SRWMutexWriterBlockEnter(OS_Handle mutex);
-root_function void OS_SRWMutexWriterBlockLeave(OS_Handle mutex);
-root_function void OS_SRWMutexReaderBlockEnter(OS_Handle mutex);
-root_function void OS_SRWMutexReaderBlockLeave(OS_Handle mutex);
-#define OS_SRWMutexWriterBlock(m) DeferLoop(OS_SRWMutexWriterBlockEnter(m), OS_SRWMutexWriterBlockLeave(m))
-#define OS_SRWMutexReaderBlock(m) DeferLoop(OS_SRWMutexReaderBlockEnter(m), OS_SRWMutexReaderBlockLeave(m))
+root_function void OS_SRWMutexScopeEnter_W(OS_Handle mutex);
+root_function void OS_SRWMutexScopeLeave_W(OS_Handle mutex);
+root_function void OS_SRWMutexScopeEnter_R(OS_Handle mutex);
+root_function void OS_SRWMutexScopeLeave_R(OS_Handle mutex);
+#define OS_SRWMutexScope_W(m) DeferLoop(OS_SRWMutexScopeEnter_W(m), OS_SRWMutexScopeLeave_W(m))
+#define OS_SRWMutexScope_R(m) DeferLoop(OS_SRWMutexScopeEnter_R(m), OS_SRWMutexScopeLeave_R(m))
 
 //- rjf: semaphores
 root_function OS_Handle OS_SemaphoreAlloc(U32 initial_count, U32 max_count);
@@ -264,12 +292,5 @@ root_function OS_ProcessStatus OS_StatusFromProcess(OS_Handle process);
 //~ rjf: @os_per_backend Miscellaneous
 
 root_function void OS_GetEntropy(void *data, U64 size);
-
-////////////////////////////////
-//~ rjf: @os_per_backend System Info
-
-root_function F32 OS_CaretBlinkTime(void);
-root_function F32 OS_DoubleClickTime(void);
-root_function U64 OS_LogicalProcessorCount(void);
 
 #endif // OS_CORE_H

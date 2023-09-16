@@ -506,7 +506,7 @@ R_WindowEquip(OS_Handle window_handle)
  OS_Commit(eqp, sizeof(*eqp));
  OS_W32_Window *window = OS_W32_WindowFromHandle(window_handle);
  HWND hwnd = window->hwnd;
- OS_MutexBlock(r_d3d11_state->device_mutex)
+ OS_MutexScope(r_d3d11_state->device_mutex)
  {
   //- rjf: initialize swapchain
   DXGI_SWAP_CHAIN_DESC1 swapchain_desc = {0};
@@ -612,7 +612,7 @@ R_Tex2DAlloc(Vec2S64 size, R_Tex2DFormat fmt, R_Tex2DKind kind, void *initial_da
   initial_subrsrc_data.SysMemSlicePitch = 0;
  }
  R_D3D11_Tex2D texture = {0};
- OS_MutexBlock(r_d3d11_state->device_mutex)
+ OS_MutexScope(r_d3d11_state->device_mutex)
  {
   r_d3d11_state->device->CreateTexture2D(&texture_desc, initial_data ? &initial_subrsrc_data : 0, &texture.texture);
   r_d3d11_state->device->CreateShaderResourceView(texture.texture, 0, &texture.view);
@@ -625,7 +625,7 @@ R_Tex2DAlloc(Vec2S64 size, R_Tex2DFormat fmt, R_Tex2DKind kind, void *initial_da
 r_function void
 R_Tex2DRelease(R_Handle texture_handle)
 {
- OS_MutexBlock(r_d3d11_state->device_mutex)
+ OS_MutexScope(r_d3d11_state->device_mutex)
  {
   R_D3D11_Tex2D texture = R_D3D11_Tex2DFromHandle(texture_handle);
   texture.texture->Release();
@@ -636,7 +636,7 @@ R_Tex2DRelease(R_Handle texture_handle)
 r_function void
 R_Tex2DFillRegion(R_Handle texture_handle, Rng2S64 region, void *data)
 {
- OS_MutexBlock(r_d3d11_state->device_mutex)
+ OS_MutexScope(r_d3d11_state->device_mutex)
  {
   R_D3D11_Tex2D tex = R_D3D11_Tex2DFromHandle(texture_handle);
   U64 bytes_per_pixel = R_BytesPerPixelFromTex2DFormat(tex.format);
@@ -686,7 +686,7 @@ R_EndFrame(void)
 r_function void
 R_WindowStart(R_Handle window_eqp, Vec2S64 resolution)
 {
- OS_MutexBlock(r_d3d11_state->device_mutex)
+ OS_MutexScope(r_d3d11_state->device_mutex)
  {
   R_D3D11_WindowEquip *wnd = R_D3D11_WindowEquipFromHandle(window_eqp);
   ID3D11Device1 *device = r_d3d11_state->device;
@@ -779,7 +779,7 @@ R_WindowStart(R_Handle window_eqp, Vec2S64 resolution)
 r_function void
 R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
 {
- OS_MutexBlock(r_d3d11_state->device_mutex)
+ OS_MutexScope(r_d3d11_state->device_mutex)
  {
   R_D3D11_WindowEquip *wnd = R_D3D11_WindowEquipFromHandle(window_eqp);
   ID3D11DeviceContext1 *d_ctx = r_d3d11_state->device_ctx;
@@ -1188,7 +1188,7 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
 r_function void
 R_WindowFinish(R_Handle window_eqp)
 {
- OS_MutexBlock(r_d3d11_state->device_mutex)
+ OS_MutexScope(r_d3d11_state->device_mutex)
  {
   R_D3D11_WindowEquip *wnd = R_D3D11_WindowEquipFromHandle(window_eqp);
   ID3D11DeviceContext1 *d_ctx = r_d3d11_state->device_ctx;

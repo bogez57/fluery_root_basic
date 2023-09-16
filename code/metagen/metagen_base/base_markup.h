@@ -4,7 +4,7 @@
 #define BASE_MARKUP_H
 
 //- rjf: metagen-ingested code markup
-#define TweakB32(name, default) default
+#define TweakB32(name, default) (TWEAK_##name)
 
 //- rjf: telemetry profiling backend
 #if BUILD_TELEMETRY

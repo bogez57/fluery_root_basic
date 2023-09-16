@@ -16,13 +16,24 @@ OS_HandleMatch(OS_Handle a, OS_Handle b)
  return a.u64[0] == b.u64[0];
 }
 
+//- rjf: file info list functions
+
+root_function void
+OS_FileInfoListPush(Arena *arena, OS_FileInfoList *list, OS_FileInfo *v)
+{
+ OS_FileInfoNode *n = PushArray(arena, OS_FileInfoNode, 1);
+ MemoryCopyStruct(&n->v, v);
+ QueuePush(list->first, list->last, n);
+ list->count += 1;
+}
+
 //- rjf: path normalizations
 
 root_function String8
 OS_NormalizedPathFromStr8(Arena *arena, String8 string)
 {
  Temp scratch = ScratchBegin(&arena, 1);
- String8 source = OS_GetSystemPath(scratch.arena, OS_SystemPath_Current);
+ String8 source = OS_StringFromSystemPathKind(scratch.arena, OS_SystemPathKind_Current);
  String8 result = NormalizedPathFromStr8(arena, source, string);
  ScratchEnd(scratch);
  return result;
@@ -31,34 +42,48 @@ OS_NormalizedPathFromStr8(Arena *arena, String8 string)
 //- rjf: file system interaction bundlers
 
 root_function String8
-OS_LoadFile(Arena *arena, String8 path, OS_ErrorList *out_errors)
+OS_DataFromFilePath(Arena *arena, String8 path)
 {
  String8 result = {0};
- OS_Handle file = OS_FileOpen(arena, OS_AccessFlag_Read, path, out_errors);
+ OS_Handle file = OS_FileOpen(OS_AccessFlag_Read|OS_AccessFlag_Shared, path);
  OS_FileAttributes atts = OS_AttributesFromFile(file);
  Rng1U64 range = R1U64(0, atts.size);
- result = OS_FileRead(arena, file, range, out_errors);
+ result = OS_FileRead(arena, file, range);
  OS_FileClose(file);
  return result;
 }
 
 root_function void
-OS_SaveFile(Arena *arena, String8 path, String8List data, OS_ErrorList *out_errors)
+OS_WriteDataToFilePath(String8 path, String8List data)
 {
- OS_Handle file = OS_FileOpen(arena, OS_AccessFlag_Write, path, out_errors);
- OS_FileWrite(arena, file, 0, data, out_errors);
+ OS_Handle file = OS_FileOpen(OS_AccessFlag_Write, path);
+ OS_FileWrite(file, 0, data);
  OS_FileClose(file);
 }
 
 root_function B32
-OS_FileExists(String8 path)
+OS_FileExistsAtPath(String8 path)
 {
  Temp scratch = ScratchBegin(0, 0);
- OS_ErrorList errors = {0};
- OS_Handle file = OS_FileOpen(scratch.arena, OS_AccessFlag_Read, path, &errors);
- B32 result = errors.count != 0 && OS_FileIsValid(file);
+ OS_Handle file = OS_FileOpen(OS_AccessFlag_Read|OS_AccessFlag_Shared, path);
+ B32 result = OS_FileIsValid(file);
  OS_FileClose(file);
  return result;
+}
+
+root_function OS_FileInfoList
+OS_FileInfoListFromPath(Arena *arena, String8 path)
+{
+ OS_FileInfoList list = {0};
+ Temp scratch = ScratchBegin(&arena, 1);
+ OS_FileIter *it = OS_FileIterBegin(scratch.arena, path);
+ for(OS_FileInfo info = {0}; OS_FileIterNext(arena, it, &info);)
+ {
+  OS_FileInfoListPush(arena, &list, &info);
+ }
+ OS_FileIterEnd(it);
+ ScratchEnd(scratch);
+ return list;
 }
 
 //- rjf: stripe table

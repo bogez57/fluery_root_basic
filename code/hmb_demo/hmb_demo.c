@@ -35,7 +35,7 @@
 #include "ui/ui_inc.c"
 
 //- rjf: entry point
-#include "os/os_entry_point.c"
+#include "os/core/os_entry_point.c"
 
 ////////////////////////////////
 //~ rjf: Demo Functions

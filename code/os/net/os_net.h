@@ -83,11 +83,11 @@ root_function OS_InitNetReceipt OS_InitNet(OS_InitReceipt os_init);
 
 root_function OS_Handle OS_SocketAlloc(OS_NetProtocol protocol);
 root_function void OS_SocketRelease(OS_Handle s);
-root_function void OS_SocketBind(OS_Handle s, OS_NetAddr addr, OS_ErrorList *errors_out);
-root_function OS_AcceptResult OS_SocketAccept(OS_Handle s, OS_ErrorList *errors_out);
-root_function void OS_SocketSend(OS_Handle s, String8 data, OS_ErrorList *errors_out);
-root_function void OS_SocketSendTo(OS_Handle s, OS_NetAddr addr, String8 data, OS_ErrorList *errors_out);
-root_function OS_ReceiveResult OS_SocketReceive(Arena *arena, OS_Handle s, U64 cap, OS_ErrorList *errors_out);
-root_function OS_ReceiveResult OS_SocketReceiveFrom(Arena *arena, OS_Handle s, U64 cap, OS_ErrorList *errors_out);
+root_function void OS_SocketBind(OS_Handle s, OS_NetAddr addr);
+root_function OS_AcceptResult OS_SocketAccept(OS_Handle s);
+root_function void OS_SocketSend(OS_Handle s, String8 data);
+root_function void OS_SocketSendTo(OS_Handle s, OS_NetAddr addr, String8 data);
+root_function OS_ReceiveResult OS_SocketReceive(Arena *arena, OS_Handle s, U64 cap);
+root_function OS_ReceiveResult OS_SocketReceiveFrom(Arena *arena, OS_Handle s, U64 cap);
 
 #endif // OS_NET_H

@@ -95,7 +95,7 @@ T_Slice2F32FromHash(C_Hash hash, U64 endt_microseconds)
   result.texture = t_state->invalid_texture;
   result.region = R2F32(V2F32(0, 0), Vec2F32FromVec(invalid_texture_size));
  }
- OS_MutexBlock(stripe_mutex)
+ OS_MutexScope(stripe_mutex)
  {
   for(;;)
   {
@@ -116,7 +116,7 @@ T_Slice2F32FromHash(C_Hash hash, U64 endt_microseconds)
      case T_NodeAllocKind_Atlas:
      {
       T_Atlas *atlas = 0;
-      OS_MutexBlock(t_state->atlas_list_mutex)
+      OS_MutexScope(t_state->atlas_list_mutex)
       {
        S32 num = 1;
        for(T_Atlas *a = t_state->first_atlas; a != 0; a = a->next, num += 1)
@@ -167,7 +167,7 @@ root_function B32
 T_EnqueueLoadRequest(C_Hash hash)
 {
  B32 result = 0;
- OS_MutexBlockEnter(t_state->req_ring_mutex);
+ OS_MutexScopeEnter(t_state->req_ring_mutex);
  U64 needed_size = sizeof(C_Hash);
  
  //- rjf: room to push request -> push!
@@ -184,7 +184,7 @@ T_EnqueueLoadRequest(C_Hash hash)
   t_state->req_ring_write_pos -= t_state->req_ring_write_pos%8;
  }
  
- OS_MutexBlockLeave(t_state->req_ring_mutex);
+ OS_MutexScopeLeave(t_state->req_ring_mutex);
  OS_ConditionVariableSignalAll(t_state->req_ring_cv);
  return result;
 }
@@ -193,7 +193,7 @@ root_function C_Hash
 T_DequeueLoadRequest(void)
 {
  C_Hash hash = {0};
- OS_MutexBlock(t_state->req_ring_mutex) for(;;)
+ OS_MutexScope(t_state->req_ring_mutex) for(;;)
  {
   if(t_state->req_ring_write_pos >= t_state->req_ring_read_pos + sizeof(C_Hash))
   {
@@ -242,7 +242,7 @@ T_ThreadEntryPoint(void *p)
   
   //- rjf: check if loaded
   B32 is_already_loaded = 0;
-  OS_MutexBlock(stripe_mutex)
+  OS_MutexScope(stripe_mutex)
   {
    for(T_Node *n = slot->first; n != 0; n = n->hash_next)
    {
@@ -298,7 +298,7 @@ T_ThreadEntryPoint(void *p)
    // rjf: pick atlas & allocate from it
    Rng2S64 atlas_alloc_region = {0};
    S32 atlas_num = 1;
-   if(alloc_kind == T_NodeAllocKind_Atlas) OS_MutexBlock(t_state->atlas_list_mutex)
+   if(alloc_kind == T_NodeAllocKind_Atlas) OS_MutexScope(t_state->atlas_list_mutex)
    {
     for(T_Atlas *a = t_state->first_atlas;; a = a->next, atlas_num += 1)
     {
@@ -317,7 +317,7 @@ T_ThreadEntryPoint(void *p)
      
      // rjf: try to allocate from this atlas
      B32 success = 0;
-     OS_MutexBlock(a->mutex)
+     OS_MutexScope(a->mutex)
      {
       atlas_alloc_region = AtlasRegionAlloc(a->arena, a->atlas, size);
       
@@ -340,7 +340,7 @@ T_ThreadEntryPoint(void *p)
    }
    
    // rjf: store in shared cache data structure
-   OS_MutexBlock(stripe_mutex)
+   OS_MutexScope(stripe_mutex)
    {
     T_Node *node = PushArray(stripe_arena, T_Node, 1);
     DLLPushBack_NPZ(slot->first, slot->last, node, hash_next, hash_prev, CheckNull, SetNull);

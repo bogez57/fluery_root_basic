@@ -17,7 +17,7 @@ MG_EMBED_Generate(MD_Node *file_list)
    if(MD_NodeHasTag(node, MD_S8Lit("embed_file"), MD_StringMatchFlag_CaseInsensitive))
    {
     String8 path = Str8FromMD(node->first_child->string);
-    String8 file_data = OS_LoadFile(mg_arena, path, 0);
+    String8 file_data = OS_DataFromFilePath(mg_arena, path);
     meow_u128 file_data_hash = MeowHash(MeowDefaultSeed, file_data.size, file_data.str);
     FILE *file = MG_FileFromNodePair(node, &f);
     fprintf(file, "read_only global U8 %.*s_data[] =\n{\n", Str8VArg(node->string));

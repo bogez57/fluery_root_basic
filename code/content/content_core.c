@@ -92,7 +92,7 @@ C_SubmitData(Arena **permanent_arena, String8 data)
  
  //- rjf: register in (hash) -> (data) data structure
  B32 is_new = 0;
- OS_MutexBlock(stripe->mutex)
+ OS_MutexScope(stripe->mutex)
  {
   C_Tag2DataCacheNode *existing_node = 0;
   for(C_Tag2DataCacheNode *n = slot->first; n != 0; n = n->hash_next)
@@ -112,7 +112,7 @@ C_SubmitData(Arena **permanent_arena, String8 data)
    node->arena = *permanent_arena;
    node->hash = hash;
    node->data = data;
-   OS_SetMemoryAccessFlags(data.str, data.size, OS_AccessFlag_Read);
+   OS_Protect(data.str, data.size, OS_AccessFlag_Read);
    DLLPushBack_NPZ(slot->first, slot->last, node, hash_next, hash_prev, CheckNull, SetNull);
    is_new = 1;
   }
@@ -146,7 +146,7 @@ C_SubmitStaticData(String8 data, C_Hash hash)
  
  //- rjf: register in (hash) -> (data) data structure
  B32 is_new = 0;
- OS_MutexBlock(stripe->mutex)
+ OS_MutexScope(stripe->mutex)
  {
   C_Tag2DataCacheNode *existing_node = 0;
   for(C_Tag2DataCacheNode *n = slot->first; n != 0; n = n->hash_next)
@@ -183,7 +183,7 @@ C_DataFromHash(C_Scope *scope, C_Hash hash)
  U64 stripe_idx = slot_idx % c_state->tag2data_stripes->count;
  OS_Stripe *stripe = &c_state->tag2data_stripes->stripes[stripe_idx];
  C_Tag2DataCacheSlot *slot = &c_state->tag2data_table[slot_idx];
- OS_MutexBlock(stripe->mutex)
+ OS_MutexScope(stripe->mutex)
  {
   C_Tag2DataCacheNode *existing_node = 0;
   for(C_Tag2DataCacheNode *n = slot->first; n != 0; n = n->hash_next)

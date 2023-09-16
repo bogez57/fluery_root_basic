@@ -72,7 +72,7 @@ FS_TagFromPath(String8 path)
   U64 stripe_idx = slot_idx % fs_state->tag_table_stripes->count;
   OS_Stripe *stripe = &fs_state->tag_table_stripes->stripes[stripe_idx];
   FS_Slot *slot = &fs_state->tag_table_slots[slot_idx];
-  OS_MutexBlock(stripe->mutex)
+  OS_MutexScope(stripe->mutex)
   {
    B32 is_new = 1;
    for(FS_Node *n = slot->first; n != 0; n = n->hash_next)
@@ -106,7 +106,7 @@ FS_PathFromTag(Arena *arena, FS_Tag tag)
  U64 stripe_idx = slot_idx % fs_state->tag_table_stripes->count;
  OS_Stripe *stripe = &fs_state->tag_table_stripes->stripes[stripe_idx];
  FS_Slot *slot = &fs_state->tag_table_slots[slot_idx];
- OS_MutexBlock(stripe->mutex)
+ OS_MutexScope(stripe->mutex)
  {
   for(FS_Node *n = slot->first; n != 0; n = n->hash_next)
   {
@@ -136,7 +136,7 @@ FS_ContentHashFromTag(FS_Tag tag, U64 endt_microseconds)
   U64 stripe_idx = slot_idx % fs_state->tag_table_stripes->count;
   OS_Stripe *stripe = &fs_state->tag_table_stripes->stripes[stripe_idx];
   FS_Slot *slot = &fs_state->tag_table_slots[slot_idx];
-  OS_MutexBlock(stripe->mutex)
+  OS_MutexScope(stripe->mutex)
   {
    for(;;)
    {
@@ -175,7 +175,7 @@ root_function void
 FS_EnqueueLoadRequest(FS_Tag tag)
 {
  U64 bytes_needed = sizeof(tag);
- OS_MutexBlock(fs_state->req_ring_mutex) for(;;)
+ OS_MutexScope(fs_state->req_ring_mutex) for(;;)
  {
   if(fs_state->req_ring_write_pos - fs_state->req_ring_read_pos <= fs_state->req_ring_size - bytes_needed)
   {
@@ -193,7 +193,7 @@ root_function FS_Tag
 FS_DequeueLoadRequest(void)
 {
  FS_Tag result = {0};
- OS_MutexBlock(fs_state->req_ring_mutex) for(;;)
+ OS_MutexScope(fs_state->req_ring_mutex) for(;;)
  {
   if(fs_state->req_ring_read_pos < fs_state->req_ring_write_pos)
   {
@@ -244,7 +244,7 @@ FS_LoaderThreadEntryPoint(void *p)
   //- rjf: check if we've already loaded this file
   String8 path = {0};
   B32 need_reload = 0;
-  OS_MutexBlock(stripe->mutex)
+  OS_MutexScope(stripe->mutex)
   {
    FS_Node *existing_node = 0;
    for(FS_Node *n = slot->first; n != 0; n = n->hash_next)
@@ -269,13 +269,12 @@ FS_LoaderThreadEntryPoint(void *p)
   }
   
   //- rjf: load file
-  OS_ErrorList errors = {0};
   Arena *data_arena = 0;
   String8 data = {0};
   OS_Timestamp last_modified = 0;
   if(need_reload)
   {
-   OS_Handle file = OS_FileOpen(scratch.arena, OS_AccessFlag_Read, path, &errors);
+   OS_Handle file = OS_FileOpen(OS_AccessFlag_Read, path);
    OS_FileAttributes atts = OS_AttributesFromFile(file);
    last_modified = atts.last_modified;
    U64 size = atts.size;
@@ -284,7 +283,7 @@ FS_LoaderThreadEntryPoint(void *p)
    if(size > 0 && arena_size > 0)
    {
     data_arena = ArenaAlloc(arena_size);
-    data = OS_FileRead(data_arena, file, R1U64(0, size), &errors);
+    data = OS_FileRead(data_arena, file, R1U64(0, size));
    }
    OS_FileClose(file);
   }
@@ -299,7 +298,7 @@ FS_LoaderThreadEntryPoint(void *p)
   //- rjf: update existing correllation with new hash & modified time if reload
   if(!C_HashMatch(C_HashZero(), hash) && need_reload)
   {
-   OS_MutexBlock(stripe->mutex)
+   OS_MutexScope(stripe->mutex)
    {
     FS_Node *node = 0;
     for(FS_Node *n = slot->first; n != 0; n = n->hash_next)
@@ -344,13 +343,13 @@ FS_ChangeDetectorThreadEntryPoint(void *p)
    
    // rjf: check this slot's files for changes - mark nodes appropriately
    B32 changes = 0;
-   OS_MutexBlock(stripe->mutex)
+   OS_MutexScope(stripe->mutex)
    {
     for(FS_Node *n = slot->first; n != 0; n = n->hash_next)
     {
      if(n->data_has_been_queried)
      {
-      OS_FileAttributes attributes = OS_FileAttributesFromPath(n->path);
+      OS_FileAttributes attributes = OS_AttributesFromFilePath(n->path);
       OS_Timestamp last_modified = attributes.last_modified;
       if(last_modified != n->last_modified)
       {

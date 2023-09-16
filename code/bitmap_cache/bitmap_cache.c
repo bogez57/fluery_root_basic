@@ -67,7 +67,7 @@ BC_BitmapFromHash(BC_Scope *scope, C_Hash hash, U64 end_time_microseconds)
  OS_Stripe *stripe = bc_state->stripes->stripes + stripe_idx;
  
  //- rjf: get buffer
- OS_MutexBlock(stripe->mutex)
+ OS_MutexScope(stripe->mutex)
  {
   // rjf: get existing node
   BC_Node *existing_node = 0;
@@ -113,7 +113,7 @@ BC_BitmapFromHash(BC_Scope *scope, C_Hash hash, U64 end_time_microseconds)
 root_function void
 BC_EnqueueParseRequest(C_Hash hash)
 {
- OS_MutexBlock(bc_state->u2p_ring_mutex) for(;;)
+ OS_MutexScope(bc_state->u2p_ring_mutex) for(;;)
  {
   if((bc_state->u2p_ring_write_pos - bc_state->u2p_ring_read_pos) <= bc_state->u2p_ring_size - sizeof(C_Hash))
   {
@@ -131,7 +131,7 @@ root_function C_Hash
 BC_DequeueParseRequest(void)
 {
  C_Hash hash = {0};
- OS_MutexBlock(bc_state->u2p_ring_mutex) for(;;)
+ OS_MutexScope(bc_state->u2p_ring_mutex) for(;;)
  {
   if(bc_state->u2p_ring_write_pos >= bc_state->u2p_ring_read_pos + sizeof(C_Hash))
   {
@@ -177,7 +177,7 @@ BC_ParseThreadEntryPoint(void *p)
   
   //- rjf: check if loaded
   B32 is_already_loaded = 0;
-  OS_MutexBlock(stripe->mutex)
+  OS_MutexScope(stripe->mutex)
   {
    for(BC_Node *n = slot->first; n != 0; n = n->next)
    {
@@ -206,7 +206,7 @@ BC_ParseThreadEntryPoint(void *p)
   //- rjf: fill node in cache
   if(!is_already_loaded)
   {
-   OS_MutexBlock(stripe->mutex)
+   OS_MutexScope(stripe->mutex)
    {
     // rjf: get existing node
     BC_Node *node = 0;

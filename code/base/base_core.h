@@ -1,5 +1,5 @@
-#ifndef BASE_TYPES_H
-#define BASE_TYPES_H
+#ifndef BASE_CORE_H
+#define BASE_CORE_H
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -98,12 +98,18 @@
 //- rjf: atomics
 
 #if OS_WINDOWS
-# define AtomicIncEval64(ptr) InterlockedIncrement64(ptr)
-# define AtomicDecEval64(ptr) InterlockedDecrement64(ptr)
+# define AtomicIncEval64(ptr)      InterlockedIncrement64(ptr)
+# define AtomicDecEval64(ptr)      InterlockedDecrement64(ptr)
+# define AtomicAddEval64(ptr, val) InterlockedAdd64((ptr), (val))
 # define AtomicEvalSet64(ptr, val) InterlockedExchange64((ptr), (val))
+# define AtomicEval64(ptr, val)    InterlockedAdd((ptr), 0)
 #else
-# error Atomics not implemented.
+# error Atomics not implemented for this operating system.
 #endif
+
+//- rjf: intrinsics
+
+#define ReadTimestampCounter() __rdtsc() 
 
 //- rjf: memory copy/set operations
 
@@ -645,4 +651,4 @@ ByteSwapU16(U16 v)
  return result;
 }
 
-#endif // BASE_TYPES_H
+#endif // BASE_CORE_H

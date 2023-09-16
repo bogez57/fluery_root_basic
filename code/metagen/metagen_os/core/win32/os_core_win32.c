@@ -210,7 +210,7 @@ OS_W32_ThreadEntryPoint(void *params)
 }
 
 ////////////////////////////////
-//~ rjf: General Program API
+//~ rjf: @os_per_backend Main Layer Initialization
 
 root_function OS_InitReceipt
 OS_Init(void)
@@ -281,35 +281,41 @@ OS_Init(void)
  return result;
 }
 
+////////////////////////////////
+//~ rjf: @os_per_backend Aborting
+
 root_function void
 OS_Abort(void)
 {
  ExitProcess(1);
 }
 
+////////////////////////////////
+//~ rjf: @os_per_backend System Info
+
 root_function String8
-OS_GetSystemPath(Arena *arena, OS_SystemPath path)
+OS_StringFromSystemPathKind(Arena *arena, OS_SystemPathKind path)
 {
  Temp scratch = ScratchBegin(&arena, 1);
  String8 result = {0};
  switch(path)
  {
-  case OS_SystemPath_Initial:
+  case OS_SystemPathKind_Initial:
   {
    result = os_w32_state->initial_path;
   }break;
-  case OS_SystemPath_Current:
+  case OS_SystemPathKind_Current:
   {
    DWORD length = GetCurrentDirectoryW(0, 0);
    U16 *memory = PushArray(scratch.arena, U16, length + 1);
    length = GetCurrentDirectoryW(length + 1, (WCHAR *)memory);
    result = Str8From16(arena, Str16(memory, length));
   }break;
-  case OS_SystemPath_Binary:
+  case OS_SystemPathKind_Binary:
   {
    result = os_w32_state->binary_path;
   }break;
-  case OS_SystemPath_AppData:
+  case OS_SystemPathKind_AppData:
   {
    result = os_w32_state->app_data_path;
   }break;
@@ -318,9 +324,6 @@ OS_GetSystemPath(Arena *arena, OS_SystemPath path)
  return result;
 }
 
-////////////////////////////////
-//~ rjf: Memory
-
 root_function U64
 OS_PageSize(void)
 {
@@ -328,6 +331,29 @@ OS_PageSize(void)
  GetSystemInfo(&info);
  return info.dwPageSize;
 }
+
+root_function F32
+OS_CaretBlinkTime(void)
+{
+ F32 seconds = GetCaretBlinkTime() / 1000.f;
+ return seconds;
+}
+
+root_function F32
+OS_DoubleClickTime(void)
+{
+ F32 seconds = GetDoubleClickTime() / 1000.f;
+ return seconds;
+}
+
+root_function U64
+OS_LogicalProcessorCount(void)
+{
+ return os_w32_state->system_info.dwNumberOfProcessors;
+}
+
+////////////////////////////////
+//~ rjf: Memory
 
 root_function void *
 OS_Reserve(U64 size)
@@ -361,7 +387,7 @@ OS_Decommit(void *ptr, U64 size)
 }
 
 root_function void
-OS_SetMemoryAccessFlags(void *ptr, U64 size, OS_AccessFlags flags)
+OS_Protect(void *ptr, U64 size, OS_AccessFlags flags)
 {
  // rjf: size -> page snapped size
  U64 page_snapped_size = size;
@@ -429,13 +455,13 @@ OS_LibraryLoadFunction(OS_Handle handle, String8 name)
 ////////////////////////////////
 //~ rjf: File System
 
-//- rjf: granular handle operations
+//- rjf: handle-based operations
 
 root_function OS_Handle
-OS_FileOpen(Arena *arena, OS_AccessFlags access_flags, String8 path, OS_ErrorList *out_errors)
+OS_FileOpen(OS_AccessFlags access_flags, String8 path)
 {
  // rjf: unpack args
- Temp scratch = ScratchBegin(&arena, 1);
+ Temp scratch = ScratchBegin(0, 0);
  String16 path16 = Str16From8(scratch.arena, path);
  
  // rjf: map to w32 access flags
@@ -445,6 +471,7 @@ OS_FileOpen(Arena *arena, OS_AccessFlags access_flags, String8 path, OS_ErrorLis
  
  // rjf: create share mode
  DWORD share_mode = 0;
+ if(access_flags & OS_AccessFlag_Shared) { share_mode = FILE_SHARE_READ; }
  
  // rjf: create security attributes
  SECURITY_ATTRIBUTES security_attributes =
@@ -499,7 +526,7 @@ OS_FileClose(OS_Handle file)
 }
 
 root_function String8
-OS_FileRead(Arena *arena, OS_Handle file, Rng1U64 range, OS_ErrorList *out_errors)
+OS_FileRead(Arena *arena, OS_Handle file, Rng1U64 range)
 {
  String8 result = {0};
  HANDLE handle = (HANDLE)file.u64[0];
@@ -538,7 +565,7 @@ OS_FileRead(Arena *arena, OS_Handle file, Rng1U64 range, OS_ErrorList *out_error
 }
 
 root_function void
-OS_FileWrite(Arena *arena, OS_Handle file, U64 off, String8List data, OS_ErrorList *out_errors)
+OS_FileWrite(OS_Handle file, U64 off, String8List data)
 {
  HANDLE handle = (HANDLE)file.u64[0];
  LARGE_INTEGER off_li = {0};
@@ -594,7 +621,7 @@ OS_AttributesFromFile(OS_Handle file)
  return atts;
 }
 
-//- rjf: whole-file operations
+//- rjf: path-based operations
 
 root_function void
 OS_DeleteFile(String8 path)
@@ -638,12 +665,6 @@ OS_MakeDirectory(String8 path)
  }
  ScratchEnd(scratch);
  return result;
-}
-
-root_function B32
-OS_DeleteDirectory(String8 path)
-{
- // TODO(rjf)
 }
 
 //- rjf: file system introspection
@@ -733,7 +754,7 @@ OS_FileIterEnd(OS_FileIter *it)
 }
 
 root_function OS_FileAttributes
-OS_FileAttributesFromPath(String8 path)
+OS_AttributesFromFilePath(String8 path)
 {
  WIN32_FIND_DATAW find_data = {0};
  Temp scratch = ScratchBegin(0, 0);
@@ -774,13 +795,6 @@ OS_TimeMicroseconds(void)
  F64 time_in_seconds = ((F64)current_time.QuadPart)/((F64)os_w32_state->counts_per_second.QuadPart);
  U64 time_in_microseconds = (U64)(time_in_seconds * Million(1));
  return time_in_microseconds;
-}
-
-root_function U64
-OS_TimeCycles(void)
-{
- U64 result = __rdtsc();
- return result;
 }
 
 root_function void
@@ -882,14 +896,14 @@ OS_MutexRelease(OS_Handle mutex)
 }
 
 root_function void
-OS_MutexBlockEnter(OS_Handle mutex)
+OS_MutexScopeEnter(OS_Handle mutex)
 {
  OS_W32_CriticalSection *critical_section = (OS_W32_CriticalSection *)mutex.u64[0];
  EnterCriticalSection(&critical_section->base);
 }
 
 root_function void
-OS_MutexBlockLeave(OS_Handle mutex)
+OS_MutexScopeLeave(OS_Handle mutex)
 {
  OS_W32_CriticalSection *critical_section = (OS_W32_CriticalSection *)mutex.u64[0];
  LeaveCriticalSection(&critical_section->base);
@@ -914,28 +928,28 @@ OS_SRWMutexRelease(OS_Handle mutex)
 }
 
 root_function void
-OS_SRWMutexWriterBlockEnter(OS_Handle mutex)
+OS_SRWMutexScopeEnter_W(OS_Handle mutex)
 {
  OS_W32_SRWLock *lock = (OS_W32_SRWLock *)mutex.u64[0];
  AcquireSRWLockExclusive(&lock->lock);
 }
 
 root_function void
-OS_SRWMutexWriterBlockLeave(OS_Handle mutex)
+OS_SRWMutexScopeLeave_W(OS_Handle mutex)
 {
  OS_W32_SRWLock *lock = (OS_W32_SRWLock *)mutex.u64[0];
  ReleaseSRWLockExclusive(&lock->lock);
 }
 
 root_function void
-OS_SRWMutexReaderBlockEnter(OS_Handle mutex)
+OS_SRWMutexScopeEnter_R(OS_Handle mutex)
 {
  OS_W32_SRWLock *lock = (OS_W32_SRWLock *)mutex.u64[0];
  AcquireSRWLockShared(&lock->lock);
 }
 
 root_function void
-OS_SRWMutexReaderBlockLeave(OS_Handle mutex)
+OS_SRWMutexScopeLeave_R(OS_Handle mutex)
 {
  OS_W32_SRWLock *lock = (OS_W32_SRWLock *)mutex.u64[0];
  ReleaseSRWLockShared(&lock->lock);
@@ -1265,27 +1279,4 @@ OS_GetEntropy(void *data, U64 size)
   CryptReleaseContext(provider, 0);
  }
 #endif
-}
-
-////////////////////////////////
-//~ rjf: @os_per_backend System Info
-
-root_function F32
-OS_CaretBlinkTime(void)
-{
- F32 seconds = GetCaretBlinkTime() / 1000.f;
- return seconds;
-}
-
-root_function F32
-OS_DoubleClickTime(void)
-{
- F32 seconds = GetDoubleClickTime() / 1000.f;
- return seconds;
-}
-
-root_function U64
-OS_LogicalProcessorCount(void)
-{
- return os_w32_state->system_info.dwNumberOfProcessors;
 }
