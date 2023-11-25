@@ -1,3 +1,23 @@
+//- GENERATED CODE
+
+R_D3D11_CmdGlobalKindInfo r_d3d11_g_cmd_global_kind_info_table[5] =
+{
+{0},
+{sizeof(R_D3D11_CmdGlobals_Rect2D)},
+{sizeof(R_D3D11_CmdGlobals_Sprite3D)},
+{sizeof(R_D3D11_CmdGlobals_Composite3D)},
+{sizeof(R_D3D11_CmdGlobals_DebugLine3D)},
+};
+
+R_D3D11_ShaderPairKindInfo r_d3d11_g_shader_pair_kind_info_table[5] =
+{
+{0},
+{Str8LitComp("r_d3d11_g_rect2d_shader_src"), r_d3d11_g_rect2d_shader_src, r_d3d11_g_rect2d_ilay_elements , ArrayCount(r_d3d11_g_rect2d_ilay_elements) },
+{Str8LitComp("r_d3d11_g_sprite3d_shader_src"), r_d3d11_g_sprite3d_shader_src, r_d3d11_g_sprite3d_ilay_elements , ArrayCount(r_d3d11_g_sprite3d_ilay_elements) },
+{Str8LitComp("r_d3d11_g_composite3d_shader_src"), r_d3d11_g_composite3d_shader_src,  0,  0},
+{Str8LitComp("r_d3d11_g_debugline3d_shader_src"), r_d3d11_g_debugline3d_shader_src, r_d3d11_g_debugline3d_ilay_elements , ArrayCount(r_d3d11_g_debugline3d_ilay_elements) },
+};
+
 read_only String8 r_d3d11_g_rect2d_shader_src =
 Str8LitComp(""
 "\n"
@@ -543,22 +563,4 @@ Str8LitComp(""
 "\n"
 ""
 );
-
-R_D3D11_CmdGlobalKindInfo r_d3d11_g_cmd_global_kind_info_table[5] =
-{
-{0},
-{sizeof(R_D3D11_CmdGlobals_Rect2D)},
-{sizeof(R_D3D11_CmdGlobals_Sprite3D)},
-{sizeof(R_D3D11_CmdGlobals_Composite3D)},
-{sizeof(R_D3D11_CmdGlobals_DebugLine3D)},
-};
-
-R_D3D11_ShaderPairKindInfo r_d3d11_g_shader_pair_kind_info_table[5] =
-{
-{0},
-{Str8LitComp("r_d3d11_g_rect2d_shader_src"), r_d3d11_g_rect2d_shader_src, r_d3d11_g_rect2d_ilay_elements , ArrayCount(r_d3d11_g_rect2d_ilay_elements) },
-{Str8LitComp("r_d3d11_g_sprite3d_shader_src"), r_d3d11_g_sprite3d_shader_src, r_d3d11_g_sprite3d_ilay_elements , ArrayCount(r_d3d11_g_sprite3d_ilay_elements) },
-{Str8LitComp("r_d3d11_g_composite3d_shader_src"), r_d3d11_g_composite3d_shader_src,  0,  0},
-{Str8LitComp("r_d3d11_g_debugline3d_shader_src"), r_d3d11_g_debugline3d_shader_src, r_d3d11_g_debugline3d_ilay_elements , ArrayCount(r_d3d11_g_debugline3d_ilay_elements) },
-};
 

@@ -95,16 +95,14 @@ OS_KeyTable:
  { Semicolon     "Semicolon"             }
 }
 
-@table_gen_enum OS_Key:
+@enum OS_Key:
 {
- @expand(OS_KeyTable a)
-  `OS_Key_$(a.name),`;
- `OS_Key_COUNT`;
+ @expand(OS_KeyTable a) `$(a.name)`,
+ COUNT
 }
 
-@table_gen_data(String8) @core
+@data(String8) @core
 os_g_key_string_table:
 {
- @expand(OS_KeyTable a)
-  `Str8LitComp("$(a.string)"),`;
+ @expand(OS_KeyTable a) `Str8LitComp("$(a.string)")`,
 }

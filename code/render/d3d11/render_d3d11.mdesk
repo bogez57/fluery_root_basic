@@ -22,32 +22,32 @@ R_D3D11_ShaderPairTable:
 ////////////////////////////////
 //~ rjf: Table Generators
 
-@table_gen_enum R_D3D11_CmdGlobalKind:
+@enum R_D3D11_CmdGlobalKind:
 {
- `R_D3D11_CmdGlobalKind_Nil,`;
- @expand(R_D3D11_CmdGlobalsTable a) `R_D3D11_CmdGlobalKind_$(a.name_upper),`;
- `R_D3D11_CmdGlobalKind_COUNT`;
+ Nil;
+ @expand(R_D3D11_CmdGlobalsTable a) `$(a.name_upper)`;
+ COUNT;
 }
 
-@table_gen_enum R_D3D11_ShaderPairKind:
+@enum R_D3D11_ShaderPairKind:
 {
- `R_D3D11_ShaderPairKind_Nil,`;
- @expand(R_D3D11_ShaderPairTable a) `R_D3D11_ShaderPairKind_$(a.name_upper),`;
- `R_D3D11_ShaderPairKind_COUNT`;
+ Nil;
+ @expand(R_D3D11_ShaderPairTable a) `$(a.name_upper)`;
+ COUNT;
 }
 
-@table_gen_data(R_D3D11_CmdGlobalKindInfo)
+@data(R_D3D11_CmdGlobalKindInfo)
 r_d3d11_g_cmd_global_kind_info_table:
 {
- `{0},`;
- @expand(R_D3D11_CmdGlobalsTable a) `{sizeof($(a.type))},`;
+ `{0}`;
+ @expand(R_D3D11_CmdGlobalsTable a) `{sizeof($(a.type))}`;
 }
 
-@table_gen_data(R_D3D11_ShaderPairKindInfo)
+@data(R_D3D11_ShaderPairKindInfo)
 r_d3d11_g_shader_pair_kind_info_table:
 {
- `{0},`;
- @expand(R_D3D11_ShaderPairTable a) `{Str8LitComp("$(a.shader_blob)"), $(a.shader_blob), $(a.element_desc_table != "/" ?? a.element_desc_table) $(a.element_desc_table == "/" ?? "0"), $(a.element_desc_table != "/" ?? "ArrayCount(" .. a.element_desc_table .. ")") $(a.element_desc_table == "/" ?? "0")},`;
+ `{0}`;
+ @expand(R_D3D11_ShaderPairTable a) `{Str8LitComp("$(a.shader_blob)"), $(a.shader_blob), $(a.element_desc_table != "/" ?? a.element_desc_table) $(a.element_desc_table == "/" ?? "0"), $(a.element_desc_table != "/" ?? "ArrayCount(" .. a.element_desc_table .. ")") $(a.element_desc_table == "/" ?? "0")}`;
 }
 
 ////////////////////////////////

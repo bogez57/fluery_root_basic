@@ -2,7 +2,7 @@
 ////////////////////////////////
 //~ rjf: Tables
 
-@table(name_upper, name_lower, type, default)
+@table(name_upper name_lower type default)
 D_StackTable:
 {
  {Tex2DSampleKind      tex2d_sample_kind            R_Tex2DSampleKind     `R_Tex2DSampleKind_Nearest`                     }
@@ -16,14 +16,14 @@ D_StackTable:
 
 //- rjf: declaring all stack node types
 
-@table_gen
+@gen(structs)
 {
  @expand(D_StackTable a) `typedef struct D_$(a.name_upper)Node D_$(a.name_upper)Node; struct D_$(a.name_upper)Node {D_$(a.name_upper)Node *next; $(a.type) v;};`
 }
 
 //- rjf: declaring all default stack tops
 
-@table_gen
+@gen
 {
  `#define D_DeclThreadStackTops \\`;
  `struct\\`;
@@ -34,7 +34,7 @@ D_StackTable:
 
 //- rjf: initializing all default stack tops
 
-@table_gen
+@gen
 {
  `#define D_InitThreadStackTops \\`;
  @expand(D_StackTable a) `d_thread_ctx->$(a.name_lower)_nil_stack_top.v = $(a.default);\\`;
@@ -43,7 +43,7 @@ D_StackTable:
 
 //- rjf: declaring all bucket stack nodes & free lists
 
-@table_gen
+@gen
 {
  `#define D_DeclBucketStacks \\`;
  `struct\\`;
@@ -54,7 +54,7 @@ D_StackTable:
 
 //- rjf: initing all bucket stack nodes
 
-@table_gen
+@gen
 {
  `#define D_InitBucketStacks(b) \\`;
  @expand(D_StackTable a) `(b)->$(a.name_lower)_stack_top = &d_thread_ctx->$(a.name_lower)_nil_stack_top;\\`;
@@ -63,7 +63,7 @@ D_StackTable:
 
 //- rjf: header prototypes for all stack push/pop/top functions
 
-@table_gen
+@gen
 {
  `#if 0`;
  @expand(D_StackTable a) `root_function $(a.type) $(=>40) D_Push$(a.name_upper)($(a.type) v);`;
@@ -78,7 +78,7 @@ D_StackTable:
 
 //- rjf: stack push/pop/top implementations
 
-@table_gen @c
+@gen @c
 {
  @expand(D_StackTable a) `root_function $(a.type) $(=>40) D_Push$(a.name_upper)($(a.type) v) $(=>80) D_StackPush(D_$(a.name_upper)Node, $(a.type), $(a.name_lower), v)`;
  ``;

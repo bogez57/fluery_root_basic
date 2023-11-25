@@ -2,7 +2,6 @@
 //~ rjf: Globals
 
 #if BUILD_CORE
-B32 bc_initialized = 0;
 BC_State *bc_state = 0;
 BC_Bitmap bc_nil_bitmap = {0};
 #endif
@@ -13,9 +12,8 @@ BC_Bitmap bc_nil_bitmap = {0};
 root_function BC_InitReceipt
 BC_Init(OS_InitReceipt os_init, C_InitReceipt c_init)
 {
- if(IsMainThread() && bc_initialized == 0)
+ if(IsMainThread() && bc_state == 0)
  {
-  bc_initialized = 1;
   Arena *arena = ArenaAlloc(Gigabytes(1));
   bc_state = PushArray(arena, BC_State, 1);
   bc_state->arena = arena;

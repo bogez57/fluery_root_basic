@@ -140,7 +140,6 @@ struct F_State
 ////////////////////////////////
 //~ rjf: Globals
 
-root_global B32 f_initialized;
 root_global F_State *f_state;
 
 ////////////////////////////////

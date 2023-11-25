@@ -1,3 +1,5 @@
+//- GENERATED CODE
+
 root_function R_Tex2DSampleKind          D_PushTex2DSampleKind(R_Tex2DSampleKind v)  D_StackPush(D_Tex2DSampleKindNode, R_Tex2DSampleKind, tex2d_sample_kind, v)
 root_function Mat3x3F32                  D_PushTransform2D(Mat3x3F32 v)          D_StackPush(D_Transform2DNode, Mat3x3F32, xform2d, v)
 root_function Rng2F32                    D_PushClip(Rng2F32 v)                   D_StackPush(D_ClipNode, Rng2F32, clip, v)
@@ -12,4 +14,3 @@ root_function R_Tex2DSampleKind          D_TopTex2DSampleKind(void)             
 root_function Mat3x3F32                  D_TopTransform2D(void)                  D_StackTop(D_Transform2DNode, Mat3x3F32, xform2d)
 root_function Rng2F32                    D_TopClip(void)                         D_StackTop(D_ClipNode, Rng2F32, clip)
 root_function F32                        D_TopTransparency(void)                 D_StackTop(D_TransparencyNode, F32, transparency)
-

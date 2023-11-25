@@ -1,3 +1,5 @@
+//- GENERATED CODE
+
 #if BUILD_CORE
 String8 os_g_key_string_table[92] =
 {
@@ -94,5 +96,5 @@ Str8LitComp("Middle Mouse Button"),
 Str8LitComp("Right Mouse Button"),
 Str8LitComp("Semicolon"),
 };
-#endif // BUILD_CORE
 
+#endif // BUILD_CORE

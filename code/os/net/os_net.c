@@ -28,11 +28,11 @@ OS_NetAddrFromStringAndPort(String8 string, U16 port)
   {
    U64 next_dot_pos = FindSubstr8(string, Str8Lit("."), find_pos+1, 0);
    U64 next_colon_pos = FindSubstr8(string, Str8Lit(":"), find_pos+1, 0);
-   if(next_dot_pos >= string.size)
+   U64 next_boundary_pos = Min(next_dot_pos, next_colon_pos);
+   if(next_boundary_pos >= string.size)
    {
     break;
    }
-   U64 next_boundary_pos = Min(next_dot_pos, next_colon_pos);
    String8 next_byte_string = Substr8(string, R1U64(find_pos, next_boundary_pos));
    find_pos = next_boundary_pos+1;
    S64 next_byte_value = CStyleIntFromStr8(next_byte_string);

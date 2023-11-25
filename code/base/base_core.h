@@ -95,6 +95,12 @@
 # define read_only
 #endif
 
+#if LANG_CPP
+# define zero_struct {}
+#else
+# define zero_struct {0}
+#endif
+
 //- rjf: atomics
 
 #if OS_WINDOWS
@@ -102,7 +108,7 @@
 # define AtomicDecEval64(ptr)      InterlockedDecrement64(ptr)
 # define AtomicAddEval64(ptr, val) InterlockedAdd64((ptr), (val))
 # define AtomicEvalSet64(ptr, val) InterlockedExchange64((ptr), (val))
-# define AtomicEval64(ptr, val)    InterlockedAdd((ptr), 0)
+# define AtomicEval64(ptr)         InterlockedAdd64((ptr), 0)
 #else
 # error Atomics not implemented for this operating system.
 #endif

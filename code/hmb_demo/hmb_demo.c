@@ -1,16 +1,12 @@
 ////////////////////////////////
 //~ rjf: Includes
 
-//- rjf: os features
-#define OS_FEATURE_GFX 1
-#define OS_FEATURE_NET 1
-
-//- rjf: [h] hidden grove
+//- rjf: [h] root
 #include "base/base_inc.h"
 #include "mdesk/mdesk.h"
 #include "os/os_inc.h"
 #include "content/content_inc.h"
-#include "file_io/file_io.h"
+#include "file_stream/file_stream.h"
 #include "render/render_inc.h"
 #include "texture_cache/texture_cache.h"
 #include "font_provider/font_provider_inc.h"
@@ -21,12 +17,12 @@
 //- rjf: [h] demo
 #include "hmb_demo/hmb_demo.h"
 
-//- rjf: [c] hidden grove
+//- rjf: [c] root
 #include "base/base_inc.c"
 #include "mdesk/mdesk.c"
 #include "os/os_inc.c"
 #include "content/content_inc.c"
-#include "file_io/file_io.c"
+#include "file_stream/file_stream.c"
 #include "render/render_inc.c"
 #include "texture_cache/texture_cache.c"
 #include "font_provider/font_provider_inc.c"

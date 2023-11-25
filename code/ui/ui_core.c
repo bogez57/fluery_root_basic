@@ -251,6 +251,13 @@ UI_Mouse(void)
  return ui_state->mouse;
 }
 
+root_function Vec2F32
+UI_DragDelta(void)
+{
+ Vec2F32 result = Sub2F32(UI_Mouse(), ui_state->drag_start_mouse);
+ return result;
+}
+
 root_function UI_CursorVizData
 UI_GetCursorVizData(void)
 {
@@ -1182,7 +1189,7 @@ UI_SignalFromBox(UI_Box *box)
   else if(UI_KeyMatch(ui_state->active_key[Side_Min], box->key))
   {
    sig.dragging = 1;
-   sig.drag_delta = Sub2F32(mouse, ui_state->drag_start_mouse);
+   sig.modifiers |= OS_GetModifiers();
    if(left_release_event != 0)
    {
     OS_EatEvent(UI_Events(), left_release_event);
@@ -1208,7 +1215,7 @@ UI_SignalFromBox(UI_Box *box)
   else if(UI_KeyMatch(ui_state->active_key[Side_Max], box->key))
   {
    sig.right_dragging = 1;
-   sig.drag_delta = Sub2F32(mouse, ui_state->drag_start_mouse);
+   sig.modifiers |= OS_GetModifiers();
    if(right_release_event != 0)
    {
     OS_EatEvent(UI_Events(), right_release_event);
@@ -1384,7 +1391,7 @@ UI_UnsetFocus(void)
 root_function B32
 UI_IsFocused(void)
 {
- B32 is_focused = 0;
+ B32 is_focused = ui_state->focus_is_set;
  {
   for(UI_Box *box = UI_TopParent(); !UI_BoxIsNil(box); box = box->parent)
   {

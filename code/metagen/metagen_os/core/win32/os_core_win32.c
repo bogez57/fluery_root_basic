@@ -202,10 +202,7 @@ function DWORD
 OS_W32_ThreadEntryPoint(void *params)
 {
  OS_W32_Thread *thread = (OS_W32_Thread *)params;
- ThreadCtx tctx = ThreadCtxAlloc();
- SetThreadCtx(&tctx);
- thread->func(thread->params);
- ThreadCtxRelease(&tctx);
+ BaseThreadEntry(thread->func, thread->params);
  return 0;
 }
 

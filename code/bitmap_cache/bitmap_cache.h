@@ -80,7 +80,6 @@ struct BC_State
 ////////////////////////////////
 //~ rjf: Globals
 
-root_global B32 bc_initialized;
 root_global BC_State *bc_state;
 root_global BC_Bitmap bc_nil_bitmap;
 

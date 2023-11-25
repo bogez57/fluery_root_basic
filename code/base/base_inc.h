@@ -14,5 +14,6 @@
 #include "base_thread_ctx.h"
 #include "base_command_line.h"
 #include "base_meta.h"
+#include "base_project.h"
 
 #endif // BASE_INC_H

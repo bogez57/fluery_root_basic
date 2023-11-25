@@ -203,13 +203,6 @@ UI_ExpanderF(B32 expanded, char *fmt, ...)
  return result;
 }
 
-typedef struct UI_SliderF32DrawData UI_SliderF32DrawData;
-struct UI_SliderF32DrawData
-{
- F32 pct_filled;
- Vec4F32 fill_color;
-};
-
 function UI_CUSTOM_DRAW_FUNCTION(UI_SliderF32Draw)
 {
  UI_SliderF32DrawData *user = (UI_SliderF32DrawData *)box->ext_custom_draw->custom_draw_user_data;
@@ -247,7 +240,7 @@ UI_SliderF32(F32 *value, Rng1F32 range, String8 string)
     UI_StoreDragDataStruct(&drag_data);
    }
    F32 initial_value = UI_LoadDragDataStruct(Vec2F32)->x;
-   F32 delta = signal.drag_delta.x;
+   F32 delta = UI_DragDelta().x;
    F32 drag_factor_denom = Dim2F32(box->rect).x;
    drag_factor_denom = ClampBot(100, drag_factor_denom);
    F32 drag_factor = 1/drag_factor_denom * range_dim;
@@ -420,7 +413,7 @@ UI_LineEdit(TxtPt *cursor, TxtPt *mark, U64 buffer_size, U8 *buffer, U64 *string
    
    // rjf: set cursor viz data
    {
-    UI_SetCursorViz(edit_string_box->key, focused, V2F32(advance_before_cursor+1.f, font_size/4.f), Dim2F32(box->rect).y + font_size*2.f, font_size*2);
+    UI_SetCursorViz(edit_string_box->key, focused, V2F32(advance_before_cursor+2.f, font_size/4.f), Dim2F32(box->rect).y + font_size*2.f, font_size*2);
    }
   }
   UI_BoxEquipDrawBucket(edit_string_box, bucket, 1, 0, 0, 0);

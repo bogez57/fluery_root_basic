@@ -1,3 +1,5 @@
+//- GENERATED CODE
+
 #if 0
 #define UI_Parent(v) DeferLoop(UI_PushParent(v), UI_PopParent())
 #define UI_Flags(v) DeferLoop(UI_PushFlags(v), UI_PopFlags())
@@ -26,7 +28,6 @@
 #define UI_TextEdgePadding(v) DeferLoop(UI_PushTextEdgePadding(v), UI_PopTextEdgePadding())
 #define UI_SeedKey(v) DeferLoop(UI_PushSeedKey(v), UI_PopSeedKey())
 #endif
-
 root_function UI_Box * UI_TopParent(void) { UI_StackTopImpl(ui_state, Parent, parent) }
 root_function UI_BoxFlags UI_TopFlags(void) { UI_StackTopImpl(ui_state, Flags, flags) }
 root_function F32 UI_TopFixedX(void) { UI_StackTopImpl(ui_state, FixedX, fixed_x) }
@@ -131,7 +132,61 @@ root_function OS_CursorKind UI_SetNextHoverCursor(OS_CursorKind v) { UI_StackSet
 root_function UI_TextAlignment UI_SetNextTextAlign(UI_TextAlignment v) { UI_StackSetNextImpl(ui_state, TextAlign, text_align, UI_TextAlignment, v) }
 root_function F32 UI_SetNextTextEdgePadding(F32 v) { UI_StackSetNextImpl(ui_state, TextEdgePadding, text_edge_padding, F32, v) }
 root_function UI_Key UI_SetNextSeedKey(UI_Key v) { UI_StackSetNextImpl(ui_state, SeedKey, seed_key, UI_Key, v) }
+#if BUILD_CORE
+String8 ui_g_icon_kind_string_table[49] =
+{
+Str8LitComp(" "),
+Str8LitComp("X"),
+Str8LitComp("."),
+Str8LitComp("*"),
+Str8LitComp("8"),
+Str8LitComp("+"),
+Str8LitComp("e"),
+Str8LitComp("3"),
+Str8LitComp("M"),
+Str8LitComp("N"),
+Str8LitComp("f"),
+Str8LitComp("F"),
+Str8LitComp("t"),
+Str8LitComp("i"),
+Str8LitComp(")"),
+Str8LitComp("z"),
+Str8LitComp("@"),
+Str8LitComp("s"),
+Str8LitComp("S"),
+Str8LitComp("Z"),
+Str8LitComp("d"),
+Str8LitComp("u"),
+Str8LitComp("l"),
+Str8LitComp("r"),
+Str8LitComp("<"),
+Str8LitComp(">"),
+Str8LitComp("^"),
+Str8LitComp("v"),
+Str8LitComp("R"),
+Str8LitComp("{"),
+Str8LitComp("}"),
+Str8LitComp("m"),
+Str8LitComp("x"),
+Str8LitComp("w"),
+Str8LitComp("b"),
+Str8LitComp("g"),
+Str8LitComp("p"),
+Str8LitComp("q"),
+Str8LitComp("T"),
+Str8LitComp("D"),
+Str8LitComp("G"),
+Str8LitComp("k"),
+Str8LitComp("!"),
+Str8LitComp("1"),
+Str8LitComp("W"),
+Str8LitComp("?"),
+Str8LitComp("I"),
+Str8LitComp("V"),
+Str8LitComp("H"),
+};
 
+#endif // BUILD_CORE
 read_only U8 ui_g_icon_font_data[14416] =
 {
 0x00,0x01,0x00,0x00,0x00,0x0f,0x00,0x80,0x00,0x03,0x00,0x70,0x47,0x53,0x55,0x42,0x20,0x8b,0x25,0x7a,0x00,0x00,0x00,0xfc,0x00,0x00,0x00,0x54,0x4f,0x53,0x2f,0x32,0x56,0x4c,0x49,0x87,0x00,0x00,0x01,0x50,0x00,0x00,0x00,0x60,0x63,0x6d,0x61,0x70,0x4b,0x2f,0xce,0xb0,0x00,0x00,0x01,0xb0,0x00,0x00,0x03,0xf4,0x63,0x76,0x74,0x20,
@@ -2060,59 +2115,4 @@ read_only U8 ui_g_mono_font_data[108168] =
 };
 
 read_only U128 ui_g_mono_font_hash = {0x722bd4ddab2e3f81, 0x5823f44d6d645746};
-
-#if BUILD_CORE
-String8 ui_g_icon_kind_string_table[49] =
-{
-Str8LitComp(" "),
-Str8LitComp("X"),
-Str8LitComp("."),
-Str8LitComp("*"),
-Str8LitComp("8"),
-Str8LitComp("+"),
-Str8LitComp("e"),
-Str8LitComp("3"),
-Str8LitComp("M"),
-Str8LitComp("N"),
-Str8LitComp("f"),
-Str8LitComp("F"),
-Str8LitComp("t"),
-Str8LitComp("i"),
-Str8LitComp(")"),
-Str8LitComp("z"),
-Str8LitComp("@"),
-Str8LitComp("s"),
-Str8LitComp("S"),
-Str8LitComp("Z"),
-Str8LitComp("d"),
-Str8LitComp("u"),
-Str8LitComp("l"),
-Str8LitComp("r"),
-Str8LitComp("<"),
-Str8LitComp(">"),
-Str8LitComp("^"),
-Str8LitComp("v"),
-Str8LitComp("R"),
-Str8LitComp("{"),
-Str8LitComp("}"),
-Str8LitComp("m"),
-Str8LitComp("x"),
-Str8LitComp("w"),
-Str8LitComp("b"),
-Str8LitComp("g"),
-Str8LitComp("p"),
-Str8LitComp("q"),
-Str8LitComp("T"),
-Str8LitComp("D"),
-Str8LitComp("G"),
-Str8LitComp("k"),
-Str8LitComp("!"),
-Str8LitComp("1"),
-Str8LitComp("W"),
-Str8LitComp("?"),
-Str8LitComp("I"),
-Str8LitComp("V"),
-Str8LitComp("H"),
-};
-#endif // BUILD_CORE
 

@@ -29,8 +29,50 @@ MD_MsgListPush(Arena *arena, MD_MsgList *msgs, MD_Node *node, MD_MsgKind kind, S
  msgs->worst_message_kind = Max(kind, msgs->worst_message_kind);
 }
 
+root_function void
+MD_MsgListPushF(Arena *arena, MD_MsgList *msgs, MD_Node *node, MD_MsgKind kind, char *fmt, ...)
+{
+ va_list args;
+ va_start(args, fmt);
+ String8 string = PushStr8FV(arena, fmt, args);
+ va_end(args);
+ MD_MsgListPush(arena, msgs, node, kind, string);
+}
+
+root_function void
+MD_MsgListConcatInPlace(MD_MsgList *dst, MD_MsgList *src)
+{
+ if(!dst->first)
+ {
+  MemoryCopyStruct(dst, src);
+ }
+ else if(src->first)
+ {
+  dst->last->next = src->first;
+  dst->last = src->last;
+  dst->count += src->count;
+  dst->worst_message_kind = Max(dst->worst_message_kind, src->worst_message_kind);
+ }
+ MemoryZeroStruct(src);
+}
+
 ////////////////////////////////
 //~ rjf: Token Type Functions
+
+root_function MD_Token
+MD_TokenMake(Rng1U64 range, MD_TokenFlags flags)
+{
+ MD_Token token = {range, flags};
+ return token;
+}
+
+root_function B32
+MD_TokenMatch(MD_Token a, MD_Token b)
+{
+ return (a.range.min == b.range.min &&
+         a.range.max == b.range.max &&
+         a.flags == b.flags);
+}
 
 root_function String8List
 MD_StringListFromTokenFlags(Arena *arena, MD_TokenFlags flags)
@@ -322,6 +364,71 @@ MD_TagCountFromNode(MD_Node *node)
  return result;
 }
 
+//- rjf: tree comparison
+
+root_function B32
+MD_NodeMatch(MD_Node *a, MD_Node *b, MatchFlags flags)
+{
+ B32 result = 0;
+ if(a->kind == b->kind && Str8Match(a->string, b->string, flags))
+ {
+  result = 1;
+  if(result)
+  {
+   result = result && a->flags == b->flags;
+  }
+  if(result && a->kind != MD_NodeKind_Tag)
+  {
+   for(MD_Node *a_tag = a->first_tag, *b_tag = b->first_tag;
+       !MD_NodeIsNil(a_tag) || !MD_NodeIsNil(b_tag);
+       a_tag = a_tag->next, b_tag = b_tag->next)
+   {
+    if(MD_NodeMatch(a_tag, b_tag, flags))
+    {
+     for(MD_Node *a_tag_arg = a_tag->first, *b_tag_arg = b_tag->first;
+         !MD_NodeIsNil(a_tag_arg) || !MD_NodeIsNil(b_tag_arg);
+         a_tag_arg = a_tag_arg->next, b_tag_arg = b_tag_arg->next)
+     {
+      if(!MD_NodeDeepMatch(a_tag_arg, b_tag_arg, flags))
+      {
+       result = 0;
+       goto end;
+      }
+     }
+    }
+    else
+    {
+     result = 0;
+     goto end;
+    }
+   }
+  }
+ }
+ end:;
+ return result;
+}
+
+root_function B32
+MD_NodeDeepMatch(MD_Node *a, MD_Node *b, MatchFlags flags)
+{
+ B32 result = MD_NodeMatch(a, b, flags);
+ if(result)
+ {
+  for(MD_Node *a_child = a->first, *b_child = b->first;
+      !MD_NodeIsNil(a_child) || !MD_NodeIsNil(b_child);
+      a_child = a_child->next, b_child = b_child->next)
+  {
+   if(!MD_NodeDeepMatch(a_child, b_child, flags))
+   {
+    result = 0;
+    goto end;
+   }
+  }
+ }
+ end:;
+ return result;
+}
+
 ////////////////////////////////
 //~ rjf: Text -> Tokens Functions
 
@@ -451,7 +558,7 @@ MD_TokenizeFromText(Arena *arena, String8 text)
   
   //- rjf: numerics
   if(token_flags == 0 && (('0' <= *byte && *byte <= '9') ||
-                          *byte == '.' ||
+                          (*byte == '.' && byte+1 < byte_opl && '0' <= byte[1] && byte[1] <= '9')||
                           (*byte == '-' && byte+1 < byte_opl && '0' <= byte[1] && byte[1] <= '9') ||
                           *byte == '_'))
   {
@@ -466,7 +573,8 @@ MD_TokenizeFromText(Arena *arena, String8 text)
        (!('A' <= *byte && *byte <= 'Z') &&
         !('a' <= *byte && *byte <= 'z') &&
         !('0' <= *byte && *byte <= '9') &&
-        *byte != '_'))
+        *byte != '_' &&
+        *byte != '.'))
     {
      break;
     }
@@ -489,16 +597,16 @@ MD_TokenizeFromText(Arena *arena, String8 text)
    byte += 3;
    for(;byte <= byte_opl; byte += 1)
    {
-    token_opl += 1;
     if(byte == byte_opl)
     {
      token_flags |= MD_TokenFlag_BrokenStringLiteral;
+     token_opl = byte;
      break;
     }
     if(byte+2 < byte_opl && (byte[0] == literal_style && byte[1] == literal_style && byte[2] == literal_style))
     {
      byte += 3;
-     token_opl += 3;
+     token_opl = byte;
      break;
     }
    }
@@ -515,18 +623,28 @@ MD_TokenizeFromText(Arena *arena, String8 text)
    token_start = byte;
    token_opl = byte+1;
    byte += 1;
+   B32 escaped = 0;
    for(;byte <= byte_opl; byte += 1)
    {
-    token_opl += 1;
     if(byte == byte_opl || *byte == '\n')
     {
+     token_opl = byte;
      token_flags |= MD_TokenFlag_BrokenStringLiteral;
      break;
     }
-    if(byte[0] == literal_style)
+    if(!escaped && byte[0] == '\\')
+    {
+     escaped = 1;
+    }
+    else if(!escaped && byte[0] == literal_style)
     {
      byte += 1;
+     token_opl = byte;
      break;
+    }
+    else if(escaped)
+    {
+     escaped = 0;
     }
    }
   }
@@ -541,7 +659,7 @@ MD_TokenizeFromText(Arena *arena, String8 text)
    token_start = byte;
    token_opl = byte;
    byte += 1;
-   for(;byte <=byte_opl; byte += 1)
+   for(;byte <= byte_opl; byte += 1)
    {
     token_opl += 1;
     if(byte == byte_opl ||
@@ -654,14 +772,16 @@ MD_ParseFromTextTokens(Arena *arena, String8 filename, String8 text, MD_TokenArr
 {\
 MD_ParseWorkNode *work_node = work_free;\
 if(work_node == 0) {work_node = PushArray(scratch.arena, MD_ParseWorkNode, 1);}\
-else { StackPop(work_free); }\
+else { StackPop(work_free); MemoryZeroStruct(work_node); }\
 work_node->kind = (work_kind);\
 work_node->parent = (work_parent);\
 StackPush(work_top, work_node);\
 }while(0)
 #define MD_ParseWorkPop() do\
 {\
+MD_ParseWorkNode *top = work_top;\
 StackPop(work_top);\
+if(top != 0) { StackPush(work_free, top); }\
 if(work_top == 0) {work_top = &broken_work;}\
 }while(0)
  
@@ -901,6 +1021,16 @@ if(work_top == 0) {work_top = &broken_work;}\
    goto end_consume;
   }
   
+  //- rjf: [main implicit] }s, ]s, and )s -> pop without advancing
+  if(work_top->kind == MD_ParseWorkKind_MainImplicit && token->flags & MD_TokenFlag_Reserved &&
+     (Str8Match(token_string, Str8Lit("}"), 0) ||
+      Str8Match(token_string, Str8Lit("]"), 0) ||
+      Str8Match(token_string, Str8Lit(")"), 0)))
+  {
+   MD_ParseWorkPop();
+   goto end_consume;
+  }
+  
   //- rjf: no consumption -> unexpected token! we don't know what to do with this.
   {
    MD_Node *error = MD_PushNode(arena, MD_NodeKind_ErrorMarker, 0, token_string, token_string, token->range.min);
@@ -918,4 +1048,58 @@ if(work_top == 0) {work_top = &broken_work;}\
  result.msgs = msgs;
  ScratchEnd(scratch);
  return result;
+}
+
+////////////////////////////////
+//~ rjf: Tree -> Text Functions
+
+root_function String8List
+MD_DebugStringListFromTree(Arena *arena, MD_Node *root)
+{
+ String8List strings = {0};
+ {
+  char *indentation = "                                                                                                                                ";
+  S32 depth = 0;
+  for(MD_Node *node = root, *next = &md_nil_node; !MD_NodeIsNil(node); node = next)
+  {
+   // rjf: get next recursion
+   MD_NodeRec rec = MD_NodeRecDepthFirstPre(node, root);
+   next = rec.next;
+   
+   // rjf: extract node info
+   String8 kind_string = Str8Lit("Unknown");
+   switch(node->kind)
+   {
+    default:{}break;
+    case MD_NodeKind_File:       {kind_string = Str8Lit("File");       }break;
+    case MD_NodeKind_ErrorMarker:{kind_string = Str8Lit("ErrorMarker");}break;
+    case MD_NodeKind_Main:       {kind_string = Str8Lit("Main");       }break;
+    case MD_NodeKind_Tag:        {kind_string = Str8Lit("Tag");        }break;
+    case MD_NodeKind_List:       {kind_string = Str8Lit("List");       }break;
+    case MD_NodeKind_Reference:  {kind_string = Str8Lit("Reference");  }break;
+   }
+   
+   // rjf: push node line
+   Str8ListPushF(arena, &strings, "%.*s\"%S\" : %S", depth, indentation, node->string, kind_string);
+   
+   // rjf: children -> open brace
+   if(rec.push_count != 0)
+   {
+    Str8ListPushF(arena, &strings, "%.*s{", depth, indentation);
+   }
+   
+   // rjf: descend
+   depth += rec.push_count;
+   
+   // rjf: popping -> close braces
+   for(S32 pop_idx = 0; pop_idx < rec.pop_count; pop_idx += 1)
+   {
+    Str8ListPushF(arena, &strings, "%.*s}", depth-1-pop_idx, indentation);
+   }
+   
+   // rjf: ascend
+   depth -= rec.pop_count;
+  }
+ }
+ return strings;
 }

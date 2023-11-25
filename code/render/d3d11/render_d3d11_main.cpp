@@ -1,5 +1,4 @@
 #define BUILD_CORE 0
-#define OS_FEATURE_GFX 1
 
 #include "base/base_inc.h"
 #include "os/os_inc.h"

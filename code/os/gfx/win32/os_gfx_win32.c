@@ -942,6 +942,13 @@ OS_MouseFromWindow(OS_Handle handle)
 ////////////////////////////////
 //~ rjf: @os_per_backend Events
 
+root_function OS_Modifiers
+OS_GetModifiers(void)
+{
+ OS_Modifiers modifiers = OS_W32_GetModifiers();
+ return modifiers;
+}
+
 root_function OS_EventList
 OS_GetEvents(Arena *arena)
 {

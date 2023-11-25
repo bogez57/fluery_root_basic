@@ -138,7 +138,6 @@ struct D_SpriteParams
 ////////////////////////////////
 //~ rjf: Globals
 
-root_global B32 d_initialized;
 root_global D_State *d_state;
 extern per_thread D_ThreadCtx *d_thread_ctx;
 

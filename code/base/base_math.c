@@ -677,6 +677,7 @@ root_function B32 Contains1F32(Rng1F32 r, F32 v) { return r.min <= v && v < r.ma
 root_function F32 Dim1F32(Rng1F32 r) { return AbsoluteValueF32(r.max - r.min); }
 root_function Rng1F32 Union1F32(Rng1F32 a, Rng1F32 b) { return R1F32(Min(a.min, b.min), Max(a.max, b.max)); }
 root_function Rng1F32 Intersection1F32(Rng1F32 a, Rng1F32 b) { return R1F32(Max(a.min, b.min), Min(a.max, b.max)); }
+root_function F32 Clamp1F32(Rng1F32 r, F32 v) { v = Clamp(r.min, v, r.max); return v; }
 
 root_function Rng1F64 R1F64(F64 min, F64 max)
 {
@@ -693,6 +694,7 @@ root_function B32 Contains1F64(Rng1F64 r, F64 v) { return r.min <= v && v < r.ma
 root_function F64 Dim1F64(Rng1F64 r) { return AbsoluteValueF64(r.max - r.min); }
 root_function Rng1F64 Union1F64(Rng1F64 a, Rng1F64 b) { return R1F64(Min(a.min, b.min), Max(a.max, b.max)); }
 root_function Rng1F64 Intersection1F64(Rng1F64 a, Rng1F64 b) { return R1F64(Max(a.min, b.min), Min(a.max, b.max)); }
+root_function F64 Clamp1F64(Rng1F64 r, F64 v) { v = Clamp(r.min, v, r.max); return v; }
 
 root_function Rng1S32 R1S32(S32 min, S32 max)
 {
@@ -709,6 +711,7 @@ root_function B32 Contains1S32(Rng1S32 r, S32 v) { return r.min <= v && v < r.ma
 root_function S32 Dim1S32(Rng1S32 r) { return AbsoluteValueS32(r.max - r.min); }
 root_function Rng1S32 Union1S32(Rng1S32 a, Rng1S32 b) { return R1S32(Min(a.min, b.min), Max(a.max, b.max)); }
 root_function Rng1S32 Intersection1S32(Rng1S32 a, Rng1S32 b) { return R1S32(Max(a.min, b.min), Min(a.max, b.max)); }
+root_function S32 Clamp1S32(Rng1S32 r, S32 v) { v = Clamp(r.min, v, r.max); return v; }
 
 root_function Rng1S64 R1S64(S64 min, S64 max)
 {
@@ -725,6 +728,7 @@ root_function B32 Contains1S64(Rng1S64 r, S64 v) { return r.min <= v && v < r.ma
 root_function S64 Dim1S64(Rng1S64 r) { return AbsoluteValueS64(r.max - r.min); }
 root_function Rng1S64 Union1S64(Rng1S64 a, Rng1S64 b) { return R1S64(Min(a.min, b.min), Max(a.max, b.max)); }
 root_function Rng1S64 Intersection1S64(Rng1S64 a, Rng1S64 b) { return R1S64(Max(a.min, b.min), Min(a.max, b.max)); }
+root_function S64 Clamp1S64(Rng1S64 r, S64 v) { v = Clamp(r.min, v, r.max); return v; }
 
 root_function Rng1U32 R1U32(U32 min, U32 max)
 {
@@ -741,6 +745,7 @@ root_function B32 Contains1U32(Rng1U32 r, U32 v) { return r.min <= v && v < r.ma
 root_function U32 Dim1U32(Rng1U32 r) { return (r.max - r.min); }
 root_function Rng1U32 Union1U32(Rng1U32 a, Rng1U32 b) { return R1U32(Min(a.min, b.min), Max(a.max, b.max)); }
 root_function Rng1U32 Intersection1U32(Rng1U32 a, Rng1U32 b) { return R1U32(Max(a.min, b.min), Min(a.max, b.max)); }
+root_function U32 Clamp1U32(Rng1U32 r, U32 v) { v = Clamp(r.min, v, r.max); return v; }
 
 root_function Rng1U64 R1U64(U64 min, U64 max)
 {
@@ -757,6 +762,7 @@ root_function B32 Contains1U64(Rng1U64 r, U64 v) { return r.min <= v && v < r.ma
 root_function U64 Dim1U64(Rng1U64 r) { return AbsoluteValueU64(r.max - r.min); }
 root_function Rng1U64 Union1U64(Rng1U64 a, Rng1U64 b) { return R1U64(Min(a.min, b.min), Max(a.max, b.max)); }
 root_function Rng1U64 Intersection1U64(Rng1U64 a, Rng1U64 b) { return R1U64(Max(a.min, b.min), Min(a.max, b.max)); }
+root_function U64 Clamp1U64(Rng1U64 r, U64 v) { v = Clamp(r.min, v, r.max); return v; }
 
 root_function Rng2F32
 R2F32(Vec2F32 min, Vec2F32 max)
@@ -779,6 +785,7 @@ root_function Rng2F32 Intersection2F32(Rng2F32 a, Rng2F32 b)
  return R2F32(V2F32(Max(a.min.x, b.min.x), Max(a.min.y, b.min.y)),
               V2F32(Min(a.max.x, b.max.x), Min(a.max.y, b.max.y)));
 }
+root_function Vec2F32 Clamp2F32(Rng2F32 r, Vec2F32 v) { v.x = Clamp(r.min.x, v.x, r.max.x); v.y = Clamp(r.min.y, v.y, r.max.y); return v; }
 
 root_function Rng2F64
 R2F64(Vec2F64 min, Vec2F64 max)
@@ -801,6 +808,7 @@ root_function Rng2F64 Intersection2F64(Rng2F64 a, Rng2F64 b)
  return R2F64(V2F64(Max(a.min.x, b.min.x), Max(a.min.y, b.min.y)),
               V2F64(Min(a.max.x, b.max.x), Min(a.max.y, b.max.y)));
 }
+root_function Vec2F64 Clamp2F64(Rng2F64 r, Vec2F64 v) { v.x = Clamp(r.min.x, v.x, r.max.x); v.y = Clamp(r.min.y, v.y, r.max.y); return v; }
 
 root_function Rng2S32
 R2S32(Vec2S32 min, Vec2S32 max)
@@ -822,6 +830,7 @@ root_function Rng2S32 Intersection2S32(Rng2S32 a, Rng2S32 b)
  return R2S32(V2S32(Max(a.min.x, b.min.x), Max(a.min.y, b.min.y)),
               V2S32(Min(a.max.x, b.max.x), Min(a.max.y, b.max.y)));
 }
+root_function Vec2S32 Clamp2S32(Rng2S32 r, Vec2S32 v) { v.x = Clamp(r.min.x, v.x, r.max.x); v.y = Clamp(r.min.y, v.y, r.max.y); return v; }
 
 root_function Rng2S64
 R2S64(Vec2S64 min, Vec2S64 max)
@@ -843,6 +852,7 @@ root_function Rng2S64 Intersection2S64(Rng2S64 a, Rng2S64 b)
  return R2S64(V2S64(Max(a.min.x, b.min.x), Max(a.min.y, b.min.y)),
               V2S64(Min(a.max.x, b.max.x), Min(a.max.y, b.max.y)));
 }
+root_function Vec2S64 Clamp2S64(Rng2S64 r, Vec2S64 v) { v.x = Clamp(r.min.x, v.x, r.max.x); v.y = Clamp(r.min.y, v.y, r.max.y); return v; }
 
 root_function Rng3F32
 R3F32(Vec3F32 min, Vec3F32 max)
@@ -865,6 +875,7 @@ root_function Rng3F32 Intersection3F32(Rng3F32 a, Rng3F32 b)
  return R3F32(V3F32(Max(a.min.x, b.min.x), Max(a.min.y, b.min.y), Max(a.min.z, b.min.z)),
               V3F32(Min(a.max.x, b.max.x), Min(a.max.y, b.max.y), Min(a.max.z, b.max.z)));
 }
+root_function Vec3F32 Clamp3F32(Rng3F32 r, Vec3F32 v) { v.x = Clamp(r.min.x, v.x, r.max.x); v.y = Clamp(r.min.y, v.y, r.max.y); v.z = Clamp(r.min.z, v.z, r.max.z); return v; }
 
 ////////////////////////////////
 //~ rjf: Lists

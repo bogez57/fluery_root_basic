@@ -2,7 +2,6 @@
 //~ rjf: Globals
 
 #if BUILD_CORE
-B32 fs_initialized = 0;
 FS_State *fs_state = 0;
 #endif
 

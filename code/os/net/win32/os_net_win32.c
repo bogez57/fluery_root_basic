@@ -1,4 +1,9 @@
 ////////////////////////////////
+//~ rjf: Linker
+
+#pragma comment(lib, "ws2_32.lib")
+
+////////////////////////////////
 //~ rjf: Helpers
 
 function int
@@ -119,7 +124,7 @@ OS_SocketAccept(OS_Handle s)
  struct sockaddr_in connected_addr = {0};
  int connected_addr_size = (int)sizeof(connected_addr);
  SOCKET connected_sock = accept(sock, (struct sockaddr *)&connected_addr, &connected_addr_size);
- OS_AcceptResult result = {0};
+ OS_AcceptResult result = zero_struct;
  result.addr = OS_W32_NetAddrFromSockAddrIn(&connected_addr);
  result.socket.u64[0] = (U64)connected_sock;
  return result;
@@ -129,7 +134,7 @@ root_function void
 OS_SocketSend(OS_Handle s, String8 data)
 {
  SOCKET sock = (SOCKET)s.u64[0];
- int error = send(sock, data.str, data.size, 0);
+ int error = send(sock, (char *)data.str, data.size, 0);
 }
 
 root_function void
@@ -137,7 +142,7 @@ OS_SocketSendTo(OS_Handle s, OS_NetAddr addr, String8 data)
 {
  SOCKET sock = (SOCKET)s.u64[0];
  struct sockaddr_in dst_addr = OS_W32_SockAddrInFromNetAddr(&addr);
- int error = sendto(sock, data.str, data.size, 0, (struct sockaddr *)&dst_addr, sizeof(dst_addr));
+ int error = sendto(sock, (char *)data.str, data.size, 0, (struct sockaddr *)&dst_addr, sizeof(dst_addr));
 }
 
 root_function OS_ReceiveResult
@@ -145,13 +150,13 @@ OS_SocketReceive(Arena *arena, OS_Handle s, U64 cap)
 {
  SOCKET sock = (SOCKET)s.u64[0];
  U8 *buffer = PushArrayNoZero(arena, U8, cap);
- int error = recv(sock, buffer, cap, 0);
+ int error = recv(sock, (char *)buffer, cap, 0);
  U64 bytes_received = 0;
  if(error > 0)
  {
   bytes_received = (U64)error;
  }
- OS_ReceiveResult result = {0};
+ OS_ReceiveResult result = zero_struct;
  result.data = Str8(buffer, bytes_received);
  return result;
 }
@@ -163,13 +168,13 @@ OS_SocketReceiveFrom(Arena *arena, OS_Handle s, U64 cap)
  U8 *buffer = PushArrayNoZero(arena, U8, cap);
  struct sockaddr_in recv_addr = {0};
  int recv_addr_size = sizeof(recv_addr);
- int error = recvfrom(sock, buffer, cap, 0, (struct sockaddr *)&recv_addr, &recv_addr_size);
+ int error = recvfrom(sock, (char *)buffer, cap, 0, (struct sockaddr *)&recv_addr, &recv_addr_size);
  U64 bytes_received = 0;
  if(error > 0)
  {
   bytes_received = (U64)error;
  }
- OS_ReceiveResult result = {0};
+ OS_ReceiveResult result = zero_struct;
  result.addr = OS_W32_NetAddrFromSockAddrIn(&recv_addr);
  result.data = Str8(buffer, bytes_received);
  return result;

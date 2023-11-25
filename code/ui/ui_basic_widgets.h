@@ -4,6 +4,16 @@
 #define UI_BASIC_WIDGETS_H
 
 ////////////////////////////////
+//~ rjf: Basic Types
+
+typedef struct UI_SliderF32DrawData UI_SliderF32DrawData;
+struct UI_SliderF32DrawData
+{
+ F32 pct_filled;
+ Vec4F32 fill_color;
+};
+
+////////////////////////////////
 //~ rjf: Basics
 
 root_function UI_Signal UI_Label(String8 string);
@@ -27,6 +37,7 @@ root_function UI_Signal UI_RadioF(B32 selected, char *fmt, ...);
 root_function UI_Signal UI_Expander(B32 expanded, String8 string);
 root_function UI_Signal UI_ExpanderF(B32 expanded, char *fmt, ...);
 
+function UI_CUSTOM_DRAW_FUNCTION(UI_SliderF32Draw);
 root_function UI_Signal UI_SliderF32(F32 *value, Rng1F32 range, String8 string);
 root_function UI_Signal UI_SliderF32F(F32 *value, Rng1F32 range, char *fmt, ...);
 

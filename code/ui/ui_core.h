@@ -191,7 +191,6 @@ struct UI_Signal
  B8 mouse_is_over    : 1;
  B8 keyboard_pressed : 1;
  OS_Modifiers modifiers;
- Vec2F32 drag_delta;
 };
 
 ////////////////////////////////
@@ -360,6 +359,7 @@ root_function UI_Box *UI_Root(void);
 root_function OS_Handle UI_Window(void);
 root_function OS_EventList *UI_Events(void);
 root_function Vec2F32 UI_Mouse(void);
+root_function Vec2F32 UI_DragDelta(void);
 root_function UI_CursorVizData UI_GetCursorVizData(void);
 root_function UI_Box *UI_BoxFromKey(UI_Key key);
 root_function UI_Key UI_HotKey(void);
@@ -611,5 +611,6 @@ root_function void UI_SetNextFixedRect(Rng2F32 rect);
 
 //- rjf: other
 #define UI_CtxMenu(key) DeferLoopChecked(UI_CtxMenuBegin(key), UI_CtxMenuEnd())
+#define UI_Focus(v) DeferLoop(UI_SetFocus(v), UI_UnsetFocus())
 
 #endif // UI_H

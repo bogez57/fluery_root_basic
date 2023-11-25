@@ -2,7 +2,6 @@
 //~ rjf: Globals
 
 #if BUILD_CORE
-B32 d_initialized = 0;
 D_State *d_state = 0;
 per_thread D_ThreadCtx *d_thread_ctx = 0;
 #endif
@@ -57,9 +56,8 @@ return result;\
 root_function D_InitReceipt
 D_Init(R_InitReceipt r_init_receipt, F_InitReceipt f_init_receipt)
 {
- if(IsMainThread() && d_initialized == 0)
+ if(IsMainThread() && d_state == 0)
  {
-  d_initialized = 1;
   Arena *arena = ArenaAlloc(Gigabytes(8));
   d_state = PushArray(arena, D_State, 1);
   d_state->arena = arena;

@@ -97,33 +97,30 @@ UI_StackTable:
 
 //- rjf: icon enum
 
-@table_gen_enum
-UI_IconKind:
+@enum UI_IconKind:
 {
- @expand(UI_IconTable a)
-  `UI_IconKind_$(a.name),`;
- `UI_IconKind_COUNT`;
+ @expand(UI_IconTable a) `$(a.name)`,
+ COUNT,
 }
 
 //- rjf: icon string table
 
-@table_gen_data(String8) @core
+@data(String8) @core
 ui_g_icon_kind_string_table:
 {
- @expand(UI_IconTable a)
-  `Str8LitComp("$(a.string)"),`;
+ @expand(UI_IconTable a) `Str8LitComp("$(a.string)")`;
 }
 
 //- rjf: declaring stack node types
 
-@table_gen
+@gen(structs)
 {
  @expand(UI_StackTable a) `typedef struct UI_$(a.name)Node UI_$(a.name)Node; struct UI_$(a.name)Node{UI_$(a.name)Node *next; $(a.type) v;};`
 }
 
 //- rjf: declaring all default stack tops
 
-@table_gen
+@gen
 {
  `#define UI_DeclStackNils \\`;
  `struct\\`;
@@ -134,7 +131,7 @@ ui_g_icon_kind_string_table:
 
 //- rjf: initializing all default stack tops
 
-@table_gen
+@gen
 {
  `#define UI_InitStackNils(state) \\`;
  @expand(UI_StackTable a) `state->$(a.name_lower)_nil_stack_top.v = $(a.default);\\`;
@@ -143,7 +140,7 @@ ui_g_icon_kind_string_table:
 
 //- rjf: declaring all stack nodes & free lists
 
-@table_gen
+@gen
 {
  `#define UI_DeclStacks \\`;
  `struct\\`;
@@ -154,7 +151,7 @@ ui_g_icon_kind_string_table:
 
 //- rjf: initing all stack nodes
 
-@table_gen
+@gen
 {
  `#define UI_InitStacks(state) \\`;
  @expand(UI_StackTable a) `state->$(a.name_lower)_stack.top = &state->$(a.name_lower)_nil_stack_top; state->$(a.name_lower)_stack.free = 0; state->$(a.name_lower)_stack.auto_pop = 0;\\`;
@@ -163,16 +160,17 @@ ui_g_icon_kind_string_table:
 
 //- rjf: auto-popping all stacks
 
-@table_gen
+@gen
 {
  `#define UI_AutoPopStacks(state) \\`
  @expand(UI_StackTable a)
   `if(state->$(a.name_lower)_stack.auto_pop) { UI_Pop$(a.name)(); state->$(a.name_lower)_stack.auto_pop = 0; }\\`;
+ ``;
 }
 
 //- rjf: decls for the stack function operation headers
 
-@table_gen
+@gen
 {
  @expand(UI_StackTable a)
   `root_function $(a.type) $(=>35) UI_Top$(a.name)(void);`
@@ -186,7 +184,7 @@ ui_g_icon_kind_string_table:
 
 //- rjf: defer-loop helpers
 
-@table_gen @c
+@gen @c
 {
  `#if 0`;
  @expand(UI_StackTable a)
@@ -196,7 +194,7 @@ ui_g_icon_kind_string_table:
 
 //- rjf: decls for the stack operation implementations
 
-@table_gen @c
+@gen(functions) @c
 {
  @expand(UI_StackTable a)
   `root_function $(a.type) UI_Top$(a.name)(void) { UI_StackTopImpl(ui_state, $(a.name), $(a.name_lower)) }`;

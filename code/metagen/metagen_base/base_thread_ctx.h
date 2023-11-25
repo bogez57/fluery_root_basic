@@ -31,7 +31,4 @@ root_function void SetThreadFileAndLine_(char *file, int line);
 root_function Temp ScratchBegin(Arena **conflicts, U64 conflict_count);
 #define ScratchEnd(temp) TempEnd(temp)
 
-//- rjf: main thread entry point
-root_function void BaseMainThreadEntry(void (*entry)(struct CmdLine *cmdln), U64 argument_count, char **arguments);
-
 #endif // BASE_THREAD_CTX_H

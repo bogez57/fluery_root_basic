@@ -2,7 +2,6 @@
 //~ rjf: Globals
 
 #if BUILD_CORE
-B32 f_initialized = 0;
 F_State *f_state = 0;
 #endif
 
@@ -433,9 +432,8 @@ F_PushAtlasList(Arena *arena)
 root_function F_InitReceipt
 F_Init(FP_InitReceipt fp_init_receipt, R_InitReceipt r_init_receipt, Vec2S64 glyph_atlas_size)
 {
- if(IsMainThread() && f_initialized == 0)
+ if(IsMainThread() && f_state == 0)
  {
-  f_initialized = 1;
   Arena *arena = ArenaAlloc(Gigabytes(64));
   f_state = PushArray(arena, F_State, 1);
   f_state->arena = arena;

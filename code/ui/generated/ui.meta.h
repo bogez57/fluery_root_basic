@@ -1,3 +1,8 @@
+//- GENERATED CODE
+
+#ifndef UI_META_H
+#define UI_META_H
+
 typedef enum UI_IconKind
 {
 UI_IconKind_Null,
@@ -49,7 +54,7 @@ UI_IconKind_Question,
 UI_IconKind_Info,
 UI_IconKind_Eye,
 UI_IconKind_EyeCovered,
-UI_IconKind_COUNT
+UI_IconKind_COUNT,
 }
 UI_IconKind;
 
@@ -79,7 +84,6 @@ typedef struct UI_HoverCursorNode UI_HoverCursorNode; struct UI_HoverCursorNode{
 typedef struct UI_TextAlignNode UI_TextAlignNode; struct UI_TextAlignNode{UI_TextAlignNode *next; UI_TextAlignment v;};
 typedef struct UI_TextEdgePaddingNode UI_TextEdgePaddingNode; struct UI_TextEdgePaddingNode{UI_TextEdgePaddingNode *next; F32 v;};
 typedef struct UI_SeedKeyNode UI_SeedKeyNode; struct UI_SeedKeyNode{UI_SeedKeyNode *next; UI_Key v;};
-
 #define UI_DeclStackNils \
 struct\
 {\
@@ -110,7 +114,6 @@ UI_TextAlignNode text_align_nil_stack_top;\
 UI_TextEdgePaddingNode text_edge_padding_nil_stack_top;\
 UI_SeedKeyNode seed_key_nil_stack_top;\
 }
-
 #define UI_InitStackNils(state) \
 state->parent_nil_stack_top.v = &ui_g_nil_box;\
 state->flags_nil_stack_top.v = 0;\
@@ -138,7 +141,6 @@ state->hover_cursor_nil_stack_top.v = OS_CursorKind_Null;\
 state->text_align_nil_stack_top.v = UI_TextAlignment_Left;\
 state->text_edge_padding_nil_stack_top.v = 0.f;\
 state->seed_key_nil_stack_top.v = UI_KeyZero();\
-
 
 #define UI_DeclStacks \
 struct\
@@ -170,7 +172,6 @@ struct { UI_TextAlignNode *top; UI_TextAlignNode *free; B32 auto_pop; } text_ali
 struct { UI_TextEdgePaddingNode *top; UI_TextEdgePaddingNode *free; B32 auto_pop; } text_edge_padding_stack;\
 struct { UI_SeedKeyNode *top; UI_SeedKeyNode *free; B32 auto_pop; } seed_key_stack;\
 }
-
 #define UI_InitStacks(state) \
 state->parent_stack.top = &state->parent_nil_stack_top; state->parent_stack.free = 0; state->parent_stack.auto_pop = 0;\
 state->flags_stack.top = &state->flags_nil_stack_top; state->flags_stack.free = 0; state->flags_stack.auto_pop = 0;\
@@ -198,7 +199,6 @@ state->hover_cursor_stack.top = &state->hover_cursor_nil_stack_top; state->hover
 state->text_align_stack.top = &state->text_align_nil_stack_top; state->text_align_stack.free = 0; state->text_align_stack.auto_pop = 0;\
 state->text_edge_padding_stack.top = &state->text_edge_padding_nil_stack_top; state->text_edge_padding_stack.free = 0; state->text_edge_padding_stack.auto_pop = 0;\
 state->seed_key_stack.top = &state->seed_key_nil_stack_top; state->seed_key_stack.free = 0; state->seed_key_stack.auto_pop = 0;\
-
 
 #define UI_AutoPopStacks(state) \
 if(state->parent_stack.auto_pop) { UI_PopParent(); state->parent_stack.auto_pop = 0; }\
@@ -332,10 +332,17 @@ root_function OS_CursorKind         UI_SetNextHoverCursor(OS_CursorKind v);
 root_function UI_TextAlignment      UI_SetNextTextAlign(UI_TextAlignment v);
 root_function F32                   UI_SetNextTextEdgePadding(F32 v);
 root_function UI_Key                UI_SetNextSeedKey(UI_Key v);
-
-extern String8 ui_g_icon_font;extern U8 ui_g_icon_font_data[14416];extern U128 ui_g_icon_font_hash;read_only String8 ui_g_icon_font = {ui_g_icon_font_data, sizeof(ui_g_icon_font_data)};
-
-extern String8 ui_g_mono_font;extern U8 ui_g_mono_font_data[108168];extern U128 ui_g_mono_font_hash;read_only String8 ui_g_mono_font = {ui_g_mono_font_data, sizeof(ui_g_mono_font_data)};
-
 root_global String8 ui_g_icon_kind_string_table[49];
 
+extern String8 ui_g_icon_font;
+extern U8 ui_g_icon_font_data[14416];
+extern U128 ui_g_icon_font_hash;
+read_only String8 ui_g_icon_font = {ui_g_icon_font_data, sizeof(ui_g_icon_font_data)};
+
+extern String8 ui_g_mono_font;
+extern U8 ui_g_mono_font_data[108168];
+extern U128 ui_g_mono_font_hash;
+read_only String8 ui_g_mono_font = {ui_g_mono_font_data, sizeof(ui_g_mono_font_data)};
+
+
+#endif // UI_META_H

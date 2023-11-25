@@ -166,6 +166,7 @@ root_function Vec2F32   OS_MouseFromWindow(OS_Handle handle);
 ////////////////////////////////
 //~ rjf: @os_per_backend Events
 
+root_function OS_Modifiers OS_GetModifiers(void);
 root_function OS_EventList OS_GetEvents(Arena *arena);
 root_function void OS_EatEvent(OS_EventList *events, OS_Event *event);
 

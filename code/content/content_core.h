@@ -60,7 +60,6 @@ struct C_State
 ////////////////////////////////
 //~ rjf: Globals
 
-root_global B32 c_initialized;
 root_global C_State *c_state;
 
 ////////////////////////////////

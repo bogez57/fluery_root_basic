@@ -98,27 +98,3 @@ ScratchBegin(Arena **conflicts, U64 conflict_count)
  }
  return scratch;
 }
-
-//- rjf: main thread entry point
-
-root_function void
-BaseMainThreadEntry(void (*entry)(CmdLine *cmdln), U64 argument_count, char **arguments)
-{
-#if BUILD_TELEMETRY
- local_persist U8 tm_data[Megabytes(64)];
- tmLoadLibrary(TM_RELEASE);
- tmSetMaxThreadCount(256);
- tmInitialize(sizeof(tm_data), (char *)tm_data);
-#endif
- ThreadCtx tctx = ThreadCtxAlloc();
- tctx.is_main_thread = 1;
- SetThreadCtx(&tctx);
- String8List args_list = {0};
- for(U64 argument_idx = 1; argument_idx < argument_count; argument_idx += 1)
- {
-  Str8ListPush(tctx.arenas[0], &args_list, Str8C(arguments[argument_idx]));
- }
- CmdLine cmdline = CmdLineFromStringList(tctx.arenas[0], args_list);
- entry(&cmdline);
- ThreadCtxRelease(&tctx);
-}

@@ -1,7 +1,7 @@
 /* date = December 3rd 2022 0:37 pm */
 
-#ifndef FILE_IO_H
-#define FILE_IO_H
+#ifndef FILE_STREAM_H
+#define FILE_STREAM_H
 
 ////////////////////////////////
 //~ rjf: Basic Types
@@ -69,7 +69,6 @@ struct FS_State
 ////////////////////////////////
 //~ rjf: Globals
 
-root_global B32 fs_initialized;
 root_global FS_State *fs_state;
 
 ////////////////////////////////
@@ -104,4 +103,4 @@ root_function S64 FS_LoaderThreadRequestCount(void);
 root_function void FS_LoaderThreadEntryPoint(void *p);
 root_function void FS_ChangeDetectorThreadEntryPoint(void *p);
 
-#endif // FILE_IO_H
+#endif // FILE_STREAM_H

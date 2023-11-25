@@ -1,3 +1,8 @@
+//- GENERATED CODE
+
+#ifndef OS_GFX_META_H
+#define OS_GFX_META_H
+
 typedef enum OS_Key
 {
 OS_Key_Null,
@@ -92,9 +97,11 @@ OS_Key_MouseLeft,
 OS_Key_MouseMiddle,
 OS_Key_MouseRight,
 OS_Key_Semicolon,
-OS_Key_COUNT
+OS_Key_COUNT,
 }
 OS_Key;
 
 root_global String8 os_g_key_string_table[92];
 
+
+#endif // OS_GFX_META_H

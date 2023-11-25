@@ -220,10 +220,14 @@ root_global MD_Node md_nil_node;
 //~ rjf: Message Type Functions
 
 root_function void MD_MsgListPush(Arena *arena, MD_MsgList *msgs, MD_Node *node, MD_MsgKind kind, String8 string);
+root_function void MD_MsgListPushF(Arena *arena, MD_MsgList *msgs, MD_Node *node, MD_MsgKind kind, char *fmt, ...);
+root_function void MD_MsgListConcatInPlace(MD_MsgList *dst, MD_MsgList *src);
 
 ////////////////////////////////
 //~ rjf: Token Type Functions
 
+root_function MD_Token MD_TokenMake(Rng1U64 range, MD_TokenFlags flags);
+root_function B32 MD_TokenMatch(MD_Token a, MD_Token b);
 root_function String8List MD_StringListFromTokenFlags(Arena *arena, MD_TokenFlags flags);
 root_function void MD_TokenChunkListPush(Arena *arena, MD_TokenChunkList *list, U64 cap, MD_Token token);
 root_function MD_TokenArray MD_TokenArrayFromChunkList(Arena *arena, MD_TokenChunkList *chunks);
@@ -267,6 +271,10 @@ root_function B32        MD_NodeHasTag(MD_Node *node, String8 string, MatchFlags
 root_function U64        MD_ChildCountFromNode(MD_Node *node);
 root_function U64        MD_TagCountFromNode(MD_Node *node);
 
+//- rjf: tree comparison
+root_function B32 MD_NodeDeepMatch(MD_Node *a, MD_Node *b, MatchFlags flags);
+root_function B32 MD_NodeMatch(MD_Node *a, MD_Node *b, MatchFlags flags);
+
 ////////////////////////////////
 //~ rjf: Text -> Tokens Functions
 
@@ -276,5 +284,10 @@ root_function MD_TokenizeResult MD_TokenizeFromText(Arena *arena, String8 text);
 //~ rjf: Tokens -> Tree Functions
 
 root_function MD_ParseResult MD_ParseFromTextTokens(Arena *arena, String8 filename, String8 text, MD_TokenArray tokens);
+
+////////////////////////////////
+//~ rjf: Tree -> Text Functions
+
+root_function String8List MD_DebugStringListFromTree(Arena *arena, MD_Node *root);
 
 #endif // MDESK_H

@@ -2,7 +2,6 @@
 //~ rjf: Globals
 
 #if BUILD_CORE
-B32 c_initialized = 0;
 C_State *c_state = 0;
 #endif
 
@@ -12,9 +11,8 @@ C_State *c_state = 0;
 root_function C_InitReceipt
 C_Init(OS_InitReceipt os_init_receipt)
 {
- if(IsMainThread() && c_initialized == 0)
+ if(IsMainThread() && c_state == 0)
  {
-  c_initialized = 1;
   Arena *arena = ArenaAlloc(Megabytes(16));
   c_state = PushArray(arena, C_State, 1);
   c_state->arena = arena;

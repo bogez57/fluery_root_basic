@@ -1,3 +1,8 @@
+//- GENERATED CODE
+
+#ifndef RENDER_D3D11_META_H
+#define RENDER_D3D11_META_H
+
 typedef enum R_D3D11_CmdGlobalKind
 {
 R_D3D11_CmdGlobalKind_Nil,
@@ -5,7 +10,7 @@ R_D3D11_CmdGlobalKind_Rect2D,
 R_D3D11_CmdGlobalKind_Sprite3D,
 R_D3D11_CmdGlobalKind_Composite3D,
 R_D3D11_CmdGlobalKind_DebugLine3D,
-R_D3D11_CmdGlobalKind_COUNT
+R_D3D11_CmdGlobalKind_COUNT,
 }
 R_D3D11_CmdGlobalKind;
 
@@ -16,11 +21,17 @@ R_D3D11_ShaderPairKind_Rect2D,
 R_D3D11_ShaderPairKind_Sprite3D,
 R_D3D11_ShaderPairKind_Composite3D,
 R_D3D11_ShaderPairKind_DebugLine3D,
-R_D3D11_ShaderPairKind_COUNT
+R_D3D11_ShaderPairKind_COUNT,
 }
 R_D3D11_ShaderPairKind;
 
-extern String8 r_d3d11_g_rect2d_shader_src;extern String8 r_d3d11_g_sprite3d_shader_src;extern String8 r_d3d11_g_composite3d_shader_src;extern String8 r_d3d11_g_debugline3d_shader_src;extern R_D3D11_CmdGlobalKindInfo r_d3d11_g_cmd_global_kind_info_table[5];
+extern R_D3D11_CmdGlobalKindInfo r_d3d11_g_cmd_global_kind_info_table[5];
 
 extern R_D3D11_ShaderPairKindInfo r_d3d11_g_shader_pair_kind_info_table[5];
 
+extern String8 r_d3d11_g_rect2d_shader_src;
+extern String8 r_d3d11_g_sprite3d_shader_src;
+extern String8 r_d3d11_g_composite3d_shader_src;
+extern String8 r_d3d11_g_debugline3d_shader_src;
+
+#endif // RENDER_D3D11_META_H

@@ -70,15 +70,15 @@
 ////////////////////////////////
 //~ rjf: Constants
 
-read_only global F32 InfinityF32 = INFINITY;
+#define InfinityF32                 ((F32)INFINITY)
 
-read_only global F32 PiF32 = 3.1415926535897f;
-read_only global F32 OneOverSquareRootOfTwoPiF32 = 0.3989422804f;
-read_only global F32 EulersNumberF32 = 2.7182818284590452353602874713527f;
+#define PiF32                       (3.1415926535897f)
+#define OneOverSquareRootOfTwoPiF32 (0.3989422804f)
+#define EulersNumberF32             (2.7182818284590452353602874713527f)
 
-read_only global F64 PiF64 = 3.1415926535897;
-read_only global F64 OneOverSquareRootOfTwoPiF64 = 0.3989422804;
-read_only global F64 EulersNumberF64 = 2.7182818284590452353602874713527;
+#define PiF64                       (3.1415926535897)
+#define OneOverSquareRootOfTwoPiF64 (0.3989422804)
+#define EulersNumberF64             (2.7182818284590452353602874713527)
 
 ////////////////////////////////
 //~ rjf: Vector Types
