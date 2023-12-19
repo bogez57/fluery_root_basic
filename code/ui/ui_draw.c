@@ -93,6 +93,15 @@ UI_Draw(void)
     h1->colors[Corner_01] = h1->colors[Corner_11] = V4(1, 1, 1, 0.08f*box->active_t * box->ext_rect_style->background_color.a);
     MemoryCopyArray(h4->corner_radii, box->ext_rect_style->corner_radii);
    }
+   
+   if(box->focus_hot_t >= 0.005f)
+   {
+    Rng2F32 rect = box->rect;
+    Vec2F32 dim = Dim2F32(rect);
+    rect.x1 = rect.x0 + dim.x*box->focus_hot_t;
+    R_Rect2DInst *r = D_Rect2D(rect, .color = V4(1, 0.94f, 0.7f, 0.2f*box->focus_hot_t), .softness = 1.f);
+    MemoryCopyArray(r->corner_radii, box->ext_rect_style->corner_radii);
+   }
   }
   
   //- rjf: draw text

@@ -51,7 +51,7 @@ root_function B32 FP_HandleMatch(FP_Handle a, FP_Handle b);
 //~ rjf: Backend Abstraction Functions
 
 fp_function FP_InitReceipt FP_Init(C_InitReceipt c_init);
-fp_function FP_Handle FP_FontOpen(C_Hash hash);
+fp_function FP_Handle FP_FontOpen(U128 hash);
 fp_function void FP_FontClose(FP_Handle handle);
 fp_function FP_Metrics FP_MetricsFromFont(FP_Handle handle, F32 size);
 fp_function FP_RasterResult FP_Raster(Arena *arena, FP_Handle handle, F32 size, String8 string);

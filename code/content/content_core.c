@@ -42,24 +42,10 @@ C_ScopeClose(C_Scope *scope)
 ////////////////////////////////
 //~ rjf: Hashes
 
-root_function C_Hash
-C_HashZero(void)
-{
- C_Hash hash = {0};
- return hash;
-}
-
-root_function C_Hash
-C_HashMake(U64 a, U64 b)
-{
- C_Hash hash = {a, b};
- return hash;
-}
-
-root_function C_Hash
+root_function U128
 C_HashFromString(String8 string)
 {
- C_Hash hash = {0};
+ U128 hash = {0};
  {
   meow_u128 meow_hash = MeowHash(MeowDefaultSeed, string.size, string.str);
   MemoryCopy(&hash, &meow_hash, Min(sizeof(meow_hash), sizeof(hash)));
@@ -67,20 +53,14 @@ C_HashFromString(String8 string)
  return hash;
 }
 
-root_function B32
-C_HashMatch(C_Hash a, C_Hash b)
-{
- return (a.u64[0] == b.u64[0] && a.u64[1] == b.u64[1]);
-}
-
 ////////////////////////////////
 //~ rjf: Cache Interaction
 
-root_function C_Hash
+root_function U128
 C_SubmitData(Arena **permanent_arena, String8 data)
 {
  //- rjf: produce hash from hash
- C_Hash hash = C_HashFromString(data);
+ U128 hash = C_HashFromString(data);
  
  //- rjf: hash -> slot/stripe info
  U64 slot_idx = hash.u64[1] % c_state->tag2data_table_size;
@@ -95,7 +75,7 @@ C_SubmitData(Arena **permanent_arena, String8 data)
   C_Tag2DataCacheNode *existing_node = 0;
   for(C_Tag2DataCacheNode *n = slot->first; n != 0; n = n->hash_next)
   {
-   if(C_HashMatch(n->hash, hash))
+   if(U128Match(n->hash, hash))
    {
     existing_node = n;
     break;
@@ -134,7 +114,7 @@ C_SubmitData(Arena **permanent_arena, String8 data)
 }
 
 root_function void
-C_SubmitStaticData(String8 data, C_Hash hash)
+C_SubmitStaticData(String8 data, U128 hash)
 {
  //- rjf: hash -> slot/stripe info
  U64 slot_idx = hash.u64[1] % c_state->tag2data_table_size;
@@ -149,7 +129,7 @@ C_SubmitStaticData(String8 data, C_Hash hash)
   C_Tag2DataCacheNode *existing_node = 0;
   for(C_Tag2DataCacheNode *n = slot->first; n != 0; n = n->hash_next)
   {
-   if(C_HashMatch(n->hash, hash))
+   if(U128Match(n->hash, hash))
    {
     existing_node = n;
     break;
@@ -174,7 +154,7 @@ C_SubmitStaticData(String8 data, C_Hash hash)
 }
 
 root_function String8
-C_DataFromHash(C_Scope *scope, C_Hash hash)
+C_DataFromHash(C_Scope *scope, U128 hash)
 {
  String8 data = {0};
  U64 slot_idx = hash.u64[1] % c_state->tag2data_table_size;
@@ -186,7 +166,7 @@ C_DataFromHash(C_Scope *scope, C_Hash hash)
   C_Tag2DataCacheNode *existing_node = 0;
   for(C_Tag2DataCacheNode *n = slot->first; n != 0; n = n->hash_next)
   {
-   if(C_HashMatch(n->hash, hash))
+   if(U128Match(n->hash, hash))
    {
     existing_node = n;
     break;

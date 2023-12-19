@@ -6,6 +6,7 @@
 D_StackTable:
 {
  {Tex2DSampleKind      tex2d_sample_kind            R_Tex2DSampleKind     `R_Tex2DSampleKind_Nearest`                     }
+ {BlendMode            blend_mode                   R_BlendMode           `R_BlendMode_Normal`                            }
  {Transform2D          xform2d                      Mat3x3F32             `MakeMat3x3F32(1.f)`                            }
  {Clip                 clip                         Rng2F32               `R2F32(V2F32(0, 0), V2F32(0, 0))`               }
  {Transparency         transparency                 F32                   `0.f`                                           }

@@ -59,7 +59,7 @@ T_Init(C_InitReceipt c_init_receipt, R_InitReceipt r_init_receipt)
   t_state->threads = PushArray(t_state->arena, OS_Handle, t_state->thread_count);
   for(U64 thread_idx = 0; thread_idx < t_state->thread_count; thread_idx += 1)
   {
-   t_state->threads[thread_idx] = OS_ThreadStart(0, T_ThreadEntryPoint);
+   t_state->threads[thread_idx] = OS_ThreadStart((void *)thread_idx, T_ThreadEntryPoint);
   }
  }
  T_InitReceipt receipt = {0};
@@ -79,7 +79,7 @@ T_InvalidTexture(void)
 //~ rjf: Tag -> Texture Region Mapping
 
 root_function R_Slice2F32
-T_Slice2F32FromHash(C_Hash hash, U64 endt_microseconds)
+T_Slice2F32FromHash(U128 hash, U64 endt_microseconds)
 {
  //- rjf: map hash to slot/stripe info
  U64 slot_idx = hash.u64[1] % t_state->tex_table_size;
@@ -102,7 +102,7 @@ T_Slice2F32FromHash(C_Hash hash, U64 endt_microseconds)
    T_Node *node = 0;
    for(T_Node *n = slot->first; n != 0; n = n->hash_next)
    {
-    if(C_HashMatch(n->hash, hash))
+    if(U128Match(n->hash, hash))
     {
      node = n;
      break;
@@ -164,11 +164,11 @@ T_Slice2F32FromHash(C_Hash hash, U64 endt_microseconds)
 //~ rjf: GPU Upload Request Ring Buffer
 
 root_function B32
-T_EnqueueLoadRequest(C_Hash hash)
+T_EnqueueLoadRequest(U128 hash)
 {
  B32 result = 0;
  OS_MutexScopeEnter(t_state->req_ring_mutex);
- U64 needed_size = sizeof(C_Hash);
+ U64 needed_size = sizeof(U128);
  
  //- rjf: room to push request -> push!
  if(t_state->req_ring_write_pos < t_state->req_ring_read_pos + t_state->req_ring_size - needed_size)
@@ -176,7 +176,7 @@ T_EnqueueLoadRequest(C_Hash hash)
   result = 1;
   
   // rjf: write
-  RingWrite(t_state->req_ring_base, t_state->req_ring_size, t_state->req_ring_write_pos, Str8Struct(&hash));
+  RingWriteStruct(t_state->req_ring_base, t_state->req_ring_size, t_state->req_ring_write_pos, &hash);
   
   // rjf: advance write position
   t_state->req_ring_write_pos += needed_size;
@@ -189,16 +189,15 @@ T_EnqueueLoadRequest(C_Hash hash)
  return result;
 }
 
-root_function C_Hash
+root_function U128
 T_DequeueLoadRequest(void)
 {
- C_Hash hash = {0};
+ U128 hash = {0};
  OS_MutexScope(t_state->req_ring_mutex) for(;;)
  {
-  if(t_state->req_ring_write_pos >= t_state->req_ring_read_pos + sizeof(C_Hash))
+  if(t_state->req_ring_write_pos >= t_state->req_ring_read_pos + sizeof(U128))
   {
-   RingRead(&hash, t_state->req_ring_base, t_state->req_ring_size, t_state->req_ring_read_pos, sizeof(C_Hash));
-   t_state->req_ring_read_pos += sizeof(C_Hash);
+   t_state->req_ring_read_pos += RingReadStruct(t_state->req_ring_base, t_state->req_ring_size, t_state->req_ring_read_pos, &hash);
    t_state->req_ring_read_pos += 7;
    t_state->req_ring_read_pos -= t_state->req_ring_read_pos%8;
    break;
@@ -225,12 +224,13 @@ T_DequeueLoadRequest(void)
 root_function void
 T_ThreadEntryPoint(void *p)
 {
+ SetThreadNameF("[T] #%I64u", (U64)p);
  for(;;)
  {
   C_Scope *scope = C_ScopeOpen();
   
   //- rjf: get next request
-  C_Hash hash = T_DequeueLoadRequest();
+  U128 hash = T_DequeueLoadRequest();
   
   //- rjf: map hash to slot/stripe info
   U64 slot_idx = hash.u64[1] % t_state->tex_table_size;
@@ -246,7 +246,7 @@ T_ThreadEntryPoint(void *p)
   {
    for(T_Node *n = slot->first; n != 0; n = n->hash_next)
    {
-    if(C_HashMatch(n->hash, hash))
+    if(U128Match(n->hash, hash))
     {
      is_already_loaded = 1;
      break;

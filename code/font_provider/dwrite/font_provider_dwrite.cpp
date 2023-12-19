@@ -56,7 +56,7 @@ FP_DWrite_FontFileLoader_CreateStreamFromKey(FP_DWrite_FontFileLoader *this_ptr,
 {
  HRESULT result = S_OK;
  {
-  Assert(key_size == sizeof(C_Hash));
+  Assert(key_size == sizeof(U128));
   FP_DWrite_FontFileStream *stream = fp_dwrite_state->first_free_stream;
   if(stream == 0)
   {
@@ -69,7 +69,7 @@ FP_DWrite_FontFileLoader_CreateStreamFromKey(FP_DWrite_FontFileLoader *this_ptr,
   MemoryZeroStruct(stream);
   stream->lpVtbl = &fp_g_dwrite_font_file_stream_vtbl;
   stream->scope = C_ScopeOpen();
-  MemoryCopy(&stream->hash, key, sizeof(C_Hash));
+  MemoryCopy(&stream->hash, key, sizeof(U128));
   stream->ref_count = 1;
   *out_stream = (IDWriteFontFileStream *)stream;
  }
@@ -209,7 +209,7 @@ FP_Init(C_InitReceipt c_init)
 }
 
 fp_function FP_Handle
-FP_FontOpen(C_Hash hash)
+FP_FontOpen(U128 hash)
 {
  HRESULT error = 0;
  

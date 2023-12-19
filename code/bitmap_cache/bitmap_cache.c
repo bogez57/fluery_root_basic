@@ -28,7 +28,7 @@ BC_Init(OS_InitReceipt os_init, C_InitReceipt c_init)
   bc_state->p_threads = PushArray(arena, OS_Handle, bc_state->p_thread_count);
   for(U64 idx = 0; idx < bc_state->p_thread_count; idx += 1)
   {
-   bc_state->p_threads[idx] = OS_ThreadStart(0, BC_ParseThreadEntryPoint);
+   bc_state->p_threads[idx] = OS_ThreadStart((void *)idx, BC_ParseThreadEntryPoint);
   }
  }
  BC_InitReceipt receipt = {0};
@@ -54,7 +54,7 @@ BC_ScopeClose(BC_Scope *scope)
 //~ rjf: Cache Interaction
 
 root_function BC_Bitmap *
-BC_BitmapFromHash(BC_Scope *scope, C_Hash hash, U64 end_time_microseconds)
+BC_BitmapFromHash(BC_Scope *scope, U128 hash, U64 end_time_microseconds)
 {
  BC_Bitmap *bitmap = &bc_nil_bitmap;
  
@@ -71,7 +71,7 @@ BC_BitmapFromHash(BC_Scope *scope, C_Hash hash, U64 end_time_microseconds)
   BC_Node *existing_node = 0;
   for(BC_Node *node = slot->first; node != 0; node = node->next)
   {
-   if(C_HashMatch(node->hash, hash))
+   if(U128Match(node->hash, hash))
    {
     existing_node = node;
     break;
@@ -109,14 +109,14 @@ BC_BitmapFromHash(BC_Scope *scope, C_Hash hash, U64 end_time_microseconds)
 //~ rjf: User -> Parsing Thread Ring Buffer
 
 root_function void
-BC_EnqueueParseRequest(C_Hash hash)
+BC_EnqueueParseRequest(U128 hash)
 {
  OS_MutexScope(bc_state->u2p_ring_mutex) for(;;)
  {
-  if((bc_state->u2p_ring_write_pos - bc_state->u2p_ring_read_pos) <= bc_state->u2p_ring_size - sizeof(C_Hash))
+  if((bc_state->u2p_ring_write_pos - bc_state->u2p_ring_read_pos) <= bc_state->u2p_ring_size - sizeof(U128))
   {
    U64 write_pos = bc_state->u2p_ring_write_pos;
-   write_pos += RingWrite(bc_state->u2p_ring_base, bc_state->u2p_ring_size, write_pos, Str8Struct(&hash));
+   write_pos += RingWriteStruct(bc_state->u2p_ring_base, bc_state->u2p_ring_size, write_pos, &hash);
    bc_state->u2p_ring_write_pos = write_pos;
    break;
   }
@@ -125,16 +125,16 @@ BC_EnqueueParseRequest(C_Hash hash)
  OS_ConditionVariableSignalAll(bc_state->u2p_ring_cv);
 }
 
-root_function C_Hash
+root_function U128
 BC_DequeueParseRequest(void)
 {
- C_Hash hash = {0};
+ U128 hash = {0};
  OS_MutexScope(bc_state->u2p_ring_mutex) for(;;)
  {
-  if(bc_state->u2p_ring_write_pos >= bc_state->u2p_ring_read_pos + sizeof(C_Hash))
+  if(bc_state->u2p_ring_write_pos >= bc_state->u2p_ring_read_pos + sizeof(U128))
   {
    U64 read_pos = bc_state->u2p_ring_read_pos;
-   read_pos += RingRead(&hash, bc_state->u2p_ring_base, bc_state->u2p_ring_size, read_pos, sizeof(C_Hash));
+   read_pos += RingReadStruct(bc_state->u2p_ring_base, bc_state->u2p_ring_size, read_pos, &hash);
    bc_state->u2p_ring_read_pos = read_pos;
    break;
   }
@@ -161,12 +161,13 @@ BC_DequeueParseRequest(void)
 root_function void
 BC_ParseThreadEntryPoint(void *p)
 {
+ SetThreadNameF("[BC] Parser #%I64u", (U64)p);
  for(;;)
  {
   C_Scope *scope = C_ScopeOpen();
   
   //- rjf: dequeue request & get hash data
-  C_Hash hash = BC_DequeueParseRequest();
+  U128 hash = BC_DequeueParseRequest();
   String8 data = C_DataFromHash(scope, hash);
   U64 slot_idx = hash.u64[1]%bc_state->slots_count;
   BC_Slot *slot = &bc_state->slots[slot_idx];
@@ -179,7 +180,7 @@ BC_ParseThreadEntryPoint(void *p)
   {
    for(BC_Node *n = slot->first; n != 0; n = n->next)
    {
-    if(C_HashMatch(n->hash, hash) && n->bitmap != 0)
+    if(U128Match(n->hash, hash) && n->bitmap != 0)
     {
      is_already_loaded = 1;
      break;
@@ -210,7 +211,7 @@ BC_ParseThreadEntryPoint(void *p)
     BC_Node *node = 0;
     for(BC_Node *n = slot->first; n != 0; n = n->next)
     {
-     if(C_HashMatch(n->hash, hash))
+     if(U128Match(n->hash, hash))
      {
       node = n;
       break;

@@ -40,7 +40,7 @@ struct BC_Node
 {
  BC_Node *next;
  BC_Node *prev;
- C_Hash hash;
+ U128 hash;
  Arena *arena;
  BC_Bitmap *bitmap;
  U64 last_t_queried_us;
@@ -97,13 +97,13 @@ root_function void BC_ScopeClose(BC_Scope *scope);
 ////////////////////////////////
 //~ rjf: Cache Interaction
 
-root_function BC_Bitmap *BC_BitmapFromHash(BC_Scope *scope, C_Hash hash, U64 end_time_microseconds);
+root_function BC_Bitmap *BC_BitmapFromHash(BC_Scope *scope, U128 hash, U64 end_time_microseconds);
 
 ////////////////////////////////
 //~ rjf: User -> Parsing Thread Ring Buffer
 
-root_function void BC_EnqueueParseRequest(C_Hash hash);
-root_function C_Hash BC_DequeueParseRequest(void);
+root_function void BC_EnqueueParseRequest(U128 hash);
+root_function U128 BC_DequeueParseRequest(void);
 
 ////////////////////////////////
 //~ rjf: Parsing Threads

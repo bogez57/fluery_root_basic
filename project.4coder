@@ -35,8 +35,8 @@ patterns =
 blacklist_patterns =
 {
  ".*",
- "metagen_base_*",
- "metagen_os_*",
+ "code/metagen/metagen_base/*",
+ "code/metagen/metagen_os/*",
 };
 
 ////////////////////////////////
@@ -172,6 +172,26 @@ commands =
   .cursor_at_end    = true,
  },
  
+ //- rjf: mdesk scratch
+ .build_mdesk_scratch =
+ {
+  .win              = "build.bat mdesk_scratch",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ .run_mdesk_scratch =
+ {
+  .win              = "pushd build && mdesk_scratch.exe && popd",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = true,
+ },
+ 
  //- rjf: net scratch
  .build_net_scratch =
  {
@@ -250,6 +270,26 @@ commands =
   .footer_panel     = true,
   .save_dirty_files = true,
   .cursor_at_end    = false,
+ },
+ 
+ //- rjf: tests
+ .build_tests =
+ {
+  .win              = "build.bat tests",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = false,
+ },
+ .run_tests =
+ {
+  .win              = "pushd build && tests.exe && popd",
+  .linux            = "",
+  .out              = "*compilation*",
+  .footer_panel     = true,
+  .save_dirty_files = true,
+  .cursor_at_end    = true,
  },
  
 };

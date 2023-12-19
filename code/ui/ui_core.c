@@ -3,11 +3,11 @@
 
 #if BUILD_CORE
 F32 ui_g_cursor_blink_t = 0;
-UI_BoxTextExt ui_g_nil_box_text_ext = {0};
-UI_BoxRectStyleExt ui_g_nil_box_rect_style_ext = {0};
-UI_BoxBucketExt ui_g_nil_box_bucket_ext = {0};
-UI_BoxCustomDrawExt ui_g_nil_box_custom_draw_ext = {0};
-UI_Box ui_g_nil_box =
+read_only UI_BoxTextExt ui_g_nil_box_text_ext = {0};
+read_only UI_BoxRectStyleExt ui_g_nil_box_rect_style_ext = {0};
+read_only UI_BoxBucketExt ui_g_nil_box_bucket_ext = {0};
+read_only UI_BoxCustomDrawExt ui_g_nil_box_custom_draw_ext = {0};
+read_only UI_Box ui_g_nil_box =
 {
  &ui_g_nil_box,
  &ui_g_nil_box,
@@ -142,7 +142,7 @@ UI_SizeMake(UI_SizeKind kind, F32 value, F32 strictness)
 root_function F_Tag
 UI_IconFont(void)
 {
- C_Hash hash = {ui_g_icon_font_hash.v[0], ui_g_icon_font_hash.v[1]};
+ U128 hash = ui_g_icon_font_hash;
  return F_TagFromHash(hash);
 }
 
@@ -189,8 +189,8 @@ UI_StateAlloc(void)
   state->frame_arenas[idx] = ArenaAlloc(Gigabytes(8));
  }
  state->drag_data_arena = ArenaAlloc(Megabytes(64));
- C_SubmitStaticData(ui_g_mono_font, C_HashMake(ui_g_mono_font_hash.v[0], ui_g_mono_font_hash.v[1]));
- C_SubmitStaticData(ui_g_icon_font, C_HashMake(ui_g_icon_font_hash.v[0], ui_g_icon_font_hash.v[1]));
+ C_SubmitStaticData(ui_g_mono_font, ui_g_mono_font_hash);
+ C_SubmitStaticData(ui_g_icon_font, ui_g_icon_font_hash);
  UI_InitStackNils(state);
  return state;
 }
@@ -609,40 +609,6 @@ UI_Layout(void)
  {
   UI_LayoutRoot(UI_Root(), axis);
  }
- 
- //- rjf: view snap
- {
-  UI_Box *snap_view_parent = UI_BoxFromKey(ui_state->snap_view_parent_key);
-  UI_Box *snap_view_child = UI_BoxFromKey(ui_state->snap_view_child_key);
-  if(!UI_BoxIsNil(snap_view_parent) && !UI_BoxIsNil(snap_view_child))
-  {
-   ui_state->snap_view_parent_key = UI_KeyZero();
-   ui_state->snap_view_child_key = UI_KeyZero();
-   Rng1F32 scroll_bounds[Axis2_COUNT] =
-   {
-    UI_ScrollBoundsFromBox(snap_view_parent, Axis2_X),
-    UI_ScrollBoundsFromBox(snap_view_parent, Axis2_Y),
-   };
-   Rng1F32 view_bounds[Axis2_COUNT] =
-   {
-    R1F32(snap_view_parent->target_view_off.x, snap_view_parent->target_view_off.x + snap_view_parent->calc_size.x),
-    R1F32(snap_view_parent->target_view_off.y, snap_view_parent->target_view_off.y + snap_view_parent->calc_size.y),
-   };
-   Rng1F32 child_bounds[Axis2_COUNT] =
-   {
-    R1F32(snap_view_child->calc_rel_pos.x, snap_view_child->calc_rel_pos.x + snap_view_child->calc_size.x),
-    R1F32(snap_view_child->calc_rel_pos.y, snap_view_child->calc_rel_pos.y + snap_view_child->calc_size.y),
-   };
-   for(Axis2 axis = (Axis2)0; axis < Axis2_COUNT; axis = (Axis2)(axis+1))
-   {
-    F32 positive_delta = child_bounds[axis].max - view_bounds[axis].max;
-    F32 negative_delta = child_bounds[axis].min - view_bounds[axis].min;
-    positive_delta = ClampBot(positive_delta, 0);
-    negative_delta = ClampTop(negative_delta, 0);
-    snap_view_parent->target_view_off.v[axis] += positive_delta + negative_delta;
-   }
-  }
- }
 }
 
 ////////////////////////////////
@@ -660,14 +626,18 @@ UI_AnimateRoot(UI_Box *root, F32 delta_time)
  {
   for(UI_Box *box = ui_state->box_table[slot].first; !UI_BoxIsNil(box); box = box->hash_next)
   {
-   B32 is_hot      = UI_KeyMatch(ui_state->hot_key, box->key);
-   B32 is_active   = UI_KeyMatch(ui_state->active_key[Side_Min], box->key);
-   B32 is_disabled = !!(box->flags & UI_BoxFlag_Disabled);
-   box->hot_t              += ((F32)!!is_hot    - box->hot_t)              * fast_rate;
-   box->active_t           += ((F32)!!is_active - box->active_t)           * fast_rate;
-   box->disabled_t         += ((F32)!!is_disabled - box->disabled_t)       * fast_rate;
-   box->view_off.x         += (box->target_view_off.x - box->view_off.x)   * fast_rate;
-   box->view_off.y         += (box->target_view_off.y - box->view_off.y)   * fast_rate;
+   B32 is_hot          = UI_KeyMatch(ui_state->hot_key, box->key);
+   B32 is_active       = UI_KeyMatch(ui_state->active_key[Side_Min], box->key);
+   B32 is_disabled     = !!(box->flags & UI_BoxFlag_Disabled);
+   B32 is_focus_hot    = !!(box->flags & UI_BoxFlag_FocusHot)    && !(box->flags & UI_BoxFlag_FocusHotDisabled);
+   B32 is_focus_active = !!(box->flags & UI_BoxFlag_FocusActive) && !(box->flags & UI_BoxFlag_FocusActiveDisabled);
+   box->hot_t              += ((F32)!!is_hot    - box->hot_t)                  * fast_rate;
+   box->active_t           += ((F32)!!is_active - box->active_t)               * fast_rate;
+   box->disabled_t         += ((F32)!!is_disabled - box->disabled_t)           * fast_rate;
+   box->focus_hot_t        += ((F32)!!is_focus_hot - box->focus_hot_t)         * fast_rate;
+   box->focus_active_t     += ((F32)!!is_focus_active - box->focus_active_t)   * fast_rate;
+   box->view_off.x         += (box->target_view_off.x - box->view_off.x)       * fast_rate;
+   box->view_off.y         += (box->target_view_off.y - box->view_off.y)       * fast_rate;
    if(AbsoluteValueF32(box->view_off.x - box->target_view_off.x) <= 1)
    {
     box->view_off.x = box->target_view_off.x;
@@ -892,9 +862,11 @@ UI_BoxMakeFromKey(UI_BoxFlags flags, UI_Key key)
   // rjf: fill per-frame state
   box->child_count = 0;
   box->first = box->last = &ui_g_nil_box;
-  box->flags = flags | UI_TopFlags();
-  box->flags |= UI_BoxFlag_Focus*!!ui_state->focus_is_set;
-  box->flags |= UI_BoxFlag_FocusDisabled * (ui_state->focus_is_set == 0 && ui_state->focus_is_possible);
+  box->flags = flags|UI_TopFlags();
+  box->flags |= UI_BoxFlag_FocusHot            * !!ui_state->focus_hot_set_stack.top->v;
+  box->flags |= UI_BoxFlag_FocusHotDisabled    * (!ui_state->focus_hot_set_stack.top->v && ui_state->focus_hot_possible_stack.top->v);
+  box->flags |= UI_BoxFlag_FocusActive         * !!ui_state->focus_active_set_stack.top->v;
+  box->flags |= UI_BoxFlag_FocusActiveDisabled * (!ui_state->focus_active_set_stack.top->v && ui_state->focus_active_possible_stack.top->v);
   box->pref_size[Axis2_X] = UI_TopPrefWidth();
   box->pref_size[Axis2_Y] = UI_TopPrefHeight();
   box->child_layout_axis  = UI_TopChildLayoutAxis();
@@ -940,6 +912,16 @@ UI_BoxMakeFromKey(UI_BoxFlags flags, UI_Key key)
   if(first_frame)
   {
    box->first_gen_touched = ui_state->build_gen;
+  }
+  
+  // rjf: is focused -> disable per stack
+  if(box->flags & UI_BoxFlag_FocusHot && !UI_IsFocusHot())
+  {
+   box->flags |= UI_BoxFlag_FocusHotDisabled;
+  }
+  if(box->flags & UI_BoxFlag_FocusActive && !UI_IsFocusActive())
+  {
+   box->flags |= UI_BoxFlag_FocusActiveDisabled;
   }
  }
  
@@ -1125,8 +1107,8 @@ UI_SignalFromBox(UI_Box *box)
  //- rjf: commit mouse_is_over to signal
  sig.mouse_is_over = mouse_is_over;
  
- //- rjf: clickability
- if(box->first_gen_touched != box->last_gen_touched && box->flags & UI_BoxFlag_Clickable)
+ //- rjf: mouse clickability
+ if(box->first_gen_touched != box->last_gen_touched && box->flags & UI_BoxFlag_MouseClickable)
  {
   // rjf: get mouse events
   OS_Event *left_press_event = 0;
@@ -1239,14 +1221,6 @@ UI_SignalFromBox(UI_Box *box)
    }
   }
   
-  // rjf: keyboard-focus & clickability => enter -> click + press
-  if(box->flags & UI_BoxFlag_Focus && OS_KeyPress(UI_Events(), UI_Window(), OS_Key_Enter, 0))
-  {
-   sig.clicked = 1;
-   sig.pressed = 1;
-   sig.keyboard_pressed = 1;
-  }
-  
   // rjf: hot -> hover
   if(UI_KeyMatch(ui_state->hot_key, box->key) &&
      UI_KeyMatch(ui_state->active_key[Side_Min], UI_KeyZero()) &&
@@ -1255,6 +1229,14 @@ UI_SignalFromBox(UI_Box *box)
   {
    sig.hovering = 1;
   }
+ }
+ 
+ //- rjf: keyboard-focus & clickability => enter -> click + press
+ if(box->flags & UI_BoxFlag_KeyboardClickable && box->flags & UI_BoxFlag_FocusHot && OS_KeyPress(UI_Events(), UI_Window(), OS_Key_Enter, 0))
+ {
+  sig.clicked = 1;
+  sig.pressed = 1;
+  sig.keyboard_pressed = 1;
  }
  
  //- rjf: scrollability
@@ -1374,39 +1356,46 @@ UI_ScrollBoundsFromBox(UI_Box *box, Axis2 axis)
 ////////////////////////////////
 //~ rjf: Focus
 
-root_function void
-UI_SetFocus(B32 focus)
-{
- ui_state->focus_is_possible = 1;
- ui_state->focus_is_set = focus;
-}
-
-root_function void
-UI_UnsetFocus(void)
-{
- ui_state->focus_is_possible = 0;
- ui_state->focus_is_set = 0;
-}
-
 root_function B32
-UI_IsFocused(void)
+UI_IsFocusHot(void)
 {
- B32 is_focused = ui_state->focus_is_set;
+ B32 result = 0;
+ UI_FocusHotSetNode *set_n = ui_state->focus_hot_set_stack.top;
+ UI_FocusHotPossibleNode *pos_n = ui_state->focus_hot_possible_stack.top;
+ if(set_n != 0 && pos_n != 0)
  {
-  for(UI_Box *box = UI_TopParent(); !UI_BoxIsNil(box); box = box->parent)
+  result = 1;
+  for(;set_n != 0 && pos_n != 0; set_n = set_n->next, pos_n = pos_n->next)
   {
-   if(box->flags & UI_BoxFlag_Focus)
+   if(!set_n->v && pos_n->v)
    {
-    is_focused = 1;
-   }
-   if(box->flags & UI_BoxFlag_FocusDisabled)
-   {
-    is_focused = 0;
+    result = 0;
     break;
    }
   }
  }
- return is_focused;
+ return result;
+}
+
+root_function B32
+UI_IsFocusActive(void)
+{
+ B32 result = 0;
+ UI_FocusActiveSetNode *set_n = ui_state->focus_active_set_stack.top;
+ UI_FocusActivePossibleNode *pos_n = ui_state->focus_active_possible_stack.top;
+ if(set_n != 0 && pos_n != 0)
+ {
+  result = 1;
+  for(;set_n != 0 && pos_n != 0; set_n = set_n->next, pos_n = pos_n->next)
+  {
+   if(!set_n->v && pos_n->v)
+   {
+    result = 0;
+    break;
+   }
+  }
+ }
+ return result;
 }
 
 ////////////////////////////////

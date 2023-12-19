@@ -6,7 +6,9 @@
 ////////////////////////////////
 //~ rjf: Ring Buffer Functions
 
-root_function U64 RingWrite(U8 *base, U64 size, U64 write_pos, String8 string);
-root_function U64 RingRead(void *dst, U8 *base, U64 buffer_size, U64 read_pos, U64 read_size);
+root_function U64 RingWrite(U8 *ring_base, U64 ring_size, U64 pos, void *src, U64 write_size);
+root_function U64 RingRead(U8 *ring_base, U64 ring_size, U64 pos, void *dst, U64 read_size);
+#define RingWriteStruct(base, size, pos, ptr) RingWrite((base), (size), (pos), (ptr), sizeof(*(ptr)))
+#define RingReadStruct(base, size, pos, ptr) RingRead((base), (size), (pos), (ptr), sizeof(*(ptr)))
 
 #endif // BASE_RING_H

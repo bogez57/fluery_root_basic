@@ -45,12 +45,28 @@ struct R_D3D11_CmdGlobals_Sprite3D
  Mat4x4F32 xform;
  Mat4x4F32 albedo_sample_channel_map;
  Vec2F32 albedo_t2d_size;
+ F32 alpha_test_min;
 };
 
-struct R_D3D11_CmdGlobals_Composite3D
+struct R_D3D11_CmdGlobals_PointLight3D
+{
+ Mat4x4F32 xform;
+ Mat4x4F32 inverse_view_projection;
+};
+
+struct R_D3D11_CmdGlobals_CompositeUnlit3D
 {
  Mat4x4F32 inverse_view_projection;
  Mat4x4F32 shadowmap_view_projection;
+ Vec4F32 fog_color;
+ F32 pct_fog_per_unit;
+ F32 near_z;
+ F32 far_z;
+};
+
+struct R_D3D11_CmdGlobals_CompositeLit3D
+{
+ Mat4x4F32 inverse_view_projection;
  Vec4F32 fog_color;
  F32 pct_fog_per_unit;
  F32 near_z;
@@ -121,12 +137,14 @@ struct R_D3D11_State
  IDXGIAdapter *dxgi_adapter;
  IDXGIFactory2 *dxgi_factory;
  ID3D11RasterizerState1 *rasterizer;
- ID3D11BlendState *blend_state;
+ ID3D11BlendState *main_blend_state;
+ ID3D11BlendState *additive_blend_state;
  ID3D11SamplerState *nearest_sampler;
  ID3D11SamplerState *linear_sampler;
  ID3D11DepthStencilState *noop_depth_stencil_state;
  ID3D11DepthStencilState *plain_depth_stencil_state;
  ID3D11DepthStencilState *write_depth_stencil_state;
+ ID3D11DepthStencilState *read_depth_stencil_state;
  
  //- rjf: global buffers
  ID3D11Buffer *cmd_global_buffer_table[R_D3D11_CmdGlobalKind_COUNT];
@@ -144,6 +162,10 @@ struct R_D3D11_State
  ID3D11Buffer *scratch_buffer_8mb;
  R_Handle white_texture;
  R_Handle backup_texture;
+ ID3D11Buffer *light_sphere_vtx_buffer;
+ ID3D11Buffer *light_sphere_idx_buffer;
+ U64 light_sphere_vtx_count;
+ U64 light_sphere_idx_count;
  
  //- rjf: overflow buffers
  Arena *overflow_arena;
@@ -166,6 +188,11 @@ struct R_D3D11_WindowEquip
  ID3D11Texture2D *gbuffer_depth;
  ID3D11DepthStencilView *gbuffer_depth_dsv;
  ID3D11ShaderResourceView *gbuffer_depth_srv;
+ 
+ // rjf: g-buffer scratch
+ ID3D11Texture2D *gbuffer_scratch_color;
+ ID3D11RenderTargetView *gbuffer_scratch_color_rtv;
+ ID3D11ShaderResourceView *gbuffer_scratch_color_srv;
  
  // rjf: shadow maps
  Vec2S64 shadowmap_resolution;

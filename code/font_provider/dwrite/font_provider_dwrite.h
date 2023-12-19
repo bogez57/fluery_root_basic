@@ -45,7 +45,7 @@ struct FP_DWrite_FontFileStream
  FP_DWrite_FontFileStreamVTable *lpVtbl;
  FP_DWrite_FontFileStream *next;
  C_Scope *scope;
- C_Hash hash;
+ U128 hash;
  U64 ref_count;
 };
 

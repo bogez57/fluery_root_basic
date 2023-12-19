@@ -83,13 +83,17 @@ UI_StackTable:
  {CornerRadius11          corner_radius_11                 `F32`                         `0`                                                                               }
  {BorderThickness         border_thickness                 `F32`                         `1`                                                                               }
  {Slice2F32               slice2f32                        `R_Slice2F32`                 `(R_Slice2F32){0}`                                                                }
- {Font                    font                             `F_Tag`                       `F_TagFromHash(C_HashMake(ui_g_mono_font_hash.v[0], ui_g_mono_font_hash.v[1]))`       }
+ {Font                    font                             `F_Tag`                       `F_TagFromHash(ui_g_mono_font_hash)`                                              }
  {FontSize                font_size                        `F32`                         `16.f`                                                                            }
  {ChildLayoutAxis         child_layout_axis                `Axis2`                       `Axis2_X`                                                                         }
  {HoverCursor             hover_cursor                     `OS_CursorKind`               `OS_CursorKind_Null`                                                              }
  {TextAlign               text_align                       `UI_TextAlignment`            `UI_TextAlignment_Left`                                                           }
  {TextEdgePadding         text_edge_padding                `F32`                         `0.f`                                                                             }
  {SeedKey                 seed_key                         `UI_Key`                      `UI_KeyZero()`                                                                    }
+ {FocusHotSet             focus_hot_set                    `B32`                         `0`                                                                               }
+ {FocusHotPossible        focus_hot_possible               `B32`                         `0`                                                                               }
+ {FocusActiveSet          focus_active_set                 `B32`                         `0`                                                                               }
+ {FocusActivePossible     focus_active_possible            `B32`                         `0`                                                                               }
 }
 
 ////////////////////////////////

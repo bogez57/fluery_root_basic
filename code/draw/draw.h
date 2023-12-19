@@ -179,8 +179,8 @@ root_function R_Pass *D_PassFromBucket(Arena *arena, D_Bucket *bucket, R_PassKin
 //~ rjf: UI Pass Commands
 
 //- rjf: rectangles (2d)
-#define D_Rect2D(r, ...) D_Rect2D_((r), (D_RectParams){.color = {1, 1, 1, 1}, __VA_ARGS__})
-root_function R_Rect2DInst *D_Rect2D_(Rng2F32 rect, D_RectParams p);
+#define D_Rect2D(r, ...) D_Rect2D_((r), &(D_RectParams){.color = {1, 1, 1, 1}, __VA_ARGS__})
+root_function R_Rect2DInst *D_Rect2D_(Rng2F32 rect, D_RectParams *p);
 
 //- rjf: text (2d)
 root_function F32 D_Text2D(Vec2F32 position, F_Tag font, F32 size, Vec4F32 color, String8 string);
@@ -190,8 +190,11 @@ root_function F32 D_Text2DF(Vec2F32 position, F_Tag font, F32 size, Vec4F32 colo
 //~ rjf: G0 Pass Commands
 
 //- rjf: sprites (3d)
-#define D_Sprite3D(pos, xform, ...) D_Sprite3D_((pos), (xform), (D_SpriteParams){.color = {1, 1, 1, 1}, .scale = {1, 1}, __VA_ARGS__})
-root_function R_Sprite3DInst *D_Sprite3D_(Vec3F32 pos, Mat4x4F32 xform, D_SpriteParams p);
+#define D_Sprite3D(pos, xform, ...) D_Sprite3D_((pos), (xform), &(D_SpriteParams){.color = {1, 1, 1, 1}, .scale = {1, 1}, __VA_ARGS__})
+root_function R_Sprite3DInst *D_Sprite3D_(Vec3F32 pos, Mat4x4F32 xform, D_SpriteParams *p);
+
+//- rjf: point lights (3d)
+root_function R_PointLight3DInst *D_PointLight3D(Vec3F32 pos, F32 radius, Vec4F32 color, F32 intensity);
 
 //- rjf: debug lines (3d)
 root_function R_DebugLine3DInst *D_DebugLine3D(Vec3F32 p0, Vec3F32 p1, Vec4F32 color0, Vec4F32 color1);
@@ -202,21 +205,25 @@ root_function void D_DebugSphere3D(Vec3F32 center, F32 radius, Vec4F32 color);
 //~ rjf: Stacks
 
 root_function R_Tex2DSampleKind          D_PushTex2DSampleKind(R_Tex2DSampleKind v);
+root_function R_BlendMode                D_PushBlendMode(R_BlendMode v);
 root_function Mat3x3F32                  D_PushTransform2D(Mat3x3F32 v);
 root_function Rng2F32                    D_PushClip(Rng2F32 v);
 root_function F32                        D_PushTransparency(F32 v);
 
 root_function R_Tex2DSampleKind          D_PopTex2DSampleKind(void);
+root_function R_BlendMode                D_PopBlendMode(void);
 root_function Mat3x3F32                  D_PopTransform2D(void);
 root_function Rng2F32                    D_PopClip(void);
 root_function F32                        D_PopTransparency(void);
 
 root_function R_Tex2DSampleKind          D_TopTex2DSampleKind(void);
+root_function R_BlendMode                D_TopBlendMode(void);
 root_function Mat3x3F32                  D_TopTransform2D(void);
 root_function Rng2F32                    D_TopClip(void);
 root_function F32                        D_TopTransparency(void);
 
 #define D_Tex2DSampleKind(v)             DeferLoop(D_PushTex2DSampleKind(v), D_PopTex2DSampleKind())
+#define D_BlendMode(v)                   DeferLoop(D_PushBlendMode(v), D_PopBlendMode())
 #define D_Transform2D(v)                 DeferLoop(D_PushTransform2D(v), D_PopTransform2D())
 #define D_Clip(v)                        DeferLoop(D_PushClip(v), D_PopClip())
 #define D_Transparency(v)                DeferLoop(D_PushTransparency(v), D_PopTransparency())

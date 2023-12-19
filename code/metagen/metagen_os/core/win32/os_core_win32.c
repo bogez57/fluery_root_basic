@@ -1013,21 +1013,61 @@ OS_ConditionVariableRelease(OS_Handle handle)
 }
 
 root_function B32
-OS_ConditionVariableWait(OS_Handle cv_handle, OS_Handle mutex_handle, U64 end_time_microseconds)
+OS_ConditionVariableWait(OS_Handle cv_handle, OS_Handle mutex_handle, U64 endt_us)
 {
  OS_W32_ConditionVariable *cv = (OS_W32_ConditionVariable *)cv_handle.u64[0];
  OS_W32_CriticalSection *crit_section = (OS_W32_CriticalSection *)mutex_handle.u64[0];
- U64 begin_time_microseconds = OS_TimeMicroseconds();
+ U64 begint_us = OS_TimeMicroseconds();
  B32 result = 0;
- if(end_time_microseconds > begin_time_microseconds)
+ if(endt_us > begint_us)
  {
-  U64 microseconds_to_wait = end_time_microseconds - begin_time_microseconds;
+  U64 microseconds_to_wait = endt_us - begint_us;
   U64 milliseconds_to_wait = microseconds_to_wait / 1000;
-  if(end_time_microseconds == U64Max)
+  if(endt_us == U64Max)
   {
    milliseconds_to_wait = (U64)INFINITE;
   }
   result = !!SleepConditionVariableCS(&cv->base, &crit_section->base, (U32)milliseconds_to_wait);
+ }
+ return result;
+}
+
+root_function B32
+OS_ConditionVariableWaitSRW_W(OS_Handle cv_handle, OS_Handle mutex_handle, U64 endt_us)
+{
+ OS_W32_ConditionVariable *cv = (OS_W32_ConditionVariable *)cv_handle.u64[0];
+ OS_W32_SRWLock *srw = (OS_W32_SRWLock *)mutex_handle.u64[0];
+ U64 begint_us = OS_TimeMicroseconds();
+ B32 result = 0;
+ if(endt_us > begint_us)
+ {
+  U64 microseconds_to_wait = endt_us - begint_us;
+  U64 milliseconds_to_wait = microseconds_to_wait / 1000;
+  if(endt_us == U64Max)
+  {
+   milliseconds_to_wait = (U64)INFINITE;
+  }
+  result = !!SleepConditionVariableSRW(&cv->base, &srw->lock, (U32)milliseconds_to_wait, 0);
+ }
+ return result;
+}
+
+root_function B32
+OS_ConditionVariableWaitSRW_R(OS_Handle cv_handle, OS_Handle mutex_handle, U64 endt_us)
+{
+ OS_W32_ConditionVariable *cv = (OS_W32_ConditionVariable *)cv_handle.u64[0];
+ OS_W32_SRWLock *srw = (OS_W32_SRWLock *)mutex_handle.u64[0];
+ U64 begint_us = OS_TimeMicroseconds();
+ B32 result = 0;
+ if(endt_us > begint_us)
+ {
+  U64 microseconds_to_wait = endt_us - begint_us;
+  U64 milliseconds_to_wait = microseconds_to_wait / 1000;
+  if(endt_us == U64Max)
+  {
+   milliseconds_to_wait = (U64)INFINITE;
+  }
+  result = !!SleepConditionVariableSRW(&cv->base, &srw->lock, (U32)milliseconds_to_wait, CONDITION_VARIABLE_LOCKMODE_SHARED);
  }
  return result;
 }

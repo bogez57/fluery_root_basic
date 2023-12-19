@@ -834,6 +834,50 @@ OS_TID(void)
  return GetThreadId(0);
 }
 
+root_function void
+OS_SetThreadName(String8 name)
+{
+ Temp scratch = ScratchBegin(0, 0);
+ 
+ // rjf: windows 10 style
+ {
+  String16 name16 = Str16From8(scratch.arena, name);
+  HRESULT hr = SetThreadDescription(GetCurrentThread(), (WCHAR*)name16.str);
+ }
+ 
+ // rjf: raise-exception style
+ {
+  String8 name_copy = PushStr8Copy(scratch.arena, name);
+#pragma pack(push,8)
+  typedef struct THREADNAME_INFO THREADNAME_INFO;
+  struct THREADNAME_INFO
+  {
+   U32 dwType;     // Must be 0x1000.
+   char *szName;   // Pointer to name (in user addr space).
+   U32 dwThreadID; // Thread ID (-1=caller thread).
+   U32 dwFlags;    // Reserved for future use, must be zero.
+  };
+#pragma pack(pop)
+  THREADNAME_INFO info;
+  info.dwType = 0x1000;
+  info.szName = (char *)name_copy.str;
+  info.dwThreadID = OS_TID();
+  info.dwFlags = 0;
+#pragma warning(push)
+#pragma warning(disable: 6320 6322)
+  __try
+  {
+   RaiseException(0x406D1388, 0, sizeof(info) / sizeof(void *), (const ULONG_PTR *)&info);
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+  }
+#pragma warning(pop)
+ }
+ 
+ ScratchEnd(scratch);
+}
+
 root_function OS_Handle
 OS_ThreadStart(void *params, OS_ThreadFunction *func)
 {
@@ -1013,21 +1057,61 @@ OS_ConditionVariableRelease(OS_Handle handle)
 }
 
 root_function B32
-OS_ConditionVariableWait(OS_Handle cv_handle, OS_Handle mutex_handle, U64 end_time_microseconds)
+OS_ConditionVariableWait(OS_Handle cv_handle, OS_Handle mutex_handle, U64 endt_us)
 {
  OS_W32_ConditionVariable *cv = (OS_W32_ConditionVariable *)cv_handle.u64[0];
  OS_W32_CriticalSection *crit_section = (OS_W32_CriticalSection *)mutex_handle.u64[0];
- U64 begin_time_microseconds = OS_TimeMicroseconds();
+ U64 begint_us = OS_TimeMicroseconds();
  B32 result = 0;
- if(end_time_microseconds > begin_time_microseconds)
+ if(endt_us > begint_us)
  {
-  U64 microseconds_to_wait = end_time_microseconds - begin_time_microseconds;
+  U64 microseconds_to_wait = endt_us - begint_us;
   U64 milliseconds_to_wait = microseconds_to_wait / 1000;
-  if(end_time_microseconds == U64Max)
+  if(endt_us == U64Max)
   {
    milliseconds_to_wait = (U64)INFINITE;
   }
   result = !!SleepConditionVariableCS(&cv->base, &crit_section->base, (U32)milliseconds_to_wait);
+ }
+ return result;
+}
+
+root_function B32
+OS_ConditionVariableWaitSRW_W(OS_Handle cv_handle, OS_Handle mutex_handle, U64 endt_us)
+{
+ OS_W32_ConditionVariable *cv = (OS_W32_ConditionVariable *)cv_handle.u64[0];
+ OS_W32_SRWLock *srw = (OS_W32_SRWLock *)mutex_handle.u64[0];
+ U64 begint_us = OS_TimeMicroseconds();
+ B32 result = 0;
+ if(endt_us > begint_us)
+ {
+  U64 microseconds_to_wait = endt_us - begint_us;
+  U64 milliseconds_to_wait = microseconds_to_wait / 1000;
+  if(endt_us == U64Max)
+  {
+   milliseconds_to_wait = (U64)INFINITE;
+  }
+  result = !!SleepConditionVariableSRW(&cv->base, &srw->lock, (U32)milliseconds_to_wait, 0);
+ }
+ return result;
+}
+
+root_function B32
+OS_ConditionVariableWaitSRW_R(OS_Handle cv_handle, OS_Handle mutex_handle, U64 endt_us)
+{
+ OS_W32_ConditionVariable *cv = (OS_W32_ConditionVariable *)cv_handle.u64[0];
+ OS_W32_SRWLock *srw = (OS_W32_SRWLock *)mutex_handle.u64[0];
+ U64 begint_us = OS_TimeMicroseconds();
+ B32 result = 0;
+ if(endt_us > begint_us)
+ {
+  U64 microseconds_to_wait = endt_us - begint_us;
+  U64 milliseconds_to_wait = microseconds_to_wait / 1000;
+  if(endt_us == U64Max)
+  {
+   milliseconds_to_wait = (U64)INFINITE;
+  }
+  result = !!SleepConditionVariableSRW(&cv->base, &srw->lock, (U32)milliseconds_to_wait, CONDITION_VARIABLE_LOCKMODE_SHARED);
  }
  return result;
 }

@@ -244,6 +244,7 @@ root_function void OS_Wait(U64 end_time_microseconds);
 
 //- rjf: thread controls
 root_function U64 OS_TID(void);
+root_function void OS_SetThreadName(String8 name);
 root_function OS_Handle OS_ThreadStart(void *params, OS_ThreadFunction *func);
 root_function void OS_ThreadJoin(OS_Handle thread);
 root_function void OS_ThreadDetach(OS_Handle thread);
@@ -274,7 +275,9 @@ root_function U64 OS_SemaphoreSignal(OS_Handle handle);
 //- rjf: condition variables
 root_function OS_Handle OS_ConditionVariableAlloc(void);
 root_function void OS_ConditionVariableRelease(OS_Handle cv);
-root_function B32 OS_ConditionVariableWait(OS_Handle cv, OS_Handle mutex, U64 end_time_microseconds);
+root_function B32 OS_ConditionVariableWait(OS_Handle cv, OS_Handle mutex, U64 endt_us);
+root_function B32 OS_ConditionVariableWaitSRW_W(OS_Handle cv, OS_Handle mutex, U64 endt_us);
+root_function B32 OS_ConditionVariableWaitSRW_R(OS_Handle cv, OS_Handle mutex, U64 endt_us);
 root_function void OS_ConditionVariableSignal(OS_Handle cv);
 root_function void OS_ConditionVariableSignalAll(OS_Handle cv);
 

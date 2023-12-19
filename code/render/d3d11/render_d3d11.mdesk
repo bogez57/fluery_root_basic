@@ -4,19 +4,24 @@
 @table(name_upper, name_lower, type)
 R_D3D11_CmdGlobalsTable:
 {
- {Rect2D       rect2d       R_D3D11_CmdGlobals_Rect2D      }
- {Sprite3D     sprite3d     R_D3D11_CmdGlobals_Sprite3D    }
- {Composite3D  composite3d  R_D3D11_CmdGlobals_Composite3D }
- {DebugLine3D  debugline3d  R_D3D11_CmdGlobals_DebugLine3D }
+ {Rect2D            rect2d            R_D3D11_CmdGlobals_Rect2D           }
+ {Sprite3D          sprite3d          R_D3D11_CmdGlobals_Sprite3D         }
+ {CompositeUnlit3D  compositeunlit3d  R_D3D11_CmdGlobals_CompositeUnlit3D }
+ {PointLight3D      pointlight3d      R_D3D11_CmdGlobals_PointLight3D     }
+ {CompositeLit3D    compositelit3d    R_D3D11_CmdGlobals_CompositeLit3D   }
+ {DebugLine3D       debugline3d       R_D3D11_CmdGlobals_DebugLine3D      }
 }
 
 @table(name_upper, name_lower, shader_blob, element_desc_table)
 R_D3D11_ShaderPairTable:
 {
- {Rect2D       rect2d        r_d3d11_g_rect2d_shader_src      r_d3d11_g_rect2d_ilay_elements      }
- {Sprite3D     sprite3d      r_d3d11_g_sprite3d_shader_src    r_d3d11_g_sprite3d_ilay_elements    }
- {Composite3D  composite3d   r_d3d11_g_composite3d_shader_src /                                   }
- {DebugLine3D  debugline3d   r_d3d11_g_debugline3d_shader_src r_d3d11_g_debugline3d_ilay_elements }
+ {Rect2D            rect2d             r_d3d11_g_rect2d_shader_src            r_d3d11_g_rect2d_ilay_elements       }
+ {Sprite3D          sprite3d           r_d3d11_g_sprite3d_shader_src          r_d3d11_g_sprite3d_ilay_elements     }
+ {CompositeUnlit3D  compositeunlit3d   r_d3d11_g_compositeunlit3d_shader_src  /                                    }
+ {PointLight3D      pointlight3d       r_d3d11_g_pointlight3d_shader_src      r_d3d11_g_pointlight3d_ilay_elements }
+ {FramebufferBlit   framebufferblit    r_d3d11_g_framebufferblit_shader_src   /                                    }
+ {CompositeLit3D    compositelit3d     r_d3d11_g_compositelit3d_shader_src    /                                    }
+ {DebugLine3D       debugline3d        r_d3d11_g_debugline3d_shader_src       r_d3d11_g_debugline3d_ilay_elements  }
 }
 
 ////////////////////////////////
@@ -236,6 +241,7 @@ cbuffer CmdGlobals : register(b0)
  float4x4 xform;
  row_major float4x4 albedo_sample_channel_map;
  float2 albedo_t2d_size_px;
+ float alpha_test_min;
 }
 
 Texture2D albedo_t2d : register(t0);
@@ -350,7 +356,7 @@ ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
  }
  
  // rjf: alpha test
- if(albedo_sample.w < 1)
+ if(albedo_sample.w < alpha_test_min)
  {
   discard;
  }
@@ -363,9 +369,9 @@ ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
 """
 
 ////////////////////////////////
-//~ rjf: Compositor Shader
+//~ rjf: Unlit Compositor Shader
 
-@embed_string @c r_d3d11_g_composite3d_shader_src:
+@embed_string @c r_d3d11_g_compositeunlit3d_shader_src:
 """
 //- rjf: resources
 
@@ -385,6 +391,271 @@ Texture2D shadowmap_t2d : register(t2);
 SamplerState albedo_t2d_sampler    : register(s0);
 SamplerState depth_t2d_sampler     : register(s1);
 SamplerState shadowmap_t2d_sampler : register(s2);
+
+//- rjf: cpu -> vshad -> pshad types
+
+struct CPU2Vertex
+{
+ uint vertex_id         : SV_VertexID;
+};
+
+struct Vertex2Pixel
+{
+ float4 pos_rs          : SV_POSITION;
+ float2 texcoord_pct    : TEX;
+};
+
+//- rjf: vertex shader
+
+Vertex2Pixel
+vs_main(CPU2Vertex cpu2vertex)
+{
+ float2 vertices[] =
+ {
+  float2(-1, -1),
+  float2(-1, +1),
+  float2(+1, -1),
+  float2(+1, +1),
+ };
+ float2 vertex = vertices[cpu2vertex.vertex_id];
+ Vertex2Pixel vertex2pixel;
+ {
+  vertex2pixel.pos_rs = float4(vertex.x, vertex.y, 0, 1);
+  vertex2pixel.texcoord_pct = float2((vertex.x+1)/2, (-vertex.y+1)/2);
+ }
+ return vertex2pixel;
+}
+
+//- rjf: pixel shader
+
+float4
+ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
+{
+ // rjf: sample albedo buffer
+ float4 albedo = albedo_t2d.Sample(albedo_t2d_sampler, vertex2pixel.texcoord_pct);
+ 
+ // rjf: sample depth buffer
+ float depth = depth_t2d.Sample(depth_t2d_sampler, vertex2pixel.texcoord_pct).r;
+ 
+ // rjf: clip-space -> world-space
+ float4 world_space_pos = float4(0, 0, 0, 0);
+ {
+  float4 clip_space_pos = float4(2*vertex2pixel.texcoord_pct.x-1,
+                                 -(2*vertex2pixel.texcoord_pct.y-1),
+                                 depth,
+                                 1);
+  world_space_pos = mul(inverse_view_projection, clip_space_pos);
+  world_space_pos /= world_space_pos.w;
+ }
+ 
+ // rjf: world-space -> shadowmap-clip-space
+ float4 shadowmap_clip_space_pos = mul(shadowmap_view_projection, world_space_pos);
+ shadowmap_clip_space_pos /= shadowmap_clip_space_pos.w;
+ 
+ // rjf: sample shadow map
+ float shadow = 0;
+ {
+  float2 shadowmap_sample_pos_center = float2((shadowmap_clip_space_pos.x+1)/2, 1-(shadowmap_clip_space_pos.y+1)/2);
+  float shadow_sum = 0;
+  float shadow_count = 0;
+  for(int x = -2; x <= 2; x += 1)
+  {
+   for(int y = -2; y <= 2; y += 1)
+   {
+    float shadowmap_sample = shadowmap_t2d.Sample(shadowmap_t2d_sampler, shadowmap_sample_pos_center + float2(x/750.f, y/750.f)).r;
+    float difference_from_real_depth = shadowmap_clip_space_pos.z-shadowmap_sample;
+    if(difference_from_real_depth > 0.003f)
+    {
+     shadow_sum += 1.f;
+    }
+    shadow_count += 1;
+   }
+  }
+  shadow = shadow_sum/shadow_count;
+ }
+ 
+ // rjf: albedo -> shaded
+ float4 shaded = float4(albedo.x * (1 - shadow*0.5),
+                        albedo.y * (1 - shadow*0.5),
+                        albedo.z * (1 - shadow*0.5),
+                        albedo.w * (1 - shadow*0.5));
+ 
+ // rjf: form color
+ float4 final_color = shaded;
+ return final_color;
+}
+"""
+
+////////////////////////////////
+//~ rjf: Point Light Rasterization Shaders
+
+@embed_string @c r_d3d11_g_pointlight3d_shader_src:
+"""
+//- rjf: resources
+
+cbuffer CmdGlobals : register(b0)
+{
+ float4x4 xform;
+ float4x4 inverse_view_projection;
+}
+
+Texture2D depth_t2d : register(t0);
+SamplerState depth_t2d_sampler : register(s0);
+
+//- rjf: cpu -> vshad -> pshad types
+
+struct CPU2Vertex
+{
+ float3 vtx_pos        : VTX;
+ float4 center_pos     : POS;
+ float4 color          : COL;
+ float4 params         : PRM;
+};
+
+struct Vertex2Pixel
+{
+ float4 pos             : SV_POSITION;
+ float4 pos_clip        : CLP;
+ float4 ws_pos          : VTX;
+ float4 center_pos      : POS;
+ float4 color           : COL;
+};
+
+//- rjf: vertex shader
+
+Vertex2Pixel
+vs_main(CPU2Vertex c2v)
+{
+ Vertex2Pixel v2p;
+ {
+  v2p.ws_pos = float4(c2v.vtx_pos.x*c2v.center_pos.w + c2v.center_pos.x,
+                      c2v.vtx_pos.y*c2v.center_pos.w + c2v.center_pos.y,
+                      c2v.vtx_pos.z*c2v.center_pos.w + c2v.center_pos.z,
+                      1.f);
+  v2p.pos = mul(xform, v2p.ws_pos);
+  v2p.pos_clip = v2p.pos;
+  v2p.center_pos = c2v.center_pos;
+  v2p.color = c2v.color;
+ }
+ return v2p;
+}
+
+//- rjf: pixel shader
+
+float4
+ps_main(Vertex2Pixel v2p) : SV_TARGET
+{
+ // rjf: build texcoord
+ float2 texcoord = float2((v2p.pos_clip.x/v2p.pos_clip.w+1)/2, 1-(v2p.pos_clip.y/v2p.pos_clip.w+1)/2);
+ 
+ // rjf: sample depth buffer
+ float depth = depth_t2d.Sample(depth_t2d_sampler, texcoord).r;
+ 
+ // rjf: this pixel's depth > sample -> discard
+ if(v2p.pos.z > depth)
+ {
+  discard;
+ }
+ 
+ // rjf: clip-space -> world-space
+ float4 world_space_pos = float4(0, 0, 0, 0);
+ {
+  float4 clip_space_pos = float4(v2p.pos_clip.x/v2p.pos_clip.w,
+                                 v2p.pos_clip.y/v2p.pos_clip.w,
+                                 depth,
+                                 1);
+  world_space_pos = mul(inverse_view_projection, clip_space_pos);
+  world_space_pos /= world_space_pos.w;
+ }
+ 
+ // rjf: world-space * light-center * radius -> light factor
+ float light_factor = 0.f;
+ {
+  float radius = v2p.center_pos.w;
+  float3 p2l = world_space_pos.xyz - v2p.center_pos.xyz;
+  light_factor = 1-dot(p2l, p2l)/(radius*radius);
+ }
+ 
+ // rjf: build final color & export
+ float4 color = v2p.color * light_factor;
+ return color;
+}
+"""
+
+////////////////////////////////
+//~ rjf: Framebuffer Blit Shader
+
+@embed_string @c r_d3d11_g_framebufferblit_shader_src:
+"""
+//- rjf: resources
+
+Texture2D src_t2d    : register(t0);
+SamplerState src_t2d_sampler    : register(s0);
+
+//- rjf: cpu -> vshad -> pshad types
+
+struct CPU2Vertex
+{
+ uint vertex_id         : SV_VertexID;
+};
+
+struct Vertex2Pixel
+{
+ float4 pos_rs          : SV_POSITION;
+ float2 texcoord_pct    : TEX;
+};
+
+//- rjf: vertex shader
+
+Vertex2Pixel
+vs_main(CPU2Vertex cpu2vertex)
+{
+ float2 vertices[] =
+ {
+  float2(-1, -1),
+  float2(-1, +1),
+  float2(+1, -1),
+  float2(+1, +1),
+ };
+ float2 vertex = vertices[cpu2vertex.vertex_id];
+ Vertex2Pixel vertex2pixel;
+ {
+  vertex2pixel.pos_rs = float4(vertex.x, vertex.y, 0, 1);
+  vertex2pixel.texcoord_pct = float2((vertex.x+1)/2, (-vertex.y+1)/2);
+ }
+ return vertex2pixel;
+}
+
+//- rjf: pixel shader
+
+float4
+ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
+{
+ float4 color = src_t2d.Sample(src_t2d_sampler, vertex2pixel.texcoord_pct);
+ return color;
+}
+"""
+
+////////////////////////////////
+//~ rjf: Lit Compositor Shader
+
+@embed_string @c r_d3d11_g_compositelit3d_shader_src:
+"""
+//- rjf: resources
+
+cbuffer CmdGlobals : register(b0)
+{
+ float4x4 inverse_view_projection;
+ float4 fog_color;
+ float pct_fog_per_unit;
+ float near_z;
+ float far_z;
+}
+
+Texture2D albedo_t2d    : register(t0);
+Texture2D depth_t2d     : register(t1);
+SamplerState albedo_t2d_sampler    : register(s0);
+SamplerState depth_t2d_sampler     : register(s1);
 
 //- rjf: cpu -> vshad -> pshad types
 
@@ -467,32 +738,6 @@ ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
   world_space_pos /= world_space_pos.w;
  }
  
- // rjf: world-space -> shadowmap-clip-space
- float4 shadowmap_clip_space_pos = mul(shadowmap_view_projection, world_space_pos);
- shadowmap_clip_space_pos /= shadowmap_clip_space_pos.w;
- 
- // rjf: sample shadow map
- float shadow = 0;
- {
-  float2 shadowmap_sample_pos_center = float2((shadowmap_clip_space_pos.x+1)/2, 1-(shadowmap_clip_space_pos.y+1)/2);
-  float shadow_sum = 0;
-  float shadow_count = 0;
-  for(int x = -2; x <= 2; x += 1)
-  {
-   for(int y = -2; y <= 2; y += 1)
-   {
-    float shadowmap_sample = shadowmap_t2d.Sample(shadowmap_t2d_sampler, shadowmap_sample_pos_center + float2(x/750.f, y/750.f)).r;
-    float difference_from_real_depth = shadowmap_clip_space_pos.z-shadowmap_sample;
-    if(difference_from_real_depth > 0.003f)
-    {
-     shadow_sum += 1.f;
-    }
-    shadow_count += 1;
-   }
-  }
-  shadow = shadow_sum/shadow_count;
- }
- 
  // rjf: generate world-space noise
  float world_space_noise = 0;
  {
@@ -513,23 +758,14 @@ ps_main(Vertex2Pixel vertex2pixel) : SV_TARGET
  float linear_depth = (near_z*far_z) / (far_z + depth*(near_z-far_z));
  float fog_pct = saturate(pct_fog_per_unit*linear_depth);
  
- // rjf: albedo -> shaded
- float4 shaded = float4(albedo.x * (1 - shadow*0.5),
-                        albedo.y * (1 - shadow*0.5),
-                        albedo.z * (1 - shadow*0.5),
-                        albedo.w * (1 - shadow*0.5));
- 
- // rjf: shaded -> fogged
- float4 fogged = float4(shaded.x + (fog_color.x-shaded.x)*fog_pct,
-                        shaded.y + (fog_color.y-shaded.y)*fog_pct,
-                        shaded.z + (fog_color.z-shaded.z)*fog_pct,
-                        shaded.w + (fog_color.w-shaded.w)*fog_pct);
+ // rjf: albedo -> fogged
+ float4 fogged = float4(albedo.x + (fog_color.x-albedo.x)*fog_pct,
+                        albedo.y + (fog_color.y-albedo.y)*fog_pct,
+                        albedo.z + (fog_color.z-albedo.z)*fog_pct,
+                        albedo.w + (fog_color.w-albedo.w)*fog_pct);
  
  // rjf: form color
  float4 final_color = fogged;
- //final_color = float4(shadow, shadow, shadow, shadow);
- //final_color = float4(world_space_pos.x, world_space_pos.y, world_space_pos.z, 1);
- //final_color = float4(shadowmap_clip_space_pos.x, shadowmap_clip_space_pos.y, shadowmap_clip_space_pos.z, 1);
  return final_color;
 }
 """

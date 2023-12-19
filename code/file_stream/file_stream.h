@@ -12,25 +12,23 @@ struct FS_InitReceipt
  U64 u64[1];
 };
 
-typedef struct FS_Tag FS_Tag;
-struct FS_Tag
-{
- U64 u64[2];
-};
-
 ////////////////////////////////
-//~ rjf: State Types
+//~ rjf: Cache Types
+
+typedef struct FS_Val FS_Val;
+struct FS_Val
+{
+ U128 hash;
+ U64 timestamp;
+};
 
 typedef struct FS_Node FS_Node;
 struct FS_Node
 {
  FS_Node *hash_next;
- FS_Tag tag;
  String8 path;
- OS_Timestamp last_modified;
- C_Hash hash;
- B32 hot_version_is_stale;
- B32 data_has_been_queried;
+ FS_Val val;
+ S64 task_taken;
 };
 
 typedef struct FS_Slot FS_Slot;
@@ -40,67 +38,73 @@ struct FS_Slot
  FS_Node *last;
 };
 
-typedef struct FS_State FS_State;
-struct FS_State
+typedef struct FS_Stripe FS_Stripe;
+struct FS_Stripe
+{
+ Arena *arena;
+ OS_Handle cv;
+ OS_Handle rw_mutex;
+};
+
+////////////////////////////////
+//~ rjf: Shared State Bundle
+
+typedef struct FS_Shared FS_Shared;
+struct FS_Shared
 {
  Arena *arena;
  
- //- rjf: request ring buffer
- U8 *req_ring_base;
- U64 req_ring_size;
- U64 req_ring_write_pos;
- U64 req_ring_read_pos;
- OS_Handle req_ring_mutex;
- OS_Handle req_ring_cv;
+ //- rjf: user -> stream thread ring buffer
+ U8 *u2s_ring_base;
+ U64 u2s_ring_size;
+ U64 u2s_ring_write_pos;
+ U64 u2s_ring_read_pos;
+ OS_Handle u2s_ring_mutex;
+ OS_Handle u2s_ring_cv;
  
- //- rjf: shared (tag) -> (info) data structure
- U64 tag_table_count;
- FS_Slot *tag_table_slots;
- OS_StripeTable *tag_table_stripes;
+ //- rjf: shared striped cache of path -> info
+ U64 slots_count;
+ U64 stripes_count;
+ FS_Slot *slots;
+ FS_Stripe *stripes;
  
  //- rjf: threads
- U64 loader_thread_count;
- OS_Handle *loader_threads;
- S64 volatile loader_thread_working_count;
- S64 volatile loader_thread_request_count;
- OS_Handle change_detector_thread;
+ U64 stream_thread_count;
+ OS_Handle *stream_threads;
+ OS_Handle scanner_thread;
 };
 
 ////////////////////////////////
 //~ rjf: Globals
 
-root_global FS_State *fs_state;
+root_global FS_Shared *fs_shared;
+
+////////////////////////////////
+//~ rjf: Basic Helpers
+
+root_function U64 FS_HashFromString(String8 string);
 
 ////////////////////////////////
 //~ rjf: Top-Level API
 
-root_function FS_InitReceipt FS_Init(OS_InitReceipt os_init_receipt, C_InitReceipt c_init_receipt);
+root_function FS_InitReceipt FS_Init(OS_InitReceipt os_init, C_InitReceipt c_init);
 
 ////////////////////////////////
-//~ rjf: Tag Functions
+//~ rjf: Cache Lookups
 
-root_function FS_Tag FS_TagZero(void);
-root_function FS_Tag FS_TagFromPath(String8 path);
-root_function String8 FS_PathFromTag(Arena *arena, FS_Tag tag);
-root_function B32 FS_TagMatch(FS_Tag a, FS_Tag b);
-root_function C_Hash FS_ContentHashFromTag(FS_Tag tag, U64 endt_microseconds);
+root_function FS_Val FS_ValFromPath(String8 path, U64 endt_us);
+#define FS_DataHashFromPath(path, endt_us) (FS_ValFromPath((path), (endt_us)).hash)
 
 ////////////////////////////////
-//~ rjf: Request Ring Buffer Encoding
+//~ rjf: Streaming Thread
 
-root_function void FS_EnqueueLoadRequest(FS_Tag tag);
-root_function FS_Tag FS_DequeueLoadRequest(void);
-
-////////////////////////////////
-//~ rjf: Active Work Info
-
-root_function S64 FS_LoaderThreadWorkingCount(void);
-root_function S64 FS_LoaderThreadRequestCount(void);
+root_function B32 FS_U2SEnqueueRequest(String8 path, U64 endt_us);
+root_function String8 FS_U2SDequeueRequest(Arena *arena);
+root_function void FS_StreamThreadEntryPoint(void *p);
 
 ////////////////////////////////
-//~ rjf: Worker Thread Implementations
+//~ rjf: Scanner Thread
 
-root_function void FS_LoaderThreadEntryPoint(void *p);
-root_function void FS_ChangeDetectorThreadEntryPoint(void *p);
+root_function void FS_ScannerThreadEntryPoint(void *p);
 
 #endif // FILE_STREAM_H

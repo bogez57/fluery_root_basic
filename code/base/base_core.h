@@ -104,11 +104,12 @@
 //- rjf: atomics
 
 #if OS_WINDOWS
-# define AtomicIncEval64(ptr)      InterlockedIncrement64(ptr)
-# define AtomicDecEval64(ptr)      InterlockedDecrement64(ptr)
-# define AtomicAddEval64(ptr, val) InterlockedAdd64((ptr), (val))
-# define AtomicEvalSet64(ptr, val) InterlockedExchange64((ptr), (val))
-# define AtomicEval64(ptr)         InterlockedAdd64((ptr), 0)
+# define AtomicIncEval64(ptr)                       InterlockedIncrement64(ptr)
+# define AtomicDecEval64(ptr)                       InterlockedDecrement64(ptr)
+# define AtomicAddEval64(ptr, val)                  InterlockedAdd64((ptr), (val))
+# define AtomicEvalSet64(ptr, val)                  InterlockedExchange64((ptr), (val))
+# define AtomicEval64(ptr)                          InterlockedAdd64((ptr), 0)
+# define AtomicEvalCompareExchange64(ptr, val, cmp) InterlockedCompareExchange64((ptr), (val), (cmp))
 #else
 # error Atomics not implemented for this operating system.
 #endif
@@ -247,7 +248,10 @@ typedef float    F32;
 typedef double   F64;
 typedef void VoidFunction(void);
 typedef struct U128 U128;
-struct U128 {U64 v[2];};
+struct U128 {U64 u64[2];};
+
+inline_function U128 U128Zero(void) {U128 v = {0}; return v;}
+inline_function B32 U128Match(U128 a, U128 b) {return a.u64[0] == b.u64[0] && a.u64[1] == b.u64[1];}
 
 ////////////////////////////////
 //~ rjf: Limits

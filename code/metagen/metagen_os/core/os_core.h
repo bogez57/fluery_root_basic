@@ -275,6 +275,8 @@ root_function U64 OS_SemaphoreSignal(OS_Handle handle);
 root_function OS_Handle OS_ConditionVariableAlloc(void);
 root_function void OS_ConditionVariableRelease(OS_Handle cv);
 root_function B32 OS_ConditionVariableWait(OS_Handle cv, OS_Handle mutex, U64 end_time_microseconds);
+root_function B32 OS_ConditionVariableWaitSRW_W(OS_Handle cv, OS_Handle mutex, U64 endt_us);
+root_function B32 OS_ConditionVariableWaitSRW_R(OS_Handle cv, OS_Handle mutex, U64 endt_us);
 root_function void OS_ConditionVariableSignal(OS_Handle cv);
 root_function void OS_ConditionVariableSignalAll(OS_Handle cv);
 

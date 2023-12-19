@@ -12,12 +12,6 @@ struct C_InitReceipt
  U64 u64[1];
 };
 
-typedef struct C_Hash C_Hash;
-struct C_Hash
-{
- U64 u64[2];
-};
-
 typedef struct C_Scope C_Scope;
 struct C_Scope
 {
@@ -33,7 +27,7 @@ struct C_Tag2DataCacheNode
  C_Tag2DataCacheNode *hash_next;
  C_Tag2DataCacheNode *hash_prev;
  Arena *arena;
- C_Hash hash;
+ U128 hash;
  String8 data;
  U64 last_accessed_time_us;
 };
@@ -76,16 +70,13 @@ root_function void C_ScopeClose(C_Scope *scope);
 ////////////////////////////////
 //~ rjf: Hashes
 
-root_function C_Hash C_HashZero(void);
-root_function C_Hash C_HashMake(U64 a, U64 b);
-root_function C_Hash C_HashFromString(String8 string);
-root_function B32 C_HashMatch(C_Hash a, C_Hash b);
+root_function U128 C_HashFromString(String8 string);
 
 ////////////////////////////////
 //~ rjf: Cache Interaction
 
-root_function C_Hash C_SubmitData(Arena **permanent_arena, String8 data);
-root_function void C_SubmitStaticData(String8 data, C_Hash hash);
-root_function String8 C_DataFromHash(C_Scope *scope, C_Hash hash);
+root_function U128 C_SubmitData(Arena **permanent_arena, String8 data);
+root_function void C_SubmitStaticData(String8 data, U128 hash);
+root_function String8 C_DataFromHash(C_Scope *scope, U128 hash);
 
 #endif // CONTENT_CORE_H

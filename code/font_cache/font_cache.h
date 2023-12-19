@@ -146,7 +146,7 @@ root_global F_State *f_state;
 //~ rjf: Tag Functions
 
 root_function B32 F_TagMatch(F_Tag a, F_Tag b);
-root_function F_Tag F_TagFromHash(C_Hash hash);
+root_function F_Tag F_TagFromHash(U128 hash);
 root_function F_Tag F_TagFromFontPath(String8 string);
 
 root_function B32 F_HashMatch(F_Hash a, F_Hash b);

@@ -30,6 +30,14 @@ global D3D11_INPUT_ELEMENT_DESC r_d3d11_g_sprite3d_ilay_elements[] =
  { "PAD",  0,       DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 };
 
+global D3D11_INPUT_ELEMENT_DESC r_d3d11_g_pointlight3d_ilay_elements[] =
+{
+ { "VTX",  0, DXGI_FORMAT_R32G32B32_FLOAT,    0,                            0, D3D11_INPUT_PER_VERTEX_DATA,   0 },
+ { "POS",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,                            0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+ { "COL",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+ { "PRM",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+};
+
 global D3D11_INPUT_ELEMENT_DESC r_d3d11_g_debugline3d_ilay_elements[] =
 {
  { "POS",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,                            0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
@@ -264,7 +272,7 @@ R_Init(OS_InitReceipt os_init, OS_InitGfxReceipt os_gfx_init)
    r_d3d11_state->device->CreateRasterizerState1(&desc, &r_d3d11_state->rasterizer);
   }
   
-  //- rjf: make blend state
+  //- rjf: make main blend state
   {
    D3D11_BLEND_DESC desc = {};
    {
@@ -277,7 +285,23 @@ R_Init(OS_InitReceipt os_init, OS_InitGfxReceipt os_gfx_init)
     desc.RenderTarget[0].BlendOpAlpha           = D3D11_BLEND_OP_ADD;
     desc.RenderTarget[0].RenderTargetWriteMask  = D3D11_COLOR_WRITE_ENABLE_ALL;
    }
-   r_d3d11_state->device->CreateBlendState(&desc, &r_d3d11_state->blend_state);
+   r_d3d11_state->device->CreateBlendState(&desc, &r_d3d11_state->main_blend_state);
+  }
+  
+  //- rjf: make additive blend state
+  {
+   D3D11_BLEND_DESC desc = {};
+   {
+    desc.RenderTarget[0].BlendEnable            = 1;
+    desc.RenderTarget[0].SrcBlend               = D3D11_BLEND_SRC_ALPHA;
+    desc.RenderTarget[0].DestBlend              = D3D11_BLEND_ONE; 
+    desc.RenderTarget[0].BlendOp                = D3D11_BLEND_OP_ADD;
+    desc.RenderTarget[0].SrcBlendAlpha          = D3D11_BLEND_ZERO;
+    desc.RenderTarget[0].DestBlendAlpha         = D3D11_BLEND_ONE;
+    desc.RenderTarget[0].BlendOpAlpha           = D3D11_BLEND_OP_ADD;
+    desc.RenderTarget[0].RenderTargetWriteMask  = D3D11_COLOR_WRITE_ENABLE_ALL;
+   }
+   r_d3d11_state->device->CreateBlendState(&desc, &r_d3d11_state->additive_blend_state);
   }
   
   //- rjf: make samplers
@@ -334,6 +358,15 @@ R_Init(OS_InitReceipt os_init, OS_InitGfxReceipt os_gfx_init)
      desc.DepthFunc      = D3D11_COMPARISON_LESS;
     }
     r_d3d11_state->device->CreateDepthStencilState(&desc, &r_d3d11_state->write_depth_stencil_state);
+   }
+   {
+    D3D11_DEPTH_STENCIL_DESC desc = {};
+    {
+     desc.DepthEnable    = TRUE;
+     desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+     desc.DepthFunc      = D3D11_COMPARISON_LESS;
+    }
+    r_d3d11_state->device->CreateDepthStencilState(&desc, &r_d3d11_state->read_depth_stencil_state);
    }
   }
   
@@ -490,6 +523,41 @@ R_Init(OS_InitReceipt os_init, OS_InitGfxReceipt os_gfx_init)
     0xff, 0x00, 0xff, 0xff,
    };
    r_d3d11_state->backup_texture = R_Tex2DAlloc(V2S64(2, 2), R_Tex2DFormat_RGBA8, R_Tex2DKind_Static, &backup_texture_data[0]);
+   
+   // rjf: initialize light sphere vertex/index buffers
+   {
+    Temp scratch = ScratchBegin(0, 0);
+    VertexIndexArrayPair vtx_idx_arrays = IcoSphereMake(scratch.arena, 0);
+    {
+     D3D11_SUBRESOURCE_DATA data = {0};
+     {
+      data.pSysMem = vtx_idx_arrays.vertices.v;
+     }
+     D3D11_BUFFER_DESC desc = {0};
+     {
+      desc.ByteWidth      = vtx_idx_arrays.vertices.count*sizeof(Vec3F32);
+      desc.Usage          = D3D11_USAGE_IMMUTABLE;
+      desc.BindFlags      = D3D11_BIND_VERTEX_BUFFER;
+     }
+     r_d3d11_state->device->CreateBuffer(&desc, &data, &r_d3d11_state->light_sphere_vtx_buffer);
+     r_d3d11_state->light_sphere_vtx_count = vtx_idx_arrays.vertices.count;
+    }
+    {
+     D3D11_SUBRESOURCE_DATA data = {0};
+     {
+      data.pSysMem = vtx_idx_arrays.indices.v;
+     }
+     D3D11_BUFFER_DESC desc = {0};
+     {
+      desc.ByteWidth      = vtx_idx_arrays.indices.count*sizeof(S32);
+      desc.Usage          = D3D11_USAGE_IMMUTABLE;
+      desc.BindFlags      = D3D11_BIND_INDEX_BUFFER;
+     }
+     r_d3d11_state->device->CreateBuffer(&desc, &data, &r_d3d11_state->light_sphere_idx_buffer);
+     r_d3d11_state->light_sphere_idx_count = vtx_idx_arrays.indices.count;
+    }
+    ScratchEnd(scratch);
+   }
   }
   
   //- rjf: set up overflow state
@@ -568,17 +636,21 @@ r_function void
 R_WindowUnequip(OS_Handle window, R_Handle window_eqp)
 {
  R_D3D11_WindowEquip *eqp = R_D3D11_WindowEquipFromHandle(window_eqp);
- eqp->shadowmap_depth_srv->Release();
- eqp->shadowmap_depth_dsv->Release();
- eqp->shadowmap_depth->Release();
- eqp->gbuffer_depth_srv->Release();
- eqp->gbuffer_depth_dsv->Release();
- eqp->gbuffer_depth->Release();
- eqp->gbuffer_color_rtv->Release();
- eqp->gbuffer_color->Release();
- eqp->framebuffer_rtv->Release();
- eqp->framebuffer->Release();
- eqp->swapchain->Release();
+ if(eqp->shadowmap_depth_srv)          { eqp->shadowmap_depth_srv->Release(); }
+ if(eqp->shadowmap_depth_dsv)          { eqp->shadowmap_depth_dsv->Release(); }
+ if(eqp->shadowmap_depth)              { eqp->shadowmap_depth->Release(); }
+ if(eqp->gbuffer_depth_srv)            { eqp->gbuffer_depth_srv->Release(); }
+ if(eqp->gbuffer_depth_dsv)            { eqp->gbuffer_depth_dsv->Release(); }
+ if(eqp->gbuffer_depth)                { eqp->gbuffer_depth->Release(); }
+ if(eqp->gbuffer_color_srv)            { eqp->gbuffer_color_srv->Release(); }
+ if(eqp->gbuffer_color_rtv)            { eqp->gbuffer_color_rtv->Release(); }
+ if(eqp->gbuffer_color)                { eqp->gbuffer_color->Release(); }
+ if(eqp->gbuffer_scratch_color_srv)    { eqp->gbuffer_scratch_color_srv->Release(); }
+ if(eqp->gbuffer_scratch_color_rtv)    { eqp->gbuffer_scratch_color_rtv->Release(); }
+ if(eqp->gbuffer_scratch_color)        { eqp->gbuffer_scratch_color->Release(); }
+ if(eqp->framebuffer_rtv)              { eqp->framebuffer_rtv->Release(); }
+ if(eqp->framebuffer)                  { eqp->framebuffer->Release(); }
+ if(eqp->swapchain)                    { eqp->swapchain->Release(); }
  OS_Release(eqp, sizeof(*eqp));
 }
 
@@ -717,6 +789,9 @@ R_WindowStart(R_Handle window_eqp, Vec2S64 resolution)
    if(wnd->gbuffer_color_srv)        {wnd->gbuffer_color_srv->Release();}
    if(wnd->gbuffer_color_rtv)        {wnd->gbuffer_color_rtv->Release();}
    if(wnd->gbuffer_color)            {wnd->gbuffer_color->Release();}
+   if(wnd->gbuffer_scratch_color_srv){wnd->gbuffer_scratch_color_srv->Release();}
+   if(wnd->gbuffer_scratch_color_rtv){wnd->gbuffer_scratch_color_rtv->Release();}
+   if(wnd->gbuffer_scratch_color)    {wnd->gbuffer_scratch_color->Release();}
    
    // rjf: create g-buffer color target
    {
@@ -768,6 +843,31 @@ R_WindowStart(R_Handle window_eqp, Vec2S64 resolution)
     device->CreateDepthStencilView(wnd->gbuffer_depth, &dsv_desc, &wnd->gbuffer_depth_dsv);
     device->CreateShaderResourceView(wnd->gbuffer_depth, &srv_desc, &wnd->gbuffer_depth_srv);
    }
+   
+   // rjf: create g-buffer scratch color target
+   {
+    D3D11_TEXTURE2D_DESC color_desc = {};
+    {
+     wnd->framebuffer->GetDesc(&color_desc);
+     color_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+     color_desc.BindFlags = D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
+    }
+    D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = {};
+    {
+     rtv_desc.Format         = color_desc.Format;
+     rtv_desc.ViewDimension  = D3D11_RTV_DIMENSION_TEXTURE2D;
+    }
+    D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
+    {
+     srv_desc.Format                    = DXGI_FORMAT_R8G8B8A8_UNORM;
+     srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+     srv_desc.Texture2D.MipLevels       = -1;
+    }
+    device->CreateTexture2D(&color_desc, 0, &wnd->gbuffer_scratch_color);
+    device->CreateRenderTargetView(wnd->gbuffer_scratch_color, &rtv_desc, &wnd->gbuffer_scratch_color_rtv);
+    device->CreateShaderResourceView(wnd->gbuffer_scratch_color, &srv_desc, &wnd->gbuffer_scratch_color_srv);
+   }
+   
   }
   
   //- rjf: clear
@@ -864,7 +964,8 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
       // rjf: setup output merger
       {
        d_ctx->OMSetRenderTargets(1, &wnd->framebuffer_rtv, 0);
-       d_ctx->OMSetBlendState(r_d3d11_state->blend_state, 0, 0xffffffff);
+       d_ctx->OMSetBlendState(r_d3d11_state->main_blend_state, 0, 0xffffffff);
+       d_ctx->OMSetDepthStencilState(r_d3d11_state->noop_depth_stencil_state, 0);
       }
       
       // rjf: grab pipeline objects
@@ -915,6 +1016,7 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
     {
      R_PassParams_G0 *params = pass->params_g0;
      Mat4x4F32 view_projection = Mul4x4F32(params->xform_projection, params->xform_view);
+     Mat4x4F32 inverse_view_projection = Inverse4x4F32(view_projection);
      Vec2S64 resolution = wnd->last_resolution;
      D3D11_VIEWPORT d3d11_viewport = { 0.0f, 0.0f, (F32)resolution.x, (F32)resolution.y, 0.0f, 1.0f };
      if(params->viewport.x0 != 0 || params->viewport.x1 != 0 ||
@@ -931,7 +1033,7 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
      Mat4x4F32 shadowmap_proj = MakeOrthographic4x4F32(-30.f, +30.f, -30.f, +30.f, -100.f, 100.f);
      Mat4x4F32 shadowmap_view_proj = Mul4x4F32(shadowmap_proj, shadowmap_view);
      
-     //- rjf: clear
+     //- rjf: clear gbuffer & shadowmap
      {
       Vec4F32 clear_color = {0};
       d_ctx->ClearRenderTargetView(wnd->gbuffer_color_rtv, clear_color.v);
@@ -964,11 +1066,12 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
       d_ctx->RSSetState(r_d3d11_state->rasterizer);
      }
      
-     //- rjf: gbuffer <= sprites
+     //- rjf: gbuffer <= opaque sprites
      {
       d_ctx->RSSetViewports(1, &d3d11_viewport);
+      d_ctx->OMSetBlendState(r_d3d11_state->main_blend_state, 0, 0xffffffff);
+      d_ctx->OMSetDepthStencilState(r_d3d11_state->plain_depth_stencil_state, 0);
       d_ctx->OMSetRenderTargets(1, &wnd->gbuffer_color_rtv, wnd->gbuffer_depth_dsv);
-      d_ctx->OMSetBlendState(r_d3d11_state->blend_state, 0, 0xffffffff);
       for(U64 slot_idx = 0; slot_idx < params->sprites.slots_count; slot_idx += 1)
       {
        R_BatchGroup3DSlot *slot = &params->sprites.slots[slot_idx];
@@ -976,6 +1079,12 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
        {
         R_BatchList *batches = &node->batches;
         R_BatchGroup3DParams *params = &node->params;
+        
+        // rjf: skip non-opaque
+        if(params->blend_mode != R_BlendMode_Normal)
+        {
+         continue;
+        }
         
         // rjf: unpack command batch data
         U64 bytes_per_instance = batches->byte_count/batches->inst_count;
@@ -1004,6 +1113,7 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
          cmd_globals.xform                     = view_projection;
          cmd_globals.albedo_sample_channel_map = albedo_sample_channel_map;
          cmd_globals.albedo_t2d_size           = Vec2F32FromVec(albedo_tex.size);
+         cmd_globals.alpha_test_min            = 1.f;
         }
         R_D3D11_BufferWriteString(d_ctx, cmd_global_buffer, Str8Struct(&cmd_globals));
         
@@ -1028,11 +1138,13 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
       }
      }
      
-     //- rjf: shadowmap <= sprites
+     //- rjf: shadowmap <= opaque sprites
      {
       D3D11_VIEWPORT d3d11_viewport = { 0.0f, 0.0f, (F32)wnd->shadowmap_resolution.x, (F32)wnd->shadowmap_resolution.y, 0.0f, 1.0f };
       d_ctx->RSSetViewports(1, &d3d11_viewport);
       d_ctx->OMSetRenderTargets(0, 0, wnd->shadowmap_depth_dsv);
+      d_ctx->OMSetBlendState(r_d3d11_state->main_blend_state, 0, 0xffffffff);
+      d_ctx->OMSetDepthStencilState(r_d3d11_state->plain_depth_stencil_state, 0);
       for(U64 slot_idx = 0; slot_idx < params->sprites.slots_count; slot_idx += 1)
       {
        R_BatchGroup3DSlot *slot = &params->sprites.slots[slot_idx];
@@ -1040,6 +1152,12 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
        {
         R_BatchList *batches = &node->batches;
         R_BatchGroup3DParams *params = &node->params;
+        
+        // rjf: additive blending -> skip
+        if(params->blend_mode != R_BlendMode_Normal)
+        {
+         continue;
+        }
         
         // rjf: unpack command batch data
         U64 bytes_per_instance = batches->byte_count/batches->inst_count;
@@ -1068,6 +1186,7 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
          cmd_globals.xform                     = shadowmap_view_proj;
          cmd_globals.albedo_sample_channel_map = albedo_sample_channel_map;
          cmd_globals.albedo_t2d_size           = Vec2F32FromVec(albedo_tex.size);
+         cmd_globals.alpha_test_min            = 1.f;
         }
         R_D3D11_BufferWriteString(d_ctx, cmd_global_buffer, Str8Struct(&cmd_globals));
         
@@ -1092,24 +1211,23 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
       }
      }
      
-     //- rjf: framebuffer <=composite= gbuffer
+     //- rjf: gbuffer-scratch <=unlit-composite= gbuffer
      {
       D3D11_VIEWPORT d3d11_viewport = { 0.0f, 0.0f, (F32)resolution.x, (F32)resolution.y, 0.0f, 1.0f };
       d_ctx->RSSetViewports(1, &d3d11_viewport);
-      d_ctx->OMSetRenderTargets(1, &wnd->framebuffer_rtv, 0);
-      d_ctx->OMSetBlendState(r_d3d11_state->blend_state, 0, 0xffffffff);
+      d_ctx->OMSetRenderTargets(1, &wnd->gbuffer_scratch_color_rtv, 0);
+      d_ctx->OMSetBlendState(r_d3d11_state->main_blend_state, 0, 0xffffffff);
+      d_ctx->OMSetDepthStencilState(r_d3d11_state->noop_depth_stencil_state, 0);
       
       // rjf: grab pipeline objects
-      ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_Composite3D];
-      ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_Composite3D];
-      ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_Composite3D];
-      ID3D11InputLayout *ilay = r_d3d11_state->ilay_table[R_D3D11_ShaderPairKind_Composite3D];
+      ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_CompositeUnlit3D];
+      ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_CompositeUnlit3D];
+      ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_CompositeUnlit3D];
       
       // rjf: send per-cmd globals
-      R_D3D11_CmdGlobals_Composite3D cmd_globals = {0};
+      R_D3D11_CmdGlobals_CompositeUnlit3D cmd_globals = {0};
       {
-       Vec2F32 resolution = Vec2F32FromVec(wnd->last_resolution);
-       cmd_globals.inverse_view_projection   = Inverse4x4F32(view_projection);
+       cmd_globals.inverse_view_projection   = inverse_view_projection;
        cmd_globals.shadowmap_view_projection = shadowmap_view_proj;
        cmd_globals.fog_color                 = params->fog_color;
        cmd_globals.pct_fog_per_unit          = params->pct_fog_per_unit;
@@ -1136,6 +1254,209 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
       
       // rjf: draw
       d_ctx->Draw(4, 0);
+      
+      // rjf: unset
+      ID3D11ShaderResourceView *srv = 0;
+      d_ctx->PSSetShaderResources(0, 1, &srv);
+      d_ctx->PSSetShaderResources(1, 1, &srv);
+      d_ctx->PSSetShaderResources(2, 1, &srv);
+     }
+     
+     //- rjf: gbuffer <=blit= gbuffer-scratch
+     {
+      D3D11_VIEWPORT d3d11_viewport = { 0.0f, 0.0f, (F32)resolution.x, (F32)resolution.y, 0.0f, 1.0f };
+      d_ctx->RSSetViewports(1, &d3d11_viewport);
+      d_ctx->PSSetShaderResources(0, 0, 0);
+      d_ctx->OMSetRenderTargets(1, &wnd->gbuffer_color_rtv, 0);
+      d_ctx->OMSetBlendState(r_d3d11_state->main_blend_state, 0, 0xffffffff);
+      d_ctx->OMSetDepthStencilState(r_d3d11_state->noop_depth_stencil_state, 0);
+      
+      // rjf: grab pipeline objects
+      ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_FramebufferBlit];
+      ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_FramebufferBlit];
+      
+      // rjf: setup input assembly
+      d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+      d_ctx->IASetInputLayout(0);
+      
+      // rjf: setup shaders
+      d_ctx->VSSetShader(vshad, 0, 0);
+      d_ctx->PSSetShader(pshad, 0, 0);
+      d_ctx->PSSetShaderResources(0, 1, &wnd->gbuffer_scratch_color_srv);
+      d_ctx->PSSetSamplers(0, 1, &r_d3d11_state->linear_sampler);
+      
+      // rjf: draw
+      d_ctx->Draw(4, 0);
+     }
+     
+     //- rjf: gbuffer <= light volumes
+     if(params->point_lights.inst_count != 0)
+     {
+      R_BatchList *batch_list = &params->point_lights;
+      d_ctx->RSSetViewports(1, &d3d11_viewport);
+      d_ctx->OMSetRenderTargets(1, &wnd->gbuffer_color_rtv, 0);
+      d_ctx->OMSetBlendState(r_d3d11_state->additive_blend_state, 0, 0xffffffff);
+      d_ctx->OMSetDepthStencilState(r_d3d11_state->noop_depth_stencil_state, 0);
+      
+      // rjf: unpack command batch data
+      U64 index_count = r_d3d11_state->light_sphere_idx_count;
+      U64 bytes_per_instance = batch_list->byte_count/batch_list->inst_count;
+      U64 instance_count = batch_list->inst_count;
+      ID3D11Buffer *vertex_buffer = r_d3d11_state->light_sphere_vtx_buffer;
+      ID3D11Buffer *index_buffer = r_d3d11_state->light_sphere_idx_buffer;
+      ID3D11Buffer *instance_buffer = R_D3D11_InstanceBufferFromBatchList(batch_list);
+      
+      // rjf: grab pipeline objects
+      ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_PointLight3D];
+      ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_PointLight3D];
+      ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_PointLight3D];
+      ID3D11InputLayout *ilay = r_d3d11_state->ilay_table[R_D3D11_ShaderPairKind_PointLight3D];
+      
+      // rjf: send per-cmd globals
+      R_D3D11_CmdGlobals_PointLight3D cmd_globals = {0};
+      {
+       cmd_globals.xform = view_projection;
+       cmd_globals.inverse_view_projection = inverse_view_projection;
+      }
+      R_D3D11_BufferWriteString(d_ctx, cmd_global_buffer, Str8Struct(&cmd_globals));
+      
+      // rjf: setup input assembly
+      U32 ia_strides[] = {(U32)sizeof(Vec3F32), (U32)bytes_per_instance};
+      U32 ia_offsets[] = {0, 0};
+      ID3D11Buffer *ia_buffers[] = {vertex_buffer, instance_buffer};
+      d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+      d_ctx->IASetInputLayout(ilay);
+      d_ctx->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
+      d_ctx->IASetVertexBuffers(0, ArrayCount(ia_buffers), ia_buffers, ia_strides, ia_offsets);
+      
+      // rjf: setup shaders
+      d_ctx->VSSetShader(vshad, 0, 0);
+      d_ctx->VSSetConstantBuffers(0, 1, &cmd_global_buffer);
+      d_ctx->PSSetShader(pshad, 0, 0);
+      d_ctx->PSSetConstantBuffers(0, 1, &cmd_global_buffer);
+      d_ctx->PSSetShaderResources(0, 1, &wnd->gbuffer_depth_srv);
+      d_ctx->PSSetSamplers(0, 1, &r_d3d11_state->linear_sampler);
+      
+      // rjf: draw
+      d_ctx->DrawIndexedInstanced(index_count, instance_count, 0, 0, 0);
+      
+      // rjf: unset
+      ID3D11ShaderResourceView *srv = 0;
+      d_ctx->PSSetShaderResources(0, 1, &srv);
+     }
+     
+     //- rjf: gbuffer <= emissive sprites
+     {
+      d_ctx->RSSetViewports(1, &d3d11_viewport);
+      d_ctx->OMSetBlendState(r_d3d11_state->additive_blend_state, 0, 0xffffffff);
+      d_ctx->OMSetDepthStencilState(r_d3d11_state->read_depth_stencil_state, 0);
+      d_ctx->OMSetRenderTargets(1, &wnd->gbuffer_color_rtv, wnd->gbuffer_depth_dsv);
+      for(U64 slot_idx = 0; slot_idx < params->sprites.slots_count; slot_idx += 1)
+      {
+       R_BatchGroup3DSlot *slot = &params->sprites.slots[slot_idx];
+       for(R_BatchGroup3DNode *node = slot->first; node != 0; node = node->next)
+       {
+        R_BatchList *batches = &node->batches;
+        R_BatchGroup3DParams *params = &node->params;
+        
+        // rjf: skip non-emissive
+        if(params->blend_mode != R_BlendMode_Additive)
+        {
+         continue;
+        }
+        
+        // rjf: unpack command batch data
+        U64 bytes_per_instance = batches->byte_count/batches->inst_count;
+        ID3D11Buffer *instance_buffer = R_D3D11_InstanceBufferFromBatchList(batches);
+        R_Handle albedo_tex_handle = R_HandleIsZero(params->albedo_tex) ? r_d3d11_state->backup_texture : params->albedo_tex;
+        R_D3D11_Tex2D albedo_tex = R_D3D11_Tex2DFromHandle(albedo_tex_handle);
+        Mat4x4F32 albedo_sample_channel_map = R_D3D11_SampleChannelMapFromTexture2DFormat(albedo_tex.format);
+        R_Tex2DSampleKind sample_kind = params->albedo_tex_sample_kind;
+        ID3D11SamplerState *sampler = r_d3d11_state->linear_sampler;
+        switch(sample_kind)
+        {
+         default:
+         case R_Tex2DSampleKind_Nearest: {sampler = r_d3d11_state->nearest_sampler;}break;
+         case R_Tex2DSampleKind_Linear:  {sampler = r_d3d11_state->linear_sampler;}break;
+        }
+        
+        // rjf: grab pipeline objects
+        ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_Sprite3D];
+        ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_Sprite3D];
+        ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_Sprite3D];
+        ID3D11InputLayout *ilay = r_d3d11_state->ilay_table[R_D3D11_ShaderPairKind_Sprite3D];
+        
+        // rjf: send per-cmd globals
+        R_D3D11_CmdGlobals_Sprite3D cmd_globals = {0};
+        {
+         cmd_globals.xform                     = view_projection;
+         cmd_globals.albedo_sample_channel_map = albedo_sample_channel_map;
+         cmd_globals.albedo_t2d_size           = Vec2F32FromVec(albedo_tex.size);
+         cmd_globals.alpha_test_min            = 0.f;
+        }
+        R_D3D11_BufferWriteString(d_ctx, cmd_global_buffer, Str8Struct(&cmd_globals));
+        
+        // rjf: setup input assembly
+        U32 stride = bytes_per_instance;
+        U32 offset = 0;
+        d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+        d_ctx->IASetInputLayout(ilay);
+        d_ctx->IASetVertexBuffers(0, 1, &instance_buffer, &stride, &offset);
+        
+        // rjf: setup shaders
+        d_ctx->VSSetShader(vshad, 0, 0);
+        d_ctx->VSSetConstantBuffers(0, 1, &cmd_global_buffer);
+        d_ctx->PSSetShader(pshad, 0, 0);
+        d_ctx->PSSetConstantBuffers(0, 1, &cmd_global_buffer);
+        d_ctx->PSSetShaderResources(0, 1, &albedo_tex.view);
+        d_ctx->PSSetSamplers(0, 1, &sampler);
+        
+        // rjf: draw
+        d_ctx->DrawInstanced(4, batches->inst_count, 0, 0);
+       }
+      }
+     }
+     
+     //- rjf: framebuffer <=lit-composite= gbuffer
+     {
+      D3D11_VIEWPORT d3d11_viewport = { 0.0f, 0.0f, (F32)resolution.x, (F32)resolution.y, 0.0f, 1.0f };
+      d_ctx->RSSetViewports(1, &d3d11_viewport);
+      d_ctx->OMSetRenderTargets(1, &wnd->framebuffer_rtv, 0);
+      d_ctx->OMSetBlendState(r_d3d11_state->main_blend_state, 0, 0xffffffff);
+      d_ctx->OMSetDepthStencilState(r_d3d11_state->noop_depth_stencil_state, 0);
+      
+      // rjf: grab pipeline objects
+      ID3D11Buffer *cmd_global_buffer = r_d3d11_state->cmd_global_buffer_table[R_D3D11_CmdGlobalKind_CompositeLit3D];
+      ID3D11VertexShader *vshad = r_d3d11_state->vshad_table[R_D3D11_ShaderPairKind_CompositeLit3D];
+      ID3D11PixelShader *pshad = r_d3d11_state->pshad_table[R_D3D11_ShaderPairKind_CompositeLit3D];
+      
+      // rjf: send per-cmd globals
+      R_D3D11_CmdGlobals_CompositeLit3D cmd_globals = {0};
+      {
+       cmd_globals.inverse_view_projection   = inverse_view_projection;
+       cmd_globals.fog_color                 = params->fog_color;
+       cmd_globals.pct_fog_per_unit          = params->pct_fog_per_unit;
+       cmd_globals.near_z                    = params->near_z;
+       cmd_globals.far_z                     = params->far_z;
+      }
+      R_D3D11_BufferWriteString(d_ctx, cmd_global_buffer, Str8Struct(&cmd_globals));
+      
+      // rjf: setup input assembly
+      d_ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+      d_ctx->IASetInputLayout(0);
+      
+      // rjf: setup shaders
+      d_ctx->VSSetShader(vshad, 0, 0);
+      d_ctx->VSSetConstantBuffers(0, 1, &cmd_global_buffer);
+      d_ctx->PSSetShader(pshad, 0, 0);
+      d_ctx->PSSetConstantBuffers(0, 1, &cmd_global_buffer);
+      d_ctx->PSSetShaderResources(0, 1, &wnd->gbuffer_color_srv);
+      d_ctx->PSSetSamplers(0, 1, &r_d3d11_state->linear_sampler);
+      d_ctx->PSSetShaderResources(1, 1, &wnd->gbuffer_depth_srv);
+      d_ctx->PSSetSamplers(1, 1, &r_d3d11_state->linear_sampler);
+      
+      // rjf: draw
+      d_ctx->Draw(4, 0);
      }
      
      //- rjf: framebuffer <= debug lines
@@ -1143,7 +1464,8 @@ R_WindowSubmit(R_Handle window_eqp, R_PassList *passes)
      {
       R_BatchList *batch_list = &params->debug_lines;
       d_ctx->OMSetRenderTargets(1, &wnd->framebuffer_rtv, 0);
-      d_ctx->OMSetBlendState(r_d3d11_state->blend_state, 0, 0xffffffff);
+      d_ctx->OMSetBlendState(r_d3d11_state->main_blend_state, 0, 0xffffffff);
+      d_ctx->OMSetDepthStencilState(r_d3d11_state->noop_depth_stencil_state, 0);
       
       // rjf: unpack command batch data
       U64 bytes_per_instance = batch_list->byte_count/batch_list->inst_count;

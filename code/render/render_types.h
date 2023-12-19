@@ -33,6 +33,17 @@ union R_Handle
 };
 
 ////////////////////////////////
+//~ rjf: Blending Types
+
+typedef enum R_BlendMode
+{
+ R_BlendMode_Normal,
+ R_BlendMode_Additive,
+ R_BlendMode_COUNT
+}
+R_BlendMode;
+
+////////////////////////////////
 //~ rjf: Texture Types
 
 typedef enum R_Tex2DFormat
@@ -92,6 +103,15 @@ struct R_Sprite3DInst
  F32 omit_texture;
  F32 shear;
  F32 _unused_[2];
+};
+
+typedef struct R_PointLight3DInst R_PointLight3DInst;
+struct R_PointLight3DInst
+{
+ Vec4F32 pos;
+ Vec4F32 color;
+ F32 intensity;
+ F32 _unused_[3];
 };
 
 typedef struct R_DebugLine3DInst R_DebugLine3DInst;
@@ -158,6 +178,7 @@ struct R_BatchGroup3DParams
 {
  R_Handle albedo_tex;
  R_Tex2DSampleKind albedo_tex_sample_kind;
+ R_BlendMode blend_mode;
 };
 
 typedef struct R_BatchGroup3DNode R_BatchGroup3DNode;
@@ -234,6 +255,7 @@ struct R_PassParams_G0
  // rjf: instance batches
  R_BatchGroup3DMap sprites;
  R_BatchList debug_lines;
+ R_BatchList point_lights;
 };
 
 typedef struct R_Pass R_Pass;

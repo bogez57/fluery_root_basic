@@ -14,6 +14,10 @@
 # define ArenaImpl_Decommit OS_Decommit
 #endif
 
+#if !defined(ThreadCtxImpl_SetThreadName)
+# define ThreadCtxImpl_SetThreadName OS_SetThreadName
+#endif
+
 #include "os/core/os_core.h"
 #if defined(OS_FEATURE_GFX)
 #include "os/gfx/os_gfx.h"

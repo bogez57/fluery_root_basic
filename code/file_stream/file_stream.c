@@ -2,371 +2,285 @@
 //~ rjf: Globals
 
 #if BUILD_CORE
-FS_State *fs_state = 0;
+FS_Shared *fs_shared = 0;
 #endif
+
+////////////////////////////////
+//~ rjf: Basic Helpers
+
+root_function U64
+FS_HashFromString(String8 string)
+{
+ U64 result = 5381;
+ for(U64 i = 0; i < string.size; i += 1)
+ {
+  result = ((result << 5) + result) + string.str[i];
+ }
+ return result;
+}
 
 ////////////////////////////////
 //~ rjf: Top-Level API
 
 root_function FS_InitReceipt
-FS_Init(OS_InitReceipt os_init_receipt, C_InitReceipt c_init_receipt)
+FS_Init(OS_InitReceipt os_init, C_InitReceipt c_init)
 {
- if(IsMainThread() && fs_state == 0)
+ if(IsMainThread() && fs_shared == 0)
  {
-  //- rjf: set up basics
-  Arena *arena = ArenaAlloc(Megabytes(256));
-  fs_state = PushArray(arena, FS_State, 1);
-  fs_state->arena = arena;
-  
-  //- rjf: set up request ring buffer
-  fs_state->req_ring_size = Kilobytes(256);
-  fs_state->req_ring_base = PushArrayNoZero(arena, U8, fs_state->req_ring_size);
-  fs_state->req_ring_mutex = OS_MutexAlloc();
-  fs_state->req_ring_cv = OS_ConditionVariableAlloc();
-  
-  //- rjf: set up tag table
-  fs_state->tag_table_count = 1024;
-  fs_state->tag_table_slots = PushArray(fs_state->arena, FS_Slot, fs_state->tag_table_count);
-  fs_state->tag_table_stripes = OS_StripeTableAlloc(arena, fs_state->tag_table_count/8);
-  
-  //- rjf: launch threads
-  fs_state->loader_thread_count = OS_LogicalProcessorCount();
-  fs_state->loader_threads = PushArray(arena, OS_Handle, fs_state->loader_thread_count);
-  for(U64 thread_idx = 0; thread_idx < fs_state->loader_thread_count; thread_idx += 1)
+  Arena *arena = ArenaAlloc(Gigabytes(8));
+  fs_shared = PushArray(arena, FS_Shared, 1);
+  fs_shared->arena = arena;
+  fs_shared->u2s_ring_size  = Kilobytes(64);
+  fs_shared->u2s_ring_base  = PushArrayNoZero(arena, U8, fs_shared->u2s_ring_size);
+  fs_shared->u2s_ring_mutex = OS_MutexAlloc();
+  fs_shared->u2s_ring_cv    = OS_ConditionVariableAlloc();
+  fs_shared->slots_count = 1024;
+  fs_shared->stripes_count = 64;
+  fs_shared->slots = PushArray(fs_shared->arena, FS_Slot, fs_shared->slots_count);
+  fs_shared->stripes = PushArray(fs_shared->arena, FS_Stripe, fs_shared->stripes_count);
+  for(U64 idx = 0; idx < fs_shared->stripes_count; idx += 1)
   {
-   fs_state->loader_threads[thread_idx] = OS_ThreadStart(0, FS_LoaderThreadEntryPoint);
+   fs_shared->stripes[idx].arena = ArenaAlloc(Gigabytes(8));
+   fs_shared->stripes[idx].rw_mutex = OS_SRWMutexAlloc();
+   fs_shared->stripes[idx].cv = OS_ConditionVariableAlloc();
   }
-  fs_state->change_detector_thread = OS_ThreadStart(0, FS_ChangeDetectorThreadEntryPoint);
+  fs_shared->stream_thread_count = Max(2, OS_LogicalProcessorCount()-1);
+  fs_shared->stream_threads = PushArray(arena, OS_Handle, fs_shared->stream_thread_count);
+  for(U64 thread_idx = 0;
+      thread_idx < fs_shared->stream_thread_count;
+      thread_idx += 1)
+  {
+   fs_shared->stream_threads[thread_idx] = OS_ThreadStart((void *)thread_idx, FS_StreamThreadEntryPoint);
+  }
+  fs_shared->scanner_thread = OS_ThreadStart(0, FS_ScannerThreadEntryPoint);
  }
  FS_InitReceipt result = {0};
  return result;
 }
 
 ////////////////////////////////
-//~ rjf: Tag Functions
+//~ rjf: Cache Lookups
 
-root_function FS_Tag
-FS_TagZero(void)
+root_function FS_Val
+FS_ValFromPath(String8 path, U64 endt_us)
 {
- FS_Tag result = {0};
- return result;
-}
-
-root_function FS_Tag
-FS_TagFromPath(String8 path)
-{
- Temp scratch = ScratchBegin(0, 0);
- path = OS_NormalizedPathFromStr8(scratch.arena, path);
- 
- //- rjf: build tag
- FS_Tag tag = {0};
- {
-  meow_u128 hash = MeowHash(MeowDefaultSeed, path.size, path.str);
-  MemoryCopy(&tag, &hash, Min(sizeof(tag), sizeof(hash)));
- }
- 
- //- rjf: store tag -> path correllation, determine if new
- {
-  U64 slot_idx = tag.u64[1] % fs_state->tag_table_count;
-  U64 stripe_idx = slot_idx % fs_state->tag_table_stripes->count;
-  OS_Stripe *stripe = &fs_state->tag_table_stripes->stripes[stripe_idx];
-  FS_Slot *slot = &fs_state->tag_table_slots[slot_idx];
-  OS_MutexScope(stripe->mutex)
-  {
-   B32 is_new = 1;
-   for(FS_Node *n = slot->first; n != 0; n = n->hash_next)
-   {
-    if(FS_TagMatch(n->tag, tag))
-    {
-     is_new = 0;
-     break;
-    }
-   }
-   if(is_new)
-   {
-    FS_Node *node = PushArray(stripe->arena, FS_Node, 1);
-    node->tag = tag;
-    node->path = PushStr8Copy(stripe->arena, path);
-    node->hot_version_is_stale = 1;
-    QueuePush_NZ(slot->first, slot->last, node, hash_next, CheckNull, SetNull);
-   }
-  }
- }
- 
- ScratchEnd(scratch);
- return tag;
-}
-
-root_function String8
-FS_PathFromTag(Arena *arena, FS_Tag tag)
-{
- String8 result = {0};
- U64 slot_idx = tag.u64[1] % fs_state->tag_table_count;
- U64 stripe_idx = slot_idx % fs_state->tag_table_stripes->count;
- OS_Stripe *stripe = &fs_state->tag_table_stripes->stripes[stripe_idx];
- FS_Slot *slot = &fs_state->tag_table_slots[slot_idx];
- OS_MutexScope(stripe->mutex)
+ FS_Val val = {0};
+ U64 hash = FS_HashFromString(path);
+ U64 slot_idx = hash%fs_shared->slots_count;
+ U64 stripe_idx = slot_idx%fs_shared->stripes_count;
+ FS_Slot *slot = &fs_shared->slots[slot_idx];
+ FS_Stripe *stripe = &fs_shared->stripes[stripe_idx];
+ B32 sent = 0;
+ OS_SRWMutexScope_R(stripe->rw_mutex) for(B32 good = 0; !good;)
  {
   for(FS_Node *n = slot->first; n != 0; n = n->hash_next)
   {
-   if(FS_TagMatch(n->tag, tag))
+   if(Str8Match(n->path, path, 0))
    {
-    result = PushStr8Copy(arena, n->path);
+    val = n->val;
+    good = 1;
     break;
    }
   }
- }
- return result;
-}
-
-root_function B32
-FS_TagMatch(FS_Tag a, FS_Tag b)
-{
- return (a.u64[0] == b.u64[0] && a.u64[1] == b.u64[1]);
-}
-
-root_function C_Hash
-FS_ContentHashFromTag(FS_Tag tag, U64 endt_microseconds)
-{
- C_Hash hash = {0};
- if(!FS_TagMatch(tag, FS_TagZero()))
- {
-  U64 slot_idx = tag.u64[1] % fs_state->tag_table_count;
-  U64 stripe_idx = slot_idx % fs_state->tag_table_stripes->count;
-  OS_Stripe *stripe = &fs_state->tag_table_stripes->stripes[stripe_idx];
-  FS_Slot *slot = &fs_state->tag_table_slots[slot_idx];
-  OS_MutexScope(stripe->mutex)
+  if(!good && !sent)
   {
-   for(;;)
+   OS_SRWMutexScopeLeave_R(stripe->rw_mutex);
+   OS_SRWMutexScope_W(stripe->rw_mutex)
    {
+    B32 node_found = 0;
     for(FS_Node *n = slot->first; n != 0; n = n->hash_next)
     {
-     if(FS_TagMatch(n->tag, tag))
+     if(Str8Match(n->path, path, 0))
      {
-      if(n->data_has_been_queried == 0)
-      {
-       n->data_has_been_queried = 1;
-       FS_EnqueueLoadRequest(tag);
-      }
-      else if(!C_HashMatch(n->hash, C_HashZero()))
-      {
-       hash = n->hash;
-       goto end;
-      }
+      node_found = 1;
+      break;
      }
     }
-    if(OS_TimeMicroseconds() >= endt_microseconds)
+    if(!node_found)
     {
-     break;
+     FS_Node *node = PushArray(stripe->arena, FS_Node, 1);
+     node->path = PushStr8Copy(stripe->arena, path);
+     QueuePush_NZ(slot->first, slot->last, node, hash_next, CheckNull, SetNull);
     }
-    OS_ConditionVariableWait(stripe->cv, stripe->mutex, endt_microseconds);
    }
-   end:;
+   OS_SRWMutexScopeEnter_R(stripe->rw_mutex);
+   sent = FS_U2SEnqueueRequest(path, endt_us);
   }
+  if(good)
+  {
+   break;
+  }
+  if(OS_TimeMicroseconds() >= endt_us)
+  {
+   break;
+  }
+  OS_ConditionVariableWaitSRW_R(stripe->cv, stripe->rw_mutex, endt_us);
  }
- return hash;
+ return val;
 }
 
 ////////////////////////////////
-//~ rjf: Request Ring Buffer Encoding
+//~ rjf: Streaming Thread
 
-root_function void
-FS_EnqueueLoadRequest(FS_Tag tag)
+root_function B32
+FS_U2SEnqueueRequest(String8 path, U64 endt_us)
 {
- U64 bytes_needed = sizeof(tag);
- OS_MutexScope(fs_state->req_ring_mutex) for(;;)
+ B32 sent = 0;
+ OS_MutexScope(fs_shared->u2s_ring_mutex) for(;;)
  {
-  if(fs_state->req_ring_write_pos - fs_state->req_ring_read_pos <= fs_state->req_ring_size - bytes_needed)
+  U64 unconsumed_size = fs_shared->u2s_ring_write_pos - fs_shared->u2s_ring_read_pos;
+  U64 available_size = fs_shared->u2s_ring_size - unconsumed_size;
+  if(available_size >= sizeof(U64) + path.size)
   {
-   RingWrite(fs_state->req_ring_base, fs_state->req_ring_size, fs_state->req_ring_write_pos, Str8Struct(&tag));
-   fs_state->req_ring_write_pos += bytes_needed;
-   AtomicIncEval64(&fs_state->loader_thread_request_count);
+   sent = 1;
+   fs_shared->u2s_ring_write_pos += RingWriteStruct(fs_shared->u2s_ring_base, fs_shared->u2s_ring_size, fs_shared->u2s_ring_write_pos, &path.size);
+   fs_shared->u2s_ring_write_pos += RingWrite(fs_shared->u2s_ring_base, fs_shared->u2s_ring_size, fs_shared->u2s_ring_write_pos, path.str, path.size);
+   fs_shared->u2s_ring_write_pos += 7;
+   fs_shared->u2s_ring_write_pos -= fs_shared->u2s_ring_write_pos%8;
    break;
   }
-  OS_ConditionVariableWait(fs_state->req_ring_cv, fs_state->req_ring_mutex, U64Max);
+  if(OS_TimeMicroseconds() >= endt_us)
+  {
+   break;
+  }
+  OS_ConditionVariableWait(fs_shared->u2s_ring_cv, fs_shared->u2s_ring_mutex, endt_us);
  }
- OS_ConditionVariableSignalAll(fs_state->req_ring_cv);
+ if(sent)
+ {
+  OS_ConditionVariableSignalAll(fs_shared->u2s_ring_cv);
+ }
+ return sent;
 }
 
-root_function FS_Tag
-FS_DequeueLoadRequest(void)
+root_function String8
+FS_U2SDequeueRequest(Arena *arena)
 {
- FS_Tag result = {0};
- OS_MutexScope(fs_state->req_ring_mutex) for(;;)
+ String8 result = {0};
+ OS_MutexScope(fs_shared->u2s_ring_mutex) for(;;)
  {
-  if(fs_state->req_ring_read_pos < fs_state->req_ring_write_pos)
+  U64 unconsumed_size = fs_shared->u2s_ring_write_pos - fs_shared->u2s_ring_read_pos;
+  if(unconsumed_size >= sizeof(U64))
   {
-   RingRead(&result, fs_state->req_ring_base, fs_state->req_ring_size, fs_state->req_ring_read_pos, sizeof(result));
-   fs_state->req_ring_read_pos += sizeof(result);
+   fs_shared->u2s_ring_read_pos += RingReadStruct(fs_shared->u2s_ring_base, fs_shared->u2s_ring_size, fs_shared->u2s_ring_read_pos, &result.size);
+   result.str = PushArrayNoZero(arena, U8, result.size);
+   fs_shared->u2s_ring_read_pos += RingRead(fs_shared->u2s_ring_base, fs_shared->u2s_ring_size, fs_shared->u2s_ring_read_pos, result.str, result.size);
+   fs_shared->u2s_ring_read_pos += 7;
+   fs_shared->u2s_ring_read_pos -= fs_shared->u2s_ring_read_pos%8;
    break;
   }
-  OS_ConditionVariableWait(fs_state->req_ring_cv, fs_state->req_ring_mutex, U64Max);
+  OS_ConditionVariableWait(fs_shared->u2s_ring_cv, fs_shared->u2s_ring_mutex, U64Max);
  }
- OS_ConditionVariableSignalAll(fs_state->req_ring_cv);
+ OS_ConditionVariableSignalAll(fs_shared->u2s_ring_cv);
  return result;
 }
 
-////////////////////////////////
-//~ rjf: Active Work Info
-
-root_function S64
-FS_LoaderThreadWorkingCount(void)
-{
- return fs_state->loader_thread_working_count;
-}
-
-root_function S64
-FS_LoaderThreadRequestCount(void)
-{
- return fs_state->loader_thread_request_count;
-}
-
-////////////////////////////////
-//~ rjf: Worker Thread Implementations
-
 root_function void
-FS_LoaderThreadEntryPoint(void *p)
+FS_StreamThreadEntryPoint(void *p)
 {
+ SetThreadNameF("[FS] Streamer #%I64u", (U64)p);
+ ProfThreadName("[FS] Streamer #%I64u", (U64)p);
  for(;;)
  {
   Temp scratch = ScratchBegin(0, 0);
   
-  //- rjf: get next request
-  FS_Tag tag = FS_DequeueLoadRequest();
+  //- rjf: get next path
+  String8 path = FS_U2SDequeueRequest(scratch.arena);
+  U64 hash = FS_HashFromString(path);
+  U64 slot_idx = hash%fs_shared->slots_count;
+  U64 stripe_idx = slot_idx%fs_shared->stripes_count;
+  FS_Slot *slot = &fs_shared->slots[slot_idx];
+  FS_Stripe *stripe = &fs_shared->stripes[stripe_idx];
   
-  //- rjf: get slot/stripe info for this tag
-  U64 slot_idx = tag.u64[1] % fs_state->tag_table_count;
-  U64 stripe_idx = slot_idx % fs_state->tag_table_stripes->count;
-  OS_Stripe *stripe = &fs_state->tag_table_stripes->stripes[stripe_idx];
-  FS_Slot *slot = &fs_state->tag_table_slots[slot_idx];
-  
-  //- rjf: check if we've already loaded this file
-  String8 path = {0};
-  B32 need_reload = 0;
-  OS_MutexScope(stripe->mutex)
+  //- rjf: find node, take task
+  B32 good_task = 0;
+  OS_SRWMutexScope_R(stripe->rw_mutex)
   {
-   FS_Node *existing_node = 0;
    for(FS_Node *n = slot->first; n != 0; n = n->hash_next)
    {
-    if(FS_TagMatch(n->tag, tag))
+    if(Str8Match(n->path, path, 0))
     {
-     existing_node = n;
-     need_reload = n->hot_version_is_stale;
+     good_task = !AtomicEvalCompareExchange64(&n->task_taken, 1, 0);
      break;
     }
    }
-   if(existing_node != 0)
-   {
-    path = PushStr8Copy(scratch.arena, existing_node->path);
-   }
-  }
-  
-  //- rjf: bump working loader counter
-  if(need_reload)
-  {
-   AtomicIncEval64(&fs_state->loader_thread_working_count);
   }
   
   //- rjf: load file
   Arena *data_arena = 0;
   String8 data = {0};
-  OS_Timestamp last_modified = 0;
-  if(need_reload)
+  U64 timestamp = 0;
+  if(good_task)
   {
    OS_Handle file = OS_FileOpen(OS_AccessFlag_Read, path);
    OS_FileAttributes atts = OS_AttributesFromFile(file);
-   last_modified = atts.last_modified;
-   U64 size = atts.size;
-   U64 arena_size = size+Kilobytes(64)-1;
-   arena_size -= arena_size%Kilobytes(64);
-   if(size > 0 && arena_size > 0)
-   {
-    data_arena = ArenaAlloc(arena_size);
-    data = OS_FileRead(data_arena, file, R1U64(0, size));
-   }
+   U64 data_arena_size = atts.size;
+   data_arena_size += Megabytes(1)-1;
+   data_arena_size -= data_arena_size%Megabytes(1);
+   data_arena = ArenaAlloc(data_arena_size);
+   data = OS_FileRead(data_arena, file, R1U64(0, atts.size));
+   timestamp = atts.last_modified;
    OS_FileClose(file);
   }
   
-  //- rjf: submit data blob to content system
-  C_Hash hash = {0};
-  if(data_arena != 0 && need_reload)
+  //- rjf: submit data into hash store
+  U128 data_hash = {0};
+  if(good_task)
   {
-   hash = C_SubmitData(&data_arena, data);
+   data_hash = C_SubmitData(&data_arena, data);
   }
   
-  //- rjf: update existing correllation with new hash & modified time if reload
-  if(!C_HashMatch(C_HashZero(), hash) && need_reload)
+  //- rjf: store into cache
+  if(good_task) OS_SRWMutexScope_W(stripe->rw_mutex)
   {
-   OS_MutexScope(stripe->mutex)
+   for(FS_Node *n = slot->first; n != 0; n = n->hash_next)
    {
-    FS_Node *node = 0;
-    for(FS_Node *n = slot->first; n != 0; n = n->hash_next)
+    if(Str8Match(n->path, path, 0))
     {
-     if(FS_TagMatch(n->tag, tag))
-     {
-      node = n;
-      break;
-     }
+     n->val.hash = data_hash;
+     n->val.timestamp = timestamp;
+     n->task_taken = 0;
+     break;
     }
-    Assert(node != 0);
-    node->hash = hash;
-    node->last_modified = last_modified;
    }
+  }
+  
+  //- rjf: broadcast
+  if(good_task)
+  {
    OS_ConditionVariableSignalAll(stripe->cv);
   }
-  
-  //- rjf: dec counters
-  if(need_reload)
-  {
-   AtomicDecEval64(&fs_state->loader_thread_working_count);
-  }
-  AtomicDecEval64(&fs_state->loader_thread_request_count);
   
   ScratchEnd(scratch);
  }
 }
 
+////////////////////////////////
+//~ rjf: Scanner Thread
+
 root_function void
-FS_ChangeDetectorThreadEntryPoint(void *p)
+FS_ScannerThreadEntryPoint(void *p)
 {
+ SetThreadName(Str8Lit("[FS] Scanner"));
+ ProfThreadName("[FS] Scanner");
  for(;;)
  {
-  for(U64 slot_idx = 0; slot_idx < fs_state->tag_table_count; slot_idx += 1)
+  for(U64 slot_idx = 0; slot_idx < fs_shared->slots_count; slot_idx += 1)
   {
-   // rjf: get slot
-   FS_Slot *slot = &fs_state->tag_table_slots[slot_idx];
-   
-   // rjf: get stripe info
-   U64 stripe_idx = slot_idx % fs_state->tag_table_stripes->count;
-   OS_Stripe *stripe = &fs_state->tag_table_stripes->stripes[stripe_idx];
-   
-   // rjf: check this slot's files for changes - mark nodes appropriately
-   B32 changes = 0;
-   OS_MutexScope(stripe->mutex)
+   FS_Slot *slot = &fs_shared->slots[slot_idx];
+   U64 stripe_idx = slot_idx%fs_shared->stripes_count;
+   FS_Stripe *stripe = &fs_shared->stripes[stripe_idx];
+   OS_SRWMutexScope_R(stripe->rw_mutex)
    {
     for(FS_Node *n = slot->first; n != 0; n = n->hash_next)
     {
-     if(n->data_has_been_queried)
+     OS_FileAttributes atts = OS_AttributesFromFilePath(n->path);
+     if(atts.last_modified != n->val.timestamp)
      {
-      OS_FileAttributes attributes = OS_AttributesFromFilePath(n->path);
-      OS_Timestamp last_modified = attributes.last_modified;
-      if(last_modified != n->last_modified)
-      {
-       n->hot_version_is_stale = 1;
-       changes = 1;
-       FS_EnqueueLoadRequest(n->tag);
-      }
+      FS_U2SEnqueueRequest(n->path, U64Max);
      }
     }
    }
-   
-   // rjf: wake up
-   if(changes)
-   {
-    OS_ConditionVariableSignalAll(stripe->cv);
-   }
   }
-  
   OS_Sleep(100);
  }
 }

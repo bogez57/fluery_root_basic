@@ -84,6 +84,10 @@ typedef struct UI_HoverCursorNode UI_HoverCursorNode; struct UI_HoverCursorNode{
 typedef struct UI_TextAlignNode UI_TextAlignNode; struct UI_TextAlignNode{UI_TextAlignNode *next; UI_TextAlignment v;};
 typedef struct UI_TextEdgePaddingNode UI_TextEdgePaddingNode; struct UI_TextEdgePaddingNode{UI_TextEdgePaddingNode *next; F32 v;};
 typedef struct UI_SeedKeyNode UI_SeedKeyNode; struct UI_SeedKeyNode{UI_SeedKeyNode *next; UI_Key v;};
+typedef struct UI_FocusHotSetNode UI_FocusHotSetNode; struct UI_FocusHotSetNode{UI_FocusHotSetNode *next; B32 v;};
+typedef struct UI_FocusHotPossibleNode UI_FocusHotPossibleNode; struct UI_FocusHotPossibleNode{UI_FocusHotPossibleNode *next; B32 v;};
+typedef struct UI_FocusActiveSetNode UI_FocusActiveSetNode; struct UI_FocusActiveSetNode{UI_FocusActiveSetNode *next; B32 v;};
+typedef struct UI_FocusActivePossibleNode UI_FocusActivePossibleNode; struct UI_FocusActivePossibleNode{UI_FocusActivePossibleNode *next; B32 v;};
 #define UI_DeclStackNils \
 struct\
 {\
@@ -113,6 +117,10 @@ UI_HoverCursorNode hover_cursor_nil_stack_top;\
 UI_TextAlignNode text_align_nil_stack_top;\
 UI_TextEdgePaddingNode text_edge_padding_nil_stack_top;\
 UI_SeedKeyNode seed_key_nil_stack_top;\
+UI_FocusHotSetNode focus_hot_set_nil_stack_top;\
+UI_FocusHotPossibleNode focus_hot_possible_nil_stack_top;\
+UI_FocusActiveSetNode focus_active_set_nil_stack_top;\
+UI_FocusActivePossibleNode focus_active_possible_nil_stack_top;\
 }
 #define UI_InitStackNils(state) \
 state->parent_nil_stack_top.v = &ui_g_nil_box;\
@@ -134,13 +142,17 @@ state->corner_radius_10_nil_stack_top.v = 0;\
 state->corner_radius_11_nil_stack_top.v = 0;\
 state->border_thickness_nil_stack_top.v = 1;\
 state->slice2f32_nil_stack_top.v = (R_Slice2F32){0};\
-state->font_nil_stack_top.v = F_TagFromHash(C_HashMake(ui_g_mono_font_hash.v[0], ui_g_mono_font_hash.v[1]));\
+state->font_nil_stack_top.v = F_TagFromHash(ui_g_mono_font_hash);\
 state->font_size_nil_stack_top.v = 16.f;\
 state->child_layout_axis_nil_stack_top.v = Axis2_X;\
 state->hover_cursor_nil_stack_top.v = OS_CursorKind_Null;\
 state->text_align_nil_stack_top.v = UI_TextAlignment_Left;\
 state->text_edge_padding_nil_stack_top.v = 0.f;\
 state->seed_key_nil_stack_top.v = UI_KeyZero();\
+state->focus_hot_set_nil_stack_top.v = 0;\
+state->focus_hot_possible_nil_stack_top.v = 0;\
+state->focus_active_set_nil_stack_top.v = 0;\
+state->focus_active_possible_nil_stack_top.v = 0;\
 
 #define UI_DeclStacks \
 struct\
@@ -171,6 +183,10 @@ struct { UI_HoverCursorNode *top; UI_HoverCursorNode *free; B32 auto_pop; } hove
 struct { UI_TextAlignNode *top; UI_TextAlignNode *free; B32 auto_pop; } text_align_stack;\
 struct { UI_TextEdgePaddingNode *top; UI_TextEdgePaddingNode *free; B32 auto_pop; } text_edge_padding_stack;\
 struct { UI_SeedKeyNode *top; UI_SeedKeyNode *free; B32 auto_pop; } seed_key_stack;\
+struct { UI_FocusHotSetNode *top; UI_FocusHotSetNode *free; B32 auto_pop; } focus_hot_set_stack;\
+struct { UI_FocusHotPossibleNode *top; UI_FocusHotPossibleNode *free; B32 auto_pop; } focus_hot_possible_stack;\
+struct { UI_FocusActiveSetNode *top; UI_FocusActiveSetNode *free; B32 auto_pop; } focus_active_set_stack;\
+struct { UI_FocusActivePossibleNode *top; UI_FocusActivePossibleNode *free; B32 auto_pop; } focus_active_possible_stack;\
 }
 #define UI_InitStacks(state) \
 state->parent_stack.top = &state->parent_nil_stack_top; state->parent_stack.free = 0; state->parent_stack.auto_pop = 0;\
@@ -199,6 +215,10 @@ state->hover_cursor_stack.top = &state->hover_cursor_nil_stack_top; state->hover
 state->text_align_stack.top = &state->text_align_nil_stack_top; state->text_align_stack.free = 0; state->text_align_stack.auto_pop = 0;\
 state->text_edge_padding_stack.top = &state->text_edge_padding_nil_stack_top; state->text_edge_padding_stack.free = 0; state->text_edge_padding_stack.auto_pop = 0;\
 state->seed_key_stack.top = &state->seed_key_nil_stack_top; state->seed_key_stack.free = 0; state->seed_key_stack.auto_pop = 0;\
+state->focus_hot_set_stack.top = &state->focus_hot_set_nil_stack_top; state->focus_hot_set_stack.free = 0; state->focus_hot_set_stack.auto_pop = 0;\
+state->focus_hot_possible_stack.top = &state->focus_hot_possible_nil_stack_top; state->focus_hot_possible_stack.free = 0; state->focus_hot_possible_stack.auto_pop = 0;\
+state->focus_active_set_stack.top = &state->focus_active_set_nil_stack_top; state->focus_active_set_stack.free = 0; state->focus_active_set_stack.auto_pop = 0;\
+state->focus_active_possible_stack.top = &state->focus_active_possible_nil_stack_top; state->focus_active_possible_stack.free = 0; state->focus_active_possible_stack.auto_pop = 0;\
 
 #define UI_AutoPopStacks(state) \
 if(state->parent_stack.auto_pop) { UI_PopParent(); state->parent_stack.auto_pop = 0; }\
@@ -227,6 +247,10 @@ if(state->hover_cursor_stack.auto_pop) { UI_PopHoverCursor(); state->hover_curso
 if(state->text_align_stack.auto_pop) { UI_PopTextAlign(); state->text_align_stack.auto_pop = 0; }\
 if(state->text_edge_padding_stack.auto_pop) { UI_PopTextEdgePadding(); state->text_edge_padding_stack.auto_pop = 0; }\
 if(state->seed_key_stack.auto_pop) { UI_PopSeedKey(); state->seed_key_stack.auto_pop = 0; }\
+if(state->focus_hot_set_stack.auto_pop) { UI_PopFocusHotSet(); state->focus_hot_set_stack.auto_pop = 0; }\
+if(state->focus_hot_possible_stack.auto_pop) { UI_PopFocusHotPossible(); state->focus_hot_possible_stack.auto_pop = 0; }\
+if(state->focus_active_set_stack.auto_pop) { UI_PopFocusActiveSet(); state->focus_active_set_stack.auto_pop = 0; }\
+if(state->focus_active_possible_stack.auto_pop) { UI_PopFocusActivePossible(); state->focus_active_possible_stack.auto_pop = 0; }\
 
 root_function UI_Box *              UI_TopParent(void);
 root_function UI_BoxFlags           UI_TopFlags(void);
@@ -254,6 +278,10 @@ root_function OS_CursorKind         UI_TopHoverCursor(void);
 root_function UI_TextAlignment      UI_TopTextAlign(void);
 root_function F32                   UI_TopTextEdgePadding(void);
 root_function UI_Key                UI_TopSeedKey(void);
+root_function B32                   UI_TopFocusHotSet(void);
+root_function B32                   UI_TopFocusHotPossible(void);
+root_function B32                   UI_TopFocusActiveSet(void);
+root_function B32                   UI_TopFocusActivePossible(void);
 root_function UI_Box *              UI_PushParent(UI_Box * v);
 root_function UI_BoxFlags           UI_PushFlags(UI_BoxFlags v);
 root_function F32                   UI_PushFixedX(F32 v);
@@ -280,6 +308,10 @@ root_function OS_CursorKind         UI_PushHoverCursor(OS_CursorKind v);
 root_function UI_TextAlignment      UI_PushTextAlign(UI_TextAlignment v);
 root_function F32                   UI_PushTextEdgePadding(F32 v);
 root_function UI_Key                UI_PushSeedKey(UI_Key v);
+root_function B32                   UI_PushFocusHotSet(B32 v);
+root_function B32                   UI_PushFocusHotPossible(B32 v);
+root_function B32                   UI_PushFocusActiveSet(B32 v);
+root_function B32                   UI_PushFocusActivePossible(B32 v);
 root_function UI_Box *              UI_PopParent(void);
 root_function UI_BoxFlags           UI_PopFlags(void);
 root_function F32                   UI_PopFixedX(void);
@@ -306,6 +338,10 @@ root_function OS_CursorKind         UI_PopHoverCursor(void);
 root_function UI_TextAlignment      UI_PopTextAlign(void);
 root_function F32                   UI_PopTextEdgePadding(void);
 root_function UI_Key                UI_PopSeedKey(void);
+root_function B32                   UI_PopFocusHotSet(void);
+root_function B32                   UI_PopFocusHotPossible(void);
+root_function B32                   UI_PopFocusActiveSet(void);
+root_function B32                   UI_PopFocusActivePossible(void);
 root_function UI_Box *              UI_SetNextParent(UI_Box * v);
 root_function UI_BoxFlags           UI_SetNextFlags(UI_BoxFlags v);
 root_function F32                   UI_SetNextFixedX(F32 v);
@@ -332,6 +368,10 @@ root_function OS_CursorKind         UI_SetNextHoverCursor(OS_CursorKind v);
 root_function UI_TextAlignment      UI_SetNextTextAlign(UI_TextAlignment v);
 root_function F32                   UI_SetNextTextEdgePadding(F32 v);
 root_function UI_Key                UI_SetNextSeedKey(UI_Key v);
+root_function B32                   UI_SetNextFocusHotSet(B32 v);
+root_function B32                   UI_SetNextFocusHotPossible(B32 v);
+root_function B32                   UI_SetNextFocusActiveSet(B32 v);
+root_function B32                   UI_SetNextFocusActivePossible(B32 v);
 root_global String8 ui_g_icon_kind_string_table[49];
 
 extern String8 ui_g_icon_font;

@@ -50,33 +50,37 @@ enum
 {
  // rjf: interaction
  UI_BoxFlag_Disabled              = (1<<0),
- UI_BoxFlag_Clickable             = (1<<1),
- UI_BoxFlag_Focus                 = (1<<2),
- UI_BoxFlag_FocusDisabled         = (1<<3),
- UI_BoxFlag_ViewScroll            = (1<<4),
+ UI_BoxFlag_MouseClickable        = (1<<1),
+ UI_BoxFlag_KeyboardClickable     = (1<<2),
+ UI_BoxFlag_FocusHot              = (1<<3),
+ UI_BoxFlag_FocusActive           = (1<<4),
+ UI_BoxFlag_FocusHotDisabled      = (1<<5),
+ UI_BoxFlag_FocusActiveDisabled   = (1<<6),
+ UI_BoxFlag_ViewScroll            = (1<<7),
  
  // rjf: layout
- UI_BoxFlag_FloatingX             = (1<<5),
- UI_BoxFlag_FloatingY             = (1<<6),
- UI_BoxFlag_OverflowX             = (1<<7),
- UI_BoxFlag_OverflowY             = (1<<8),
+ UI_BoxFlag_FloatingX             = (1<<8),
+ UI_BoxFlag_FloatingY             = (1<<9),
+ UI_BoxFlag_OverflowX             = (1<<10),
+ UI_BoxFlag_OverflowY             = (1<<11),
  
- // rjf: apperance
- UI_BoxFlag_Clip                  = (1<<9),
- UI_BoxFlag_DisableTextTruncate   = (1<<10),
- UI_BoxFlag_DisableStringHashPart = (1<<11),
- UI_BoxFlag_DrawDropShadow        = (1<<12),
- UI_BoxFlag_DrawText              = (1<<13),
- UI_BoxFlag_DrawBorder            = (1<<14),
- UI_BoxFlag_DrawOverlay           = (1<<15),
- UI_BoxFlag_DrawBackground        = (1<<16),
- UI_BoxFlag_DrawHotEffects        = (1<<17),
- UI_BoxFlag_DrawActiveEffects     = (1<<18),
- UI_BoxFlag_DrawBucket            = (1<<19),
- UI_BoxFlag_DrawCustomFunction    = (1<<20),
+ // rjf: appearance
+ UI_BoxFlag_Clip                  = (1<<12),
+ UI_BoxFlag_DisableTextTruncate   = (1<<13),
+ UI_BoxFlag_DisableStringHashPart = (1<<14),
+ UI_BoxFlag_DrawDropShadow        = (1<<15),
+ UI_BoxFlag_DrawText              = (1<<16),
+ UI_BoxFlag_DrawBorder            = (1<<17),
+ UI_BoxFlag_DrawOverlay           = (1<<18),
+ UI_BoxFlag_DrawBackground        = (1<<19),
+ UI_BoxFlag_DrawHotEffects        = (1<<20),
+ UI_BoxFlag_DrawActiveEffects     = (1<<21),
+ UI_BoxFlag_DrawBucket            = (1<<22),
+ UI_BoxFlag_DrawCustomFunction    = (1<<23),
  
  // rjf: helpers
  UI_BoxFlag_Floating              = UI_BoxFlag_FloatingX|UI_BoxFlag_FloatingY,
+ UI_BoxFlag_Clickable             = UI_BoxFlag_MouseClickable|UI_BoxFlag_KeyboardClickable,
 };
 
 typedef void UI_BoxCustomDrawFunctionType(struct UI_Box *box);
@@ -160,6 +164,8 @@ struct UI_Box
  F32 hot_t;
  F32 active_t;
  F32 disabled_t;
+ F32 focus_hot_t;
+ F32 focus_active_t;
  U64 first_gen_touched;
  U64 last_gen_touched;
  Vec2F32 view_off;
@@ -252,24 +258,12 @@ struct UI_State
  Vec2F32 ctx_menu_anchor_offset;
  F32 ctx_menu_t;
  
- // rjf: view snapping parameter state
- UI_Key snap_view_parent_key;
- UI_Key snap_view_child_key;
- 
  // rjf: cursor visualization/animation state
  UI_CursorVizData cursor_viz_data;
  Vec2F32 target_cursor_p;
  F32 target_cursor_line_height;
  F32 target_cursor_advance;
  U64 cursor_viz_data_build_gen;
- 
- // rjf: focus visualization/animation state
- F32 focus_t;
- F32 focus_alpha_t;
- Vec2F32 focus_draw_pos;
- Vec2F32 focus_draw_size;
- Vec2F32 target_focus_draw_pos;
- Vec2F32 target_focus_draw_size;
  
  // rjf: persistent box state
  UI_Box *first_free_box;
@@ -283,10 +277,6 @@ struct UI_State
  UI_Box *root;
  UI_Box *tooltip_root;
  UI_Box *ctx_menu_root;
- 
- // rjf: build-phase focus marker status
- B32 focus_is_possible;
- B32 focus_is_set;
  
  // rjf: stack state
  UI_DeclStackNils;
@@ -434,9 +424,8 @@ root_function Rng1F32 UI_ScrollBoundsFromBox(UI_Box *box, Axis2 axis);
 ////////////////////////////////
 //~ rjf: Focus
 
-root_function void UI_SetFocus(B32 focus);
-root_function void UI_UnsetFocus(void);
-root_function B32 UI_IsFocused(void);
+root_function B32 UI_IsFocusHot(void);
+root_function B32 UI_IsFocusActive(void);
 
 ////////////////////////////////
 //~ rjf: Context Menus
@@ -477,6 +466,10 @@ root_function OS_CursorKind         UI_TopHoverCursor(void);
 root_function UI_TextAlignment      UI_TopTextAlign(void);
 root_function F32                   UI_TopTextEdgePadding(void);
 root_function UI_Key                UI_TopSeedKey(void);
+root_function B32                   UI_TopFocusHotSet(void);
+root_function B32                   UI_TopFocusHotPossible(void);
+root_function B32                   UI_TopFocusActiveSet(void);
+root_function B32                   UI_TopFocusActivePossible(void);
 root_function UI_Box *              UI_PushParent(UI_Box * v);
 root_function UI_BoxFlags           UI_PushFlags(UI_BoxFlags v);
 root_function F32                   UI_PushFixedX(F32 v);
@@ -503,6 +496,10 @@ root_function OS_CursorKind         UI_PushHoverCursor(OS_CursorKind v);
 root_function UI_TextAlignment      UI_PushTextAlign(UI_TextAlignment v);
 root_function F32                   UI_PushTextEdgePadding(F32 v);
 root_function UI_Key                UI_PushSeedKey(UI_Key v);
+root_function B32                   UI_PushFocusHotSet(B32 v);
+root_function B32                   UI_PushFocusHotPossible(B32 v);
+root_function B32                   UI_PushFocusActiveSet(B32 v);
+root_function B32                   UI_PushFocusActivePossible(B32 v);
 root_function UI_Box *              UI_PopParent(void);
 root_function UI_BoxFlags           UI_PopFlags(void);
 root_function F32                   UI_PopFixedX(void);
@@ -529,6 +526,10 @@ root_function OS_CursorKind         UI_PopHoverCursor(void);
 root_function UI_TextAlignment      UI_PopTextAlign(void);
 root_function F32                   UI_PopTextEdgePadding(void);
 root_function UI_Key                UI_PopSeedKey(void);
+root_function B32                   UI_PopFocusHotSet(void);
+root_function B32                   UI_PopFocusHotPossible(void);
+root_function B32                   UI_PopFocusActiveSet(void);
+root_function B32                   UI_PopFocusActivePossible(void);
 root_function UI_Box *              UI_SetNextParent(UI_Box * v);
 root_function UI_BoxFlags           UI_SetNextFlags(UI_BoxFlags v);
 root_function F32                   UI_SetNextFixedX(F32 v);
@@ -555,6 +556,11 @@ root_function OS_CursorKind         UI_SetNextHoverCursor(OS_CursorKind v);
 root_function UI_TextAlignment      UI_SetNextTextAlign(UI_TextAlignment v);
 root_function F32                   UI_SetNextTextEdgePadding(F32 v);
 root_function UI_Key                UI_SetNextSeedKey(UI_Key v);
+root_function B32                   UI_SetNextFocusHotSet(B32 v);
+root_function B32                   UI_SetNextFocusHotPossible(B32 v);
+root_function B32                   UI_SetNextFocusActiveSet(B32 v);
+root_function B32                   UI_SetNextFocusActivePossible(B32 v);
+root_global String8 ui_g_icon_kind_string_table[49];
 
 //- rjf: compositions
 root_function void UI_PushCornerRadius(F32 v);
@@ -600,8 +606,15 @@ root_function void UI_SetNextFixedRect(Rng2F32 rect);
 #define UI_TextAlign(v) DeferLoop(UI_PushTextAlign(v), UI_PopTextAlign())
 #define UI_TextEdgePadding(v) DeferLoop(UI_PushTextEdgePadding(v), UI_PopTextEdgePadding())
 #define UI_SeedKey(v) DeferLoop(UI_PushSeedKey(v), UI_PopSeedKey())
+#define UI_FocusHotSet(v) DeferLoop(UI_PushFocusHotSet(v), UI_PopFocusHotSet())
+#define UI_FocusHotPossible(v) DeferLoop(UI_PushFocusHotPossible(v), UI_PopFocusHotPossible())
+#define UI_FocusActiveSet(v) DeferLoop(UI_PushFocusActiveSet(v), UI_PopFocusActiveSet())
+#define UI_FocusActivePossible(v) DeferLoop(UI_PushFocusActivePossible(v), UI_PopFocusActivePossible())
 
 //- rjf: compositions
+#define UI_FocusHot(v) DeferLoop((UI_PushFocusHotSet(v), UI_PushFocusHotPossible(1)), (UI_PopFocusHotSet(), UI_PopFocusHotPossible()))
+#define UI_FocusActive(v) DeferLoop((UI_PushFocusActiveSet(v), UI_PushFocusActivePossible(1)), (UI_PopFocusActiveSet(), UI_PopFocusActivePossible()))
+#define UI_Focus(v) UI_FocusHot(v) UI_FocusActive(v)
 #define UI_WidthFill  UI_PrefWidth(UI_Pct(1, 0))
 #define UI_HeightFill UI_PrefHeight(UI_Pct(1, 0))
 #define UI_CornerRadius(v) DeferLoop(UI_PushCornerRadius(v), UI_PopCornerRadius())
@@ -611,6 +624,5 @@ root_function void UI_SetNextFixedRect(Rng2F32 rect);
 
 //- rjf: other
 #define UI_CtxMenu(key) DeferLoopChecked(UI_CtxMenuBegin(key), UI_CtxMenuEnd())
-#define UI_Focus(v) DeferLoop(UI_SetFocus(v), UI_UnsetFocus())
 
 #endif // UI_H

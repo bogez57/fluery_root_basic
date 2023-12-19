@@ -237,14 +237,14 @@ D_PassFromBucket(Arena *arena, D_Bucket *bucket, R_PassKind kind)
 //- rjf: rectangles (2d)
 
 root_function R_Rect2DInst *
-D_Rect2D_(Rng2F32 rect, D_RectParams p)
+D_Rect2D_(Rng2F32 rect, D_RectParams *p)
 {
  Arena *arena = D_ActiveArena();
  D_Bucket *bucket = D_ActiveBucket();
  R_Pass *pass = D_PassFromBucket(arena, bucket, R_PassKind_UI);
  R_PassParams_UI *pass_params = pass->params_ui;
  R_BatchGroup2DNode *batch_group = pass_params->rects.last;
- R_Handle tex = R_HandleMatch(p.tex, R_HandleZero()) ? d_state->white_texture : p.tex;
+ R_Handle tex = R_HandleMatch(p->tex, R_HandleZero()) ? d_state->white_texture : p->tex;
  if(batch_group == 0 ||
     (!R_HandleMatch(batch_group->params.albedo_tex, tex) &&
      !R_HandleMatch(tex, d_state->white_texture)) ||
@@ -261,12 +261,12 @@ D_Rect2D_(Rng2F32 rect, D_RectParams p)
  }
  R_Rect2DInst *inst = R_BatchListPushStruct(arena, &batch_group->batches, 256, R_Rect2DInst);
  inst->dst_rect = rect;
- inst->src_rect = p.src_rect;
- inst->colors[Corner_00] = inst->colors[Corner_01] = inst->colors[Corner_10] = inst->colors[Corner_11] = p.color;
- inst->corner_radii[Corner_00] = inst->corner_radii[Corner_01] = inst->corner_radii[Corner_10] = inst->corner_radii[Corner_11] = p.radius;
- inst->border_thickness = p.border_thickness;
- inst->softness = p.soft;
- inst->omit_texture = (F32)!!R_HandleIsZero(p.albedo_texture);
+ inst->src_rect = p->src_rect;
+ inst->colors[Corner_00] = inst->colors[Corner_01] = inst->colors[Corner_10] = inst->colors[Corner_11] = p->color;
+ inst->corner_radii[Corner_00] = inst->corner_radii[Corner_01] = inst->corner_radii[Corner_10] = inst->corner_radii[Corner_11] = p->radius;
+ inst->border_thickness = p->border_thickness;
+ inst->softness = p->soft;
+ inst->omit_texture = (F32)!!R_HandleIsZero(p->albedo_texture);
  return inst;
 }
 
@@ -315,7 +315,7 @@ D_Text2DF(Vec2F32 position, F_Tag font, F32 size, Vec4F32 color, char *fmt, ...)
 //- rjf: sprites (3d)
 
 root_function R_Sprite3DInst *
-D_Sprite3D_(Vec3F32 pos, Mat4x4F32 xform, D_SpriteParams p)
+D_Sprite3D_(Vec3F32 pos, Mat4x4F32 xform, D_SpriteParams *p)
 {
  Arena *arena = D_ActiveArena();
  D_Bucket *bucket = D_ActiveBucket();
@@ -328,15 +328,18 @@ D_Sprite3D_(Vec3F32 pos, Mat4x4F32 xform, D_SpriteParams p)
   map->slots = PushArray(arena, R_BatchGroup3DSlot, map->slots_count);
  }
  R_Tex2DSampleKind sample_kind = D_TopTex2DSampleKind();
- U64 tex_hash = D_HashFromString(5381, Str8Struct(&p.tex));
+ R_BlendMode blend_mode = D_TopBlendMode();
+ U64 tex_hash = D_HashFromString(5381, Str8Struct(&p->tex));
  U64 smp_hash = D_HashFromString(tex_hash, Str8Struct(&sample_kind));
- U64 slot_idx = smp_hash%map->slots_count;
+ U64 bln_hash = D_HashFromString(smp_hash, Str8Struct(&blend_mode));
+ U64 slot_idx = bln_hash%map->slots_count;
  R_BatchGroup3DSlot *slot = &map->slots[slot_idx];
  R_BatchGroup3DNode *node = 0;
  for(R_BatchGroup3DNode *n = slot->first; n != 0; n = n->next)
  {
-  if(R_HandleMatch(n->params.albedo_tex, p.tex) &&
-     n->params.albedo_tex_sample_kind == sample_kind)
+  if(R_HandleMatch(n->params.albedo_tex, p->tex) &&
+     n->params.albedo_tex_sample_kind == sample_kind &&
+     n->params.blend_mode == blend_mode)
   {
    node = n;
    break;
@@ -346,16 +349,34 @@ D_Sprite3D_(Vec3F32 pos, Mat4x4F32 xform, D_SpriteParams p)
  {
   node = PushArray(arena, R_BatchGroup3DNode, 1);
   QueuePush(slot->first, slot->last, node);
-  node->params.albedo_tex = p.tex;
+  node->params.albedo_tex = p->tex;
   node->params.albedo_tex_sample_kind = sample_kind;
+  node->params.blend_mode = blend_mode;
  }
  R_Sprite3DInst *inst = R_BatchListPushStruct(arena, &node->batches, 1024, R_Sprite3DInst);
  inst->pos = V4F32(pos.x, pos.y, pos.z, 1);
  inst->xform = xform;
- inst->src_rect = p.src_rect;
- inst->colors[Corner_00] = inst->colors[Corner_01] = inst->colors[Corner_10] = inst->colors[Corner_11] = p.color;
- inst->omit_texture = (F32)!!R_HandleIsZero(p.albedo_texture);
- inst->shear = p.shear;
+ inst->src_rect = p->src_rect;
+ inst->colors[Corner_00] = inst->colors[Corner_01] = inst->colors[Corner_10] = inst->colors[Corner_11] = p->color;
+ inst->omit_texture = (F32)!!R_HandleIsZero(p->albedo_texture);
+ inst->shear = p->shear;
+ return inst;
+}
+
+//- rjf: point lights (3d)
+
+root_function R_PointLight3DInst *
+D_PointLight3D(Vec3F32 pos, F32 radius, Vec4F32 color, F32 intensity)
+{
+ Arena *arena = D_ActiveArena();
+ D_Bucket *bucket = D_ActiveBucket();
+ R_Pass *pass = D_PassFromBucket(arena, bucket, R_PassKind_G0);
+ R_PassParams_G0 *pass_params = pass->params_g0;
+ R_PointLight3DInst *inst = R_BatchListPushStruct(arena, &pass_params->point_lights, 2048, R_PointLight3DInst);
+ inst->pos.xyz   = pos;
+ inst->pos.w     = radius;
+ inst->color     = color;
+ inst->intensity = intensity;
  return inst;
 }
 

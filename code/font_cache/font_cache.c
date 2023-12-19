@@ -15,7 +15,7 @@ F_TagMatch(F_Tag a, F_Tag b)
 }
 
 root_function F_Tag
-F_TagFromHash(C_Hash hash)
+F_TagFromHash(U128 hash)
 {
  //- rjf: build tag from hash
  F_Tag result = {hash.u64[0], hash.u64[1]};
@@ -51,8 +51,7 @@ F_TagFromHash(C_Hash hash)
 root_function F_Tag
 F_TagFromFontPath(String8 string)
 {
- FS_Tag fs_tag = FS_TagFromPath(string);
- C_Hash hash = FS_ContentHashFromTag(fs_tag, U64Max);
+ U128 hash = FS_DataHashFromPath(string, U64Max);
  F_Tag tag = F_TagFromHash(hash);
  return tag;
 }

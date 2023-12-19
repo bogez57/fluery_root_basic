@@ -9,6 +9,8 @@
 #include "base_math.h"
 #include "base_random.h"
 #include "base_strings.h"
+#include "base_type_structures.h"
+#include "base_geo.h"
 #include "base_atlas.h"
 #include "base_ring.h"
 #include "base_thread_ctx.h"

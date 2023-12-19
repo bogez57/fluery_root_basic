@@ -282,11 +282,11 @@ UI_LineEdit(TxtPt *cursor, TxtPt *mark, U64 buffer_size, U8 *buffer, U64 *string
  F_Tag font_tag = UI_TopFont();
  F32 font_size = UI_TopFontSize();
  UI_Key key = UI_KeyFromString(UI_TopSeedKey(), string);
- B32 focused = UI_IsFocused();
+ B32 focus_active = UI_IsFocusActive();
  UI_TextAlignment align = UI_TopTextAlign();
  
  //- rjf: take text input events & mutate string
- if(focused)
+ if(focus_active)
  {
   UI_TxtActionList txt_actions = UI_TxtActionListFromEatenEvents(scratch.arena, UI_Window(), UI_Events(), 0);
   for(UI_TxtActionNode *n = txt_actions.first; n != 0; n = n->next)
@@ -318,7 +318,7 @@ UI_LineEdit(TxtPt *cursor, TxtPt *mark, U64 buffer_size, U8 *buffer, U64 *string
  //- rjf: build primary container box
  UI_SetNextHoverCursor(OS_CursorKind_IBar);
  UI_SetNextChildLayoutAxis(Axis2_X);
- UI_Box *box = UI_BoxMakeFromKey(UI_BoxFlag_Clickable|UI_BoxFlag_DrawText|UI_BoxFlag_DrawBorder|UI_BoxFlag_DrawBackground|UI_BoxFlag_Clip, key);
+ UI_Box *box = UI_BoxMakeFromKey(UI_BoxFlag_MouseClickable|UI_BoxFlag_DrawText|UI_BoxFlag_DrawBorder|UI_BoxFlag_DrawBackground|UI_BoxFlag_Clip, key);
  
  //- rjf: build child box which visualizes string
  UI_Box *edit_string_box = &ui_g_nil_box;
@@ -367,7 +367,7 @@ UI_LineEdit(TxtPt *cursor, TxtPt *mark, U64 buffer_size, U8 *buffer, U64 *string
  }
  
  //- rjf: force container box to contain the cursor
- if(focused)
+ if(focus_active && Dim2F32(box->rect).x != 0)
  {
   Rng1F32 cursor_visibility_range = R1F32(advance_before_cursor - font_size, advance_before_cursor + font_size);
   cursor_visibility_range.min = ClampBot(0, cursor_visibility_range.min);
@@ -391,7 +391,7 @@ UI_LineEdit(TxtPt *cursor, TxtPt *mark, U64 buffer_size, U8 *buffer, U64 *string
    Vec2F32 text_p = UI_TextPosFromBox(edit_string_box);
    
    // rjf: draw selection
-   if(focused)
+   if(focus_active)
    {
     UI_CursorVizData cursor_viz_data = UI_GetCursorVizData();
     Rng1F32 advance_rng = R1F32(advance_before_mark, advance_before_cursor);
@@ -413,7 +413,7 @@ UI_LineEdit(TxtPt *cursor, TxtPt *mark, U64 buffer_size, U8 *buffer, U64 *string
    
    // rjf: set cursor viz data
    {
-    UI_SetCursorViz(edit_string_box->key, focused, V2F32(advance_before_cursor+2.f, font_size/4.f), Dim2F32(box->rect).y + font_size*2.f, font_size*2);
+    UI_SetCursorViz(edit_string_box->key, focus_active, V2F32(advance_before_cursor+2.f, font_size/4.f), Dim2F32(box->rect).y + font_size*2.f, font_size*2);
    }
   }
   UI_BoxEquipDrawBucket(edit_string_box, bucket, 1, 0, 0, 0);

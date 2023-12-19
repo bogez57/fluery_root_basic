@@ -35,7 +35,7 @@ struct T_Node
 {
  T_Node *hash_next;
  T_Node *hash_prev;
- C_Hash hash;
+ U128 hash;
  Vec2F32 dim;
  T_NodeFlags flags;
  T_NodeAllocKind alloc_kind;
@@ -123,13 +123,13 @@ root_function R_Handle T_InvalidTexture(void);
 ////////////////////////////////
 //~ rjf: Tag -> Texture Region Mapping
 
-root_function R_Slice2F32 T_Slice2F32FromHash(C_Hash hash, U64 endt_microseconds);
+root_function R_Slice2F32 T_Slice2F32FromHash(U128 hash, U64 endt_microseconds);
 
 ////////////////////////////////
 //~ rjf: GPU Upload Request Ring Buffer
 
-root_function B32 T_EnqueueLoadRequest(C_Hash hash);
-root_function C_Hash T_DequeueLoadRequest(void);
+root_function B32 T_EnqueueLoadRequest(U128 hash);
+root_function U128 T_DequeueLoadRequest(void);
 
 ////////////////////////////////
 //~ rjf: GPU Data Upload Thread Implementation

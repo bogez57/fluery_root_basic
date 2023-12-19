@@ -22,15 +22,6 @@ function void
 EntryPoint(CmdLine *cmdln)
 {
  ///////////////////////////////
- //- rjf: begin capture
- //
- B32 capture = CmdLineOptB32(cmdln, Str8Lit("capture"));
- if(capture)
- {
-  ProfBeginCapture("metagen");
- }
- 
- ///////////////////////////////
  //- rjf: initialize state
  //
  mg_arena = ArenaAllocDefault();
@@ -678,13 +669,5 @@ EntryPoint(CmdLine *cmdln)
     }
    }
   }
- }
- 
- ///////////////////////////////
- //- rjf: end capture
- //
- if(capture)
- {
-  ProfEndCapture();
  }
 }

@@ -16,9 +16,15 @@ BaseMainThreadEntry(void (*entry)(CmdLine *cmdln), U64 argument_count, char **ar
  String8List args_list = {0};
  for(U64 argument_idx = 1; argument_idx < argument_count; argument_idx += 1)
  {
-  Str8ListPush(tctx.arenas[0], &args_list, Str8C(arguments[argument_idx]));
+  Str8ListPush(tctx.scratch_arenas[0], &args_list, Str8C(arguments[argument_idx]));
  }
- CmdLine cmdline = CmdLineFromStringList(tctx.arenas[0], args_list);
+ CmdLine cmdline = CmdLineFromStringList(tctx.scratch_arenas[0], args_list);
+ B32 capture = CmdLineOptB32(&cmdline, Str8Lit("capture"));
+ if(capture)
+ {
+  ProfBeginCapture(arguments[0]);
+ }
+ SetThreadName(Str8Lit("Main Thread"));
 #if defined(OS_CORE_H)
  OS_InitReceipt    os_init     = OS_Init();
 #endif
@@ -33,6 +39,9 @@ BaseMainThreadEntry(void (*entry)(CmdLine *cmdln), U64 argument_count, char **ar
 #endif
 #if defined(OS_GFX_H)
  OS_InitGfxReceipt os_init_gfx = OS_InitGfx(os_init);
+#endif
+#if defined(OS_NET_H)
+ OS_InitNetReceipt os_init_net = OS_InitNet(os_init);
 #endif
 #if defined(RENDER_CORE_H)
  R_InitReceipt     r_init      = R_Init(os_init, os_init_gfx);
@@ -54,6 +63,10 @@ BaseMainThreadEntry(void (*entry)(CmdLine *cmdln), U64 argument_count, char **ar
 #endif
  entry(&cmdline);
  ThreadCtxRelease(&tctx);
+ if(capture)
+ {
+  ProfEndCapture();
+ }
 }
 
 //- rjf: non-main-thread entry point

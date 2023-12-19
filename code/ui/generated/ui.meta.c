@@ -27,6 +27,10 @@
 #define UI_TextAlign(v) DeferLoop(UI_PushTextAlign(v), UI_PopTextAlign())
 #define UI_TextEdgePadding(v) DeferLoop(UI_PushTextEdgePadding(v), UI_PopTextEdgePadding())
 #define UI_SeedKey(v) DeferLoop(UI_PushSeedKey(v), UI_PopSeedKey())
+#define UI_FocusHotSet(v) DeferLoop(UI_PushFocusHotSet(v), UI_PopFocusHotSet())
+#define UI_FocusHotPossible(v) DeferLoop(UI_PushFocusHotPossible(v), UI_PopFocusHotPossible())
+#define UI_FocusActiveSet(v) DeferLoop(UI_PushFocusActiveSet(v), UI_PopFocusActiveSet())
+#define UI_FocusActivePossible(v) DeferLoop(UI_PushFocusActivePossible(v), UI_PopFocusActivePossible())
 #endif
 root_function UI_Box * UI_TopParent(void) { UI_StackTopImpl(ui_state, Parent, parent) }
 root_function UI_BoxFlags UI_TopFlags(void) { UI_StackTopImpl(ui_state, Flags, flags) }
@@ -54,6 +58,10 @@ root_function OS_CursorKind UI_TopHoverCursor(void) { UI_StackTopImpl(ui_state, 
 root_function UI_TextAlignment UI_TopTextAlign(void) { UI_StackTopImpl(ui_state, TextAlign, text_align) }
 root_function F32 UI_TopTextEdgePadding(void) { UI_StackTopImpl(ui_state, TextEdgePadding, text_edge_padding) }
 root_function UI_Key UI_TopSeedKey(void) { UI_StackTopImpl(ui_state, SeedKey, seed_key) }
+root_function B32 UI_TopFocusHotSet(void) { UI_StackTopImpl(ui_state, FocusHotSet, focus_hot_set) }
+root_function B32 UI_TopFocusHotPossible(void) { UI_StackTopImpl(ui_state, FocusHotPossible, focus_hot_possible) }
+root_function B32 UI_TopFocusActiveSet(void) { UI_StackTopImpl(ui_state, FocusActiveSet, focus_active_set) }
+root_function B32 UI_TopFocusActivePossible(void) { UI_StackTopImpl(ui_state, FocusActivePossible, focus_active_possible) }
 root_function UI_Box * UI_PushParent(UI_Box * v) { UI_StackPushImpl(ui_state, Parent, parent, UI_Box *, v) }
 root_function UI_BoxFlags UI_PushFlags(UI_BoxFlags v) { UI_StackPushImpl(ui_state, Flags, flags, UI_BoxFlags, v) }
 root_function F32 UI_PushFixedX(F32 v) { UI_StackPushImpl(ui_state, FixedX, fixed_x, F32, v) }
@@ -80,6 +88,10 @@ root_function OS_CursorKind UI_PushHoverCursor(OS_CursorKind v) { UI_StackPushIm
 root_function UI_TextAlignment UI_PushTextAlign(UI_TextAlignment v) { UI_StackPushImpl(ui_state, TextAlign, text_align, UI_TextAlignment, v) }
 root_function F32 UI_PushTextEdgePadding(F32 v) { UI_StackPushImpl(ui_state, TextEdgePadding, text_edge_padding, F32, v) }
 root_function UI_Key UI_PushSeedKey(UI_Key v) { UI_StackPushImpl(ui_state, SeedKey, seed_key, UI_Key, v) }
+root_function B32 UI_PushFocusHotSet(B32 v) { UI_StackPushImpl(ui_state, FocusHotSet, focus_hot_set, B32, v) }
+root_function B32 UI_PushFocusHotPossible(B32 v) { UI_StackPushImpl(ui_state, FocusHotPossible, focus_hot_possible, B32, v) }
+root_function B32 UI_PushFocusActiveSet(B32 v) { UI_StackPushImpl(ui_state, FocusActiveSet, focus_active_set, B32, v) }
+root_function B32 UI_PushFocusActivePossible(B32 v) { UI_StackPushImpl(ui_state, FocusActivePossible, focus_active_possible, B32, v) }
 root_function UI_Box * UI_PopParent(void) { UI_StackPopImpl(ui_state, Parent, parent) }
 root_function UI_BoxFlags UI_PopFlags(void) { UI_StackPopImpl(ui_state, Flags, flags) }
 root_function F32 UI_PopFixedX(void) { UI_StackPopImpl(ui_state, FixedX, fixed_x) }
@@ -106,6 +118,10 @@ root_function OS_CursorKind UI_PopHoverCursor(void) { UI_StackPopImpl(ui_state, 
 root_function UI_TextAlignment UI_PopTextAlign(void) { UI_StackPopImpl(ui_state, TextAlign, text_align) }
 root_function F32 UI_PopTextEdgePadding(void) { UI_StackPopImpl(ui_state, TextEdgePadding, text_edge_padding) }
 root_function UI_Key UI_PopSeedKey(void) { UI_StackPopImpl(ui_state, SeedKey, seed_key) }
+root_function B32 UI_PopFocusHotSet(void) { UI_StackPopImpl(ui_state, FocusHotSet, focus_hot_set) }
+root_function B32 UI_PopFocusHotPossible(void) { UI_StackPopImpl(ui_state, FocusHotPossible, focus_hot_possible) }
+root_function B32 UI_PopFocusActiveSet(void) { UI_StackPopImpl(ui_state, FocusActiveSet, focus_active_set) }
+root_function B32 UI_PopFocusActivePossible(void) { UI_StackPopImpl(ui_state, FocusActivePossible, focus_active_possible) }
 root_function UI_Box * UI_SetNextParent(UI_Box * v) { UI_StackSetNextImpl(ui_state, Parent, parent, UI_Box *, v) }
 root_function UI_BoxFlags UI_SetNextFlags(UI_BoxFlags v) { UI_StackSetNextImpl(ui_state, Flags, flags, UI_BoxFlags, v) }
 root_function F32 UI_SetNextFixedX(F32 v) { UI_StackSetNextImpl(ui_state, FixedX, fixed_x, F32, v) }
@@ -132,6 +148,10 @@ root_function OS_CursorKind UI_SetNextHoverCursor(OS_CursorKind v) { UI_StackSet
 root_function UI_TextAlignment UI_SetNextTextAlign(UI_TextAlignment v) { UI_StackSetNextImpl(ui_state, TextAlign, text_align, UI_TextAlignment, v) }
 root_function F32 UI_SetNextTextEdgePadding(F32 v) { UI_StackSetNextImpl(ui_state, TextEdgePadding, text_edge_padding, F32, v) }
 root_function UI_Key UI_SetNextSeedKey(UI_Key v) { UI_StackSetNextImpl(ui_state, SeedKey, seed_key, UI_Key, v) }
+root_function B32 UI_SetNextFocusHotSet(B32 v) { UI_StackSetNextImpl(ui_state, FocusHotSet, focus_hot_set, B32, v) }
+root_function B32 UI_SetNextFocusHotPossible(B32 v) { UI_StackSetNextImpl(ui_state, FocusHotPossible, focus_hot_possible, B32, v) }
+root_function B32 UI_SetNextFocusActiveSet(B32 v) { UI_StackSetNextImpl(ui_state, FocusActiveSet, focus_active_set, B32, v) }
+root_function B32 UI_SetNextFocusActivePossible(B32 v) { UI_StackSetNextImpl(ui_state, FocusActivePossible, focus_active_possible, B32, v) }
 #if BUILD_CORE
 String8 ui_g_icon_kind_string_table[49] =
 {
