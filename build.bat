@@ -13,7 +13,7 @@ set telemetry=/DBUILD_TELEMETRY=1
 
 rem --- Prep Build Directory --------------------------------------------------
 if not exist build mkdir build
-xcopy /y /q /s /e /i data build
+xcopy /y /q /s /e /i data .\build\data
 
 rem --- Prep Local Directory --------------------------------------------------
 if not exist local mkdir local
