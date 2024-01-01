@@ -389,6 +389,7 @@ struct MemberOffset
 };
 
 #define MemberOff(S, member) (MemberOffset){OffsetOf(S, member)}
+#define MemberOffLit(S, member) {OffsetOf(S, member)}
 #define MemberFromOff(ptr, type, memoff) (*(type *)((U8 *)ptr + memoff.v))
 
 ////////////////////////////////

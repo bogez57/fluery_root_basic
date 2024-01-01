@@ -72,19 +72,19 @@ commands =
   .cursor_at_end    = false,
  },
  
- //- rjf: app_template
- .build_app_templates =
+ //- rjf: samples_app_template
+ .build_samples_app_template =
  {
-  .win              = "build.bat app_template_basic",
+  .win              = "build.bat samples_app_template",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
   .save_dirty_files = true,
   .cursor_at_end    = false,
  },
- .run_app_template_basic =
+ .run_samples_app_template =
  {
-  .win              = "pushd build && app_template_basic.exe && popd",
+  .win              = "pushd build && samples_app_template.exe && popd",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
@@ -92,19 +92,19 @@ commands =
   .cursor_at_end    = true,
  },
  
- //- rjf: workbench
- .build_workbench =
+ //- rjf: samples_datastructures
+ .build_samples_datastructures =
  {
-  .win              = "build.bat workbench",
+  .win              = "build.bat samples_datastructures",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
   .save_dirty_files = true,
   .cursor_at_end    = false,
  },
- .run_workbench =
+ .run_samples_datastructures =
  {
-  .win              = "pushd build && workbench.exe && popd",
+  .win              = "pushd build && samples_datastructures.exe && popd",
   .linux            = "",
   .out              = "*compilation*",
   .footer_panel     = true,
@@ -299,8 +299,8 @@ commands =
 
 fkey_command =
 {
- .F1 = "build_app_templates",
- .F3 = "run_app_template_basic",
+ .F1 = "build_samples_app_template",
+ .F3 = "run_samples_app_template",
 };
 
 ////////////////////////////////
@@ -310,8 +310,8 @@ fkey_command_override =
 {
  .rjf =
  {
-  .F1 = "build_g0",
-  .F3 = "run_g0",
+  .F1 = "build_samples_datastructures",
+  .F3 = "run_samples_datastructures",
   .F4 = "build_subcheck",
   .F5 = "build_subgrant",
   .F6 = "run_subgrant_rjf",

@@ -350,8 +350,7 @@ EntryPoint(CmdLine *cmdln)
         String8 entity_name = NameFromEntity(scratch.arena, edit_entity);
         UI_LabelF("Editing \"%S\"", entity_name);
         UI_Spacer(UI_Em(1.f, 1.f));
-        UI_SetFocus(1);
-        UI_LineEditF(&state->cursor, &state->mark, sizeof(state->name_edit_buffer), state->name_edit_buffer, &state->name_edit_size, "Entity Name");
+        UI_Focus(1) UI_LineEditF(&state->cursor, &state->mark, sizeof(state->name_edit_buffer), state->name_edit_buffer, &state->name_edit_size, "Entity Name");
         EntityEquipName(state, edit_entity, Str8(state->name_edit_buffer, state->name_edit_size));
         UI_Spacer(UI_Em(1.f, 1.f));
         if(UI_ButtonF("Delete").clicked)
