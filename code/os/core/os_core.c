@@ -64,7 +64,6 @@ OS_WriteDataToFilePath(String8 path, String8List data)
 root_function B32
 OS_FileExistsAtPath(String8 path)
 {
- Temp scratch = ScratchBegin(0, 0);
  OS_Handle file = OS_FileOpen(OS_AccessFlag_Read|OS_AccessFlag_Shared, path);
  B32 result = OS_FileIsValid(file);
  OS_FileClose(file);

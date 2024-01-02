@@ -64,6 +64,15 @@
 #define main_thread_only
 #define fallthrough
 
+#if ASAN_ENABLED && COMPILER_MSVC
+# define no_asan __declspec(no_sanitize_address)
+#elif ASAN_ENABLED && (COMPILER_CLANG || COMPILER_GCC)
+# define no_asan __attribute__((no_sanitize("address")))
+#endif
+#if !defined(no_asan)
+# define no_asan
+#endif
+
 #if COMPILER_MSVC
 # define per_thread __declspec(thread)
 #elif COMPILER_CLANG
@@ -90,7 +99,7 @@
 
 #if OS_WINDOWS
 # pragma section(".roglob", read)
-# define read_only __declspec(allocate(".roglob"))
+# define read_only no_asan __declspec(allocate(".roglob"))
 #else
 # define read_only
 #endif
@@ -161,7 +170,7 @@
 #define Swap(type, a, b) do{ type _swapper_ = a; a = b; b = _swapper_; }while(0)
 
 #define AbsoluteValueS32(x) (S32)abs((x))
-#define AbsoluteValueS64(x) (S64)abs((x))
+#define AbsoluteValueS64(x) (S64)llabs((S64)(x))
 #define AbsoluteValueU64(x) (U64)llabs((U64)(x))
 
 //- rjf: linked list helpers
@@ -287,8 +296,8 @@ read_only global U32 SignF32 = 0x80000000;
 read_only global U32 ExponentF32 = 0x7F800000;
 read_only global U32 MantissaF32 = 0x7FFFFF;
 
-read_only global F32 F32Max = 3.4028234664e+38;
-read_only global F32 F32Min = -3.4028234664e+38;
+read_only global F32 F32Max = 3.402823e+38f;
+read_only global F32 F32Min = -3.402823e+38f;
 read_only global F32 F32SmallestPositive = 1.1754943508e-38;
 read_only global F32 F32Epsilon = 5.96046448e-8;
 

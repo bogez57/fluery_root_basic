@@ -657,13 +657,22 @@ R_WindowUnequip(OS_Handle window, R_Handle window_eqp)
 r_function R_Handle
 R_Tex2DAlloc(Vec2S64 size, R_Tex2DFormat fmt, R_Tex2DKind kind, void *initial_data)
 {
- // rjf: kind => usage
+ // rjf: kind => usage * access flags
  D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
+ UINT access_flags = 0;
  switch(kind)
  {
   default:
-  case R_Tex2DKind_Static: {usage = D3D11_USAGE_DYNAMIC;}break;
-  case R_Tex2DKind_Dynamic:{usage = D3D11_USAGE_DEFAULT;}break;
+  case R_Tex2DKind_Static:
+  {
+   usage = initial_data ? D3D11_USAGE_IMMUTABLE : D3D11_USAGE_DEFAULT;
+   access_flags = 0;
+  }break;
+  case R_Tex2DKind_Dynamic:
+  {
+   usage = D3D11_USAGE_DEFAULT;
+   access_flags = D3D11_CPU_ACCESS_WRITE;
+  }break;
  }
  D3D11_TEXTURE2D_DESC texture_desc = {};
  {
@@ -675,7 +684,7 @@ R_Tex2DAlloc(Vec2S64 size, R_Tex2DFormat fmt, R_Tex2DKind kind, void *initial_da
   texture_desc.SampleDesc.Count   = 1;
   texture_desc.Usage              = usage;
   texture_desc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
-  texture_desc.CPUAccessFlags     = D3D11_CPU_ACCESS_WRITE;
+  texture_desc.CPUAccessFlags     = access_flags;
  }
  D3D11_SUBRESOURCE_DATA initial_subrsrc_data = {};
  {

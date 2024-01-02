@@ -119,6 +119,15 @@
 #endif
 
 ////////////////////////////////
+//~ rjf: Sanitizers
+
+#if defined(__SANITIZE_ADDRESS__)
+# define ASAN_ENABLED 1
+#else
+# define ASAN_ENABLED 0
+#endif
+
+////////////////////////////////
 //~ rjf: Zero
 
 #if !defined(ARCH_32BIT)

@@ -833,7 +833,6 @@ Str8From32(Arena *arena, String32 in)
  U32 *ptr = in.str;
  U32 *opl = ptr + in.size;
  U64 size = 0;
- DecodedCodepoint consume;
  for(;ptr < opl; ptr += 1)
  {
   size += Utf8FromCodepoint(str + size, *ptr);

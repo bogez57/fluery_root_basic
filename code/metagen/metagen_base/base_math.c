@@ -41,7 +41,7 @@ root_function Vec2F64 Div2F64(Vec2F64 a, Vec2F64 b) { return V2F64(a.x/b.x, a.y/
 root_function Vec2F64 Scale2F64(Vec2F64 a, F64 scale) { return V2F64(a.x*scale, a.y*scale); }
 root_function F64 Dot2F64(Vec2F64 a, Vec2F64 b) { return (a.x*b.x + a.y*b.y); }
 root_function F64 LengthSquared2F64(Vec2F64 v) { return Dot2F64(v, v); }
-root_function F64 Length2F64(Vec2F64 v) { return SquareRoot(LengthSquared2F64(v)); }
+root_function F64 Length2F64(Vec2F64 v) { return SquareRootF64(LengthSquared2F64(v)); }
 root_function Vec2F64 Normalize2F64(Vec2F64 v) { return Scale2F64(v, 1.f/Length2F64(v)); }
 root_function Vec2F64 Mix2F64(Vec2F64 a, Vec2F64 b, F64 t) { return V2F64(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t); }
 
@@ -110,7 +110,7 @@ root_function Vec3F64 Div3F64(Vec3F64 a, Vec3F64 b) { return V3F64(a.x/b.x, a.y/
 root_function Vec3F64 Scale3F64(Vec3F64 a, F64 scale) { return V3F64(a.x*scale, a.y*scale, a.z*scale); }
 root_function F64 Dot3F64(Vec3F64 a, Vec3F64 b) { return (a.x*b.x + a.y*b.y + a.z*b.z); }
 root_function F64 LengthSquared3F64(Vec3F64 v) { return Dot3F64(v, v); }
-root_function F64 Length3F64(Vec3F64 v) { return SquareRoot(LengthSquared3F64(v)); }
+root_function F64 Length3F64(Vec3F64 v) { return SquareRootF64(LengthSquared3F64(v)); }
 root_function Vec3F64 Normalize3F64(Vec3F64 v) { return Scale3F64(v, 1.f/Length3F64(v)); }
 root_function Vec3F64 Mix3F64(Vec3F64 a, Vec3F64 b, F64 t) { return V3F64(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t, a.z*(1-t) + b.z*t); }
 root_function Vec3F64 Cross3F64(Vec3F64 a, Vec3F64 b) { return V3F64(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x); }
@@ -184,7 +184,7 @@ root_function Vec4F64 Div4F64(Vec4F64 a, Vec4F64 b) { return V4F64(a.x/b.x, a.y/
 root_function Vec4F64 Scale4F64(Vec4F64 a, F64 scale) { return V4F64(a.x*scale, a.y*scale, a.z*scale, a.w*scale); }
 root_function F64 Dot4F64(Vec4F64 a, Vec4F64 b) { return (a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w); }
 root_function F64 LengthSquared4F64(Vec4F64 v) { return Dot4F64(v, v); }
-root_function F64 Length4F64(Vec4F64 v) { return SquareRoot(LengthSquared4F64(v)); }
+root_function F64 Length4F64(Vec4F64 v) { return SquareRootF64(LengthSquared4F64(v)); }
 root_function Vec4F64 Normalize4F64(Vec4F64 v) { return Scale4F64(v, 1.f/Length4F64(v)); }
 root_function Vec4F64 Mix4F64(Vec4F64 a, Vec4F64 b, F64 t) { return V4F64(a.x*(1-t) + b.x*t, a.y*(1-t) + b.y*t, a.z*(1-t) + b.z*t, a.w*(1-t) + b.w*t); }
 root_function Vec4F64

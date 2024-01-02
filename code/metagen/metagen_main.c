@@ -523,7 +523,7 @@ EntryPoint(CmdLine *cmdln)
  ///////////////////////////////
  //- rjf: generate tweak code
  //
- ProfScope("generate tweaks") DeferLoop(printf("generating all tweaks..."), printf("done\n", (int)tweak_count))
+ ProfScope("generate tweaks") DeferLoop(printf("generating all tweaks..."), printf("done\n"))
  {
   for(U64 slot_idx = 0; slot_idx < mg_state->layer_slots_count; slot_idx += 1)
   {

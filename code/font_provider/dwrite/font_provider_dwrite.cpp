@@ -1,21 +1,17 @@
-// NOTE(rjf): 1000x thanks to Allen Webster for making his example at
-// https://github.com/4th-dimention/examps/tree/master/win32-direct-write.
-// This API would've been mind-numbing to crack without it.
-
 ////////////////////////////////
 //~ rjf: Globals
 
 global FP_DWrite_State *fp_dwrite_state = 0;
-read_only global FP_DWrite_FontFileLoaderVTable fp_g_dwrite_font_file_loader_vtbl =
+global FP_DWrite_FontFileLoaderVTable fp_g_dwrite_font_file_loader_vtbl =
 {
- FP_DWrite_FontFileLoader_QueryInterface,
+ FP_DWrite_NoOpQueryInterface,
  FP_DWrite_NoOpAddRef,
  FP_DWrite_NoOpRelease,
  FP_DWrite_FontFileLoader_CreateStreamFromKey,
 };
-read_only global FP_DWrite_FontFileStreamVTable fp_g_dwrite_font_file_stream_vtbl =
+global FP_DWrite_FontFileStreamVTable fp_g_dwrite_font_file_stream_vtbl =
 {
- FP_DWrite_FontFileStream_QueryInterface,
+ FP_DWrite_NoOpQueryInterface,
  FP_DWrite_FontFileStream_AddRef,
  FP_DWrite_FontFileStream_Release,
  FP_DWrite_FontFileStream_ReadFileFragment,
@@ -27,6 +23,12 @@ global FP_DWrite_FontFileLoader fp_g_dwrite_font_file_loader = {&fp_g_dwrite_fon
 
 ////////////////////////////////
 //~ rjf: IUnknown Helper Implementations
+
+function HRESULT
+FP_DWrite_NoOpQueryInterface(void *this_ptr, REFIID riid, void **ppvObject)
+{
+ return E_NOINTERFACE;
+}
 
 function ULONG
 FP_DWrite_NoOpAddRef(void *this_ptr)
@@ -42,14 +44,6 @@ FP_DWrite_NoOpRelease(void *this_ptr)
 
 ////////////////////////////////
 //~ rjf: Font File Loader Interface Implementations
-
-function HRESULT
-FP_DWrite_FontFileLoader_QueryInterface(FP_DWrite_FontFileLoader *this_ptr, REFIID riid, void **ppvObject)
-{
- HRESULT result = S_OK;
- *ppvObject = &fp_g_dwrite_font_file_loader;
- return result;
-}
 
 function HRESULT
 FP_DWrite_FontFileLoader_CreateStreamFromKey(FP_DWrite_FontFileLoader *this_ptr, void *key, U32 key_size, IDWriteFontFileStream **out_stream)
@@ -78,14 +72,6 @@ FP_DWrite_FontFileLoader_CreateStreamFromKey(FP_DWrite_FontFileLoader *this_ptr,
 
 ////////////////////////////////
 //~ rjf: Font File Stream Interface Implementations
-
-function HRESULT
-FP_DWrite_FontFileStream_QueryInterface(FP_DWrite_FontFileStream *this_ptr, REFIID riid, void **ppvObject)
-{
- HRESULT result = S_OK;
- *ppvObject = this_ptr;
- return result;
-}
 
 function ULONG
 FP_DWrite_FontFileStream_AddRef(FP_DWrite_FontFileStream *this_ptr)

@@ -12,7 +12,7 @@
 typedef struct FP_DWrite_FontFileLoaderVTable FP_DWrite_FontFileLoaderVTable;
 struct FP_DWrite_FontFileLoaderVTable
 {
- HRESULT (*QueryInterface)(struct FP_DWrite_FontFileLoader *this_ptr, REFIID riid, void **ppvObject);
+ HRESULT (*QueryInterface)(void *this_ptr, REFIID riid, void **ppvObject);
  ULONG (*AddRef)(void *this_ptr);
  ULONG (*Release)(void *this_ptr);
  HRESULT (*CreateStreamFromKey)(struct FP_DWrite_FontFileLoader *this_ptr, void *key, U32 key_size, IDWriteFontFileStream **out_stream);
@@ -30,7 +30,7 @@ struct FP_DWrite_FontFileLoader
 typedef struct FP_DWrite_FontFileStreamVTable FP_DWrite_FontFileStreamVTable;
 struct FP_DWrite_FontFileStreamVTable
 {
- HRESULT (*QueryInterface)(struct FP_DWrite_FontFileStream *this_ptr, REFIID riid, void **ppvObject);
+ HRESULT (*QueryInterface)(void *this_ptr, REFIID riid, void **ppvObject);
  ULONG (*AddRef)(struct FP_DWrite_FontFileStream *this_ptr);
  ULONG (*Release)(struct FP_DWrite_FontFileStream *this_ptr);
  HRESULT (*ReadFileFragment)(struct FP_DWrite_FontFileStream *this_ptr, void **fragment_start, U64 off, U64 size, void **fragment_ctx_out);
@@ -76,19 +76,18 @@ struct FP_DWrite_State
 ////////////////////////////////
 //~ rjf: IUnknown Helper Implementations
 
+function HRESULT FP_DWrite_NoOpQueryInterface(void *this_ptr, REFIID riid, void **ppvObject);
 function ULONG FP_DWrite_NoOpAddRef(void *this_ptr);
 function ULONG FP_DWrite_NoOpRelease(void *this_ptr);
 
 ////////////////////////////////
 //~ rjf: Font File Loader Interface Implementations
 
-function HRESULT FP_DWrite_FontFileLoader_QueryInterface(FP_DWrite_FontFileLoader *this_ptr, REFIID riid, void **ppvObject);
 function HRESULT FP_DWrite_FontFileLoader_CreateStreamFromKey(FP_DWrite_FontFileLoader *this_ptr, void *key, U32 key_size, IDWriteFontFileStream **out_stream);
 
 ////////////////////////////////
 //~ rjf: Font File Stream Interface Implementations
 
-function HRESULT FP_DWrite_FontFileStream_QueryInterface(FP_DWrite_FontFileStream *this_ptr, REFIID riid, void **ppvObject);
 function ULONG FP_DWrite_FontFileStream_AddRef(FP_DWrite_FontFileStream *this_ptr);
 function ULONG FP_DWrite_FontFileStream_Release(FP_DWrite_FontFileStream *this_ptr);
 function HRESULT FP_DWrite_FontFileStream_ReadFileFragment(FP_DWrite_FontFileStream *this_ptr, void **fragment_start, U64 off, U64 size, void **fragment_ctx_out);
