@@ -273,140 +273,228 @@ EntryPoint(CmdLine *cmdln)
     OS_SetCursor(OS_CursorKind_Null);
     UI_FontSize(12.f)
     {
-     //- rjf: mouse entity tooltip
-     if(mouse_entity != 0) UI_Tooltip
-     {
-      Temp scratch = ScratchBegin(0, 0);
-      String8 entity_name = NameFromEntity(scratch.arena, mouse_entity);
-      UI_Label(entity_name);
-      ScratchEnd(scratch);
-     }
+		//Tutorial 1
+#if 0
+		//General Tips: 
+		//Height must be specified for each box you make or else it will just default to whatever last set pref height was for root container (In this case the panel box)
+		//You can set width/color/height ect for all boxes via the defer loops or you can set individual things via SetNext.... stuff. Looks like most things have both options available
+
+		UI_FixedPos(V2F32(30.f, 30.f)) UI_PrefWidth(UI_Em(60.f, 1.f)) UI_PrefHeight(UI_Em(40.f, 1.f)) {
+			UI_SetNextChildLayoutAxis(Axis2_Y);//All next functions need to be set before next UI_BoxMake function I think
+			UI_SetNextBackgroundColor(V4F32(0.3f, 0.6f, 0.9f, 0.5f));//Individual background color
+			UI_Box *panel_box = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "panel");//Background color gets used by this box. Now background color will default back to whatever default is (grey in this case I think)
+
+			//This will set width/height/color for all containers. If you want to overwrite any of the colors then use the SetNextBackGroundColor again (example below)
+			UI_Box *container_1; UI_BoxSetNil(container_1);
+			UI_Box *container_2; UI_BoxSetNil(container_2);
+			UI_Box *container_3; UI_BoxSetNil(container_3);
+			UI_Parent(panel_box) UI_PrefWidth(UI_Pct(.4f, 0.f)) UI_PrefHeight(UI_Em(6.f, 1.f)) UI_Padding(UI_Pct(.05f, 0.f)) UI_BackgroundColor(V4F32(0.2f, 0.1f, 0.2f, 0.5f)){//Padding will be set on axis set earlier on beginning and end of container. So everything within the container will have width no greater that width of container minus padding (if padding = 50, then total padding is 100 - beginning/end)
+				container_1 = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "button_container1");
+
+				UI_Spacer(UI_Pct(.04, 0.f));//space out box containers indivually
+				container_2 = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "button_container2");
+
+				UI_Spacer(UI_Pct(.04, 0.f));//space out button containers indivually
+				UI_SetNextBackgroundColor(V4F32(0.8f, 0.2f, 0.9f, 0.5f));//Individual background color
+				container_3 = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "button_container3");
+			}
+
+			UI_Parent(container_1) UI_WidthFill UI_HeightFill UI_Padding(UI_Em(1.f, 1.f)) {//If WidthFill specified then button will just autmatically fit within the continainer given to them
+				if(UI_ButtonF("Button").clicked) {
+
+				}
+
+				UI_Spacer(UI_Em(2.f, 0.f));//In between buttons
+
+				if(UI_ButtonF("Button2").clicked) {
+
+				}
+			}
+
+			UI_Parent(container_2) UI_WidthFill UI_PrefHeight(UI_Pct(.8f, 1)) {
+				if(UI_ButtonF("Button3").clicked) {
+
+				}
+
+				UI_SetNextBackgroundColor(V4F32(0.9f, 0.8f, 0.12f, 0.8f));//Change color of this button
+				if(UI_ButtonF("Button5").clicked) {
+
+				}
+			}
+
+			
+			UI_Parent(container_3) UI_WidthFill UI_BackgroundColor(V4F32(0.8f, 0.1f, 0.2f, 0.9f)){//No height set on these buttons so their height will default to panel's height (root box)
+				if(UI_ButtonF("Button8").clicked) {
+
+				}
+
+				if(UI_ButtonF("Button9").clicked) {
+
+				}
+			}
+		}
+#endif
+
+#if 1
+		//A bit confused on what FixedPos does? Doesn't seem to change anything with window?
+		UI_FixedPos(V2F32(30.f, 30.f)) UI_PrefWidth(UI_Pct(0.8f, 1.f)) UI_PrefHeight(UI_Em(40.f, 1.f)) {
+			UI_SetNextChildLayoutAxis(Axis2_X);//All next functions need to be set before next UI_BoxMake function I think
+			UI_SetNextBackgroundColor(V4F32(0.3f, 0.9f, 0.9f, 0.5f));//Individual background color
+			UI_Box *panel_box = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "panel");//Background color gets used by this box. Now background color will default back to whatever default is (grey in this case I think)
+
+			//UI_SetNextChildLayoutAxis(Axis2_X);//All next functions need to be set before next UI_BoxMake function I think
+			UI_Parent(panel_box) UI_WidthFill UI_PrefHeight(UI_Em(3.f, 1.f)) UI_Padding(UI_Em(2.f, 1.f))
+			{
+				UI_Column UI_Padding(UI_Em(8.f, 1.f))//UI_Column puts things in column so I guess it's an easy way to line things up column fashion if originally the layout axis was set to Axis2_X
+				{
+					UI_Padding(UI_Em(3.f, 1.f)) {
+						UI_ButtonF("Hello");
+						UI_ButtonF("Jason");
+					}
+				} 
+			}
+		}
+#endif
+
+		//Fluery's original stuff
+#if 0
+		//- rjf: mouse entity tooltip
+		if(mouse_entity != 0) UI_Tooltip
+		{
+			Temp scratch = ScratchBegin(0, 0);
+			String8 entity_name = NameFromEntity(scratch.arena, mouse_entity);
+			UI_Label(entity_name);
+			ScratchEnd(scratch);
+		}
      
-     //- rjf: build arena diagnostics panel
-     if(diagnostics_panel_on)
-      UI_FixedPos(V2F32(30.f, 30.f))
-      UI_PrefWidth(UI_Em(60.f, 1.f))
-      UI_PrefHeight(UI_Em(40.f, 1.f))
-      UI_CornerRadius(UI_TopFontSize()*0.2f)
-     {
-      UI_SetNextChildLayoutAxis(Axis2_X);
-      UI_Box *panel_box = UI_BoxMakeF(UI_BoxFlag_Clickable|UI_BoxFlag_Floating|UI_BoxFlag_DrawBorder|UI_BoxFlag_DrawDropShadow|UI_BoxFlag_DrawBackground, "panel");
-      UI_Parent(panel_box) UI_WidthFill UI_PrefHeight(UI_Em(3.f, 1.f)) UI_Padding(UI_Em(2.f, 1.f))
-      {
-       UI_Column UI_Padding(UI_Em(2.f, 1.f))
-       {
-        struct
-        {
-         Arena *arena;
-         String8 name;
-         void *free_list_top;
-        }
-        arenas[] =
-        {
-         { state->arena, Str8Lit("arena"), 0},
-         { state->name_chunk_arena, Str8Lit("name_chunk_arena"), state->first_free_name_chunk},
-         { state->entities_arena, Str8Lit("entities_arena"), state->first_free_entity},
-        };
-        for(U64 idx = 0; idx < ArrayCount(arenas); idx += 1)
-        {
-         Arena *arena = arenas[idx].arena;
-         String8 name = arenas[idx].name;
-         void *free_list_top = arenas[idx].free_list_top;
-         UI_LabelF("%S (%I64d GiB reserved, %I64d KiB committed)",
-                   name,
-                   arena->size/Gigabytes(1),
-                   ArenaPos(arena)/Kilobytes(1));
-         {
-          UI_SetNextFlags(UI_BoxFlag_DrawBackground|UI_BoxFlag_DrawBorder);
-          UI_SetNextBackgroundColor(V4F32(0.3f, 0.6f, 0.9f, 0.5f));
-          UI_Box *box = UI_BoxMakeF(0, "");
-          ArenaFreeListDrawData *draw_data = PushArray(UI_FrameArena(), ArenaFreeListDrawData, 1);
-          draw_data->arena = arena;
-          draw_data->free_list_top = free_list_top;
-          UI_BoxEquipCustomDrawFunction(box, ArenaFreeListDraw, draw_data);
-         }
-        }
-       }
-      }
-      UI_Signal signal = UI_SignalFromBox(panel_box);
-     }
+		//- rjf: build arena diagnostics panel
+		if(diagnostics_panel_on)
+			UI_FixedPos(V2F32(30.f, 30.f))
+			UI_PrefWidth(UI_Em(60.f, 1.f))
+			UI_PrefHeight(UI_Em(40.f, 1.f))
+			UI_CornerRadius(UI_TopFontSize()*0.2f)
+		{
+			UI_SetNextChildLayoutAxis(Axis2_X);
+			UI_Box *panel_box = UI_BoxMakeF(UI_BoxFlag_Clickable|UI_BoxFlag_Floating|UI_BoxFlag_DrawBorder|UI_BoxFlag_DrawDropShadow|UI_BoxFlag_DrawBackground, "panel");
+			UI_Parent(panel_box) UI_WidthFill UI_PrefHeight(UI_Em(3.f, 1.f)) UI_Padding(UI_Em(2.f, 1.f))
+			{
+				UI_Column UI_Padding(UI_Em(2.f, 1.f))
+				{
+					struct
+					{
+						Arena *arena;
+						String8 name;
+						void *free_list_top;
+					}
+					arenas[] =
+					{
+						{ state->arena, Str8Lit("arena"), 0},
+						{ state->name_chunk_arena, Str8Lit("name_chunk_arena"), state->first_free_name_chunk},
+						{ state->entities_arena, Str8Lit("entities_arena"), state->first_free_entity},
+					};
+					for(U64 idx = 0; idx < ArrayCount(arenas); idx += 1)
+					{
+						Arena *arena = arenas[idx].arena;
+						String8 name = arenas[idx].name;
+						void *free_list_top = arenas[idx].free_list_top;
+						UI_LabelF("%S (%I64d GiB reserved, %I64d KiB committed)",
+						          name,
+						          arena->size/Gigabytes(1),
+						          ArenaPos(arena)/Kilobytes(1));
+						{
+							UI_SetNextFlags(UI_BoxFlag_DrawBackground|UI_BoxFlag_DrawBorder);
+							UI_SetNextBackgroundColor(V4F32(0.3f, 0.6f, 0.9f, 0.5f));
+							UI_Box *box = UI_BoxMakeF(0, "");
+							ArenaFreeListDrawData *draw_data = PushArray(UI_FrameArena(), ArenaFreeListDrawData, 1);
+							draw_data->arena = arena;
+							draw_data->free_list_top = free_list_top;
+							UI_BoxEquipCustomDrawFunction(box, ArenaFreeListDraw, draw_data);
+						}
+					}
+				}
+			}
+			UI_Signal signal = UI_SignalFromBox(panel_box);
+		}
      
-     //- rjf: build menu
-     UI_WidthFill UI_HeightFill
-      UI_Row UI_Padding(UI_Pct(1, 0))
-      UI_Column
-     {
-      UI_Spacer(UI_Pct(1, 0));
-      UI_PrefHeight(UI_Em(3, 1))
-       UI_CornerRadius(UI_TopFontSize()*0.2f)
-       UI_TextAlign(UI_TextAlignment_Center)
-      {
-       Entity *edit_entity = EntityFromHandle(state->edit_entity);
+		//- rjf: build menu
+		UI_WidthFill UI_HeightFill
+			UI_Row UI_Padding(UI_Pct(1, 0))
+			UI_Column
+		{
+			UI_Spacer(UI_Pct(1, 0));
+			UI_PrefHeight(UI_Em(3, 1))
+				UI_CornerRadius(UI_TopFontSize()*0.2f)
+				UI_TextAlign(UI_TextAlignment_Center)
+			{
+				Entity *edit_entity = EntityFromHandle(state->edit_entity);
        
-       //- rjf: entity editor
-       if(edit_entity != 0)
-       {
-        Temp scratch = ScratchBegin(0, 0);
-        String8 entity_name = NameFromEntity(scratch.arena, edit_entity);
-        UI_LabelF("Editing \"%S\"", entity_name);
-        UI_Spacer(UI_Em(1.f, 1.f));
-        UI_Focus(1) UI_LineEditF(&state->cursor, &state->mark, sizeof(state->name_edit_buffer), state->name_edit_buffer, &state->name_edit_size, "Entity Name");
-        EntityEquipName(state, edit_entity, Str8(state->name_edit_buffer, state->name_edit_size));
-        UI_Spacer(UI_Em(1.f, 1.f));
-        if(UI_ButtonF("Delete").clicked)
-        {
-         EntityRelease(state, edit_entity);
-         state->edit_entity = HandleZero();
-        }
-        UI_Spacer(UI_Em(1.f, 1.f));
-        if(UI_ButtonF("Close").clicked)
-        {
-         state->edit_entity = HandleZero();
-        }
-        UI_Spacer(UI_Em(1.f, 1.f));
-        ScratchEnd(scratch);
-       }
+				//- rjf: entity editor
+				if(edit_entity != 0)
+				{
+					Temp scratch = ScratchBegin(0, 0);
+					String8 entity_name = NameFromEntity(scratch.arena, edit_entity);
+					UI_LabelF("Editing \"%S\"", entity_name);
+					UI_Spacer(UI_Em(1.f, 1.f));
+					UI_Focus(1) UI_LineEditF(&state->cursor, &state->mark, sizeof(state->name_edit_buffer), state->name_edit_buffer, &state->name_edit_size, "Entity Name");
+					EntityEquipName(state, edit_entity, Str8(state->name_edit_buffer, state->name_edit_size));
+					UI_Spacer(UI_Em(1.f, 1.f));
+					if(UI_ButtonF("Delete").clicked)
+					{
+						EntityRelease(state, edit_entity);
+						state->edit_entity = HandleZero();
+					}
+					UI_Spacer(UI_Em(1.f, 1.f));
+					if(UI_ButtonF("Close").clicked)
+					{
+						state->edit_entity = HandleZero();
+					}
+					UI_Spacer(UI_Em(1.f, 1.f));
+					ScratchEnd(scratch);
+				}
        
-       //- rjf: main menu
-       else
-       {
-        if(UI_ButtonF("Spawn Entity").clicked)
-        {
-         Entity *entity = EntityAlloc(state);
-         EntityEquipName(state, entity, Str8Lit("Entity"));
-         entity->radius = SampleFromDist1F32(&dist, R1(10.f, 50.f));
-         entity->pos = V2F32(SampleFromDist1F32(&dist, R1(entity->radius, client_rect_dim.x-entity->radius)),
-                             SampleFromDist1F32(&dist, R1(entity->radius, client_rect_dim.y-entity->radius)));
-         entity->vel = V2F32(SampleFromDist1F32(&dist, R1(-200.f, +200.f)),
-                             SampleFromDist1F32(&dist, R1(-200.f, +200.f)));
-         entity->color = V4F32(SampleFromDist1F32(&dist, R1(0.5f, +1.f)),
-                               SampleFromDist1F32(&dist, R1(0.3f, +1.f)),
-                               SampleFromDist1F32(&dist, R1(0.1f, +1.f)),
-                               SampleFromDist1F32(&dist, R1(0.5f,+1.f)));
-        }
-        UI_Spacer(UI_Em(1.f, 1.f));
-        if(UI_ButtonF("Clear All").clicked)
-        {
-         ArenaClear(state->name_chunk_arena);
-         state->first_free_name_chunk = 0;
-         ArenaClear(state->entities_arena);
-         state->entities_base = PushArray(state->entities_arena, Entity, 0);
-         state->entities_count = 0;
-         state->first_free_entity = 0;
-        }
-        UI_Spacer(UI_Em(1.f, 1.f));
-        UI_SliderF32(&gravity_t, R1(-1.f, 1.f), Str8Lit("Gravity"));
-        UI_Spacer(UI_Em(1.f, 1.f));
-        UI_SliderF32(&sim_dt_t, R1(0.f, 1.f), Str8Lit("Simulation Rate"));
-        UI_Spacer(UI_Em(1.f, 1.f));
-        if(UI_CheckF(diagnostics_panel_on, "Diagnostics").clicked)
-        {
-         diagnostics_panel_on ^= 1;
-        }
-        UI_Spacer(UI_Em(1.f, 1.f));
-       }
-      }
-     }
+				//- rjf: main menu
+				else
+				{
+					if(UI_ButtonF("Spawn Entity").clicked)
+					{
+						Entity *entity = EntityAlloc(state);
+						EntityEquipName(state, entity, Str8Lit("Entity"));
+						entity->radius = SampleFromDist1F32(&dist, R1(10.f, 50.f));
+						entity->pos = V2F32(SampleFromDist1F32(&dist, R1(entity->radius, client_rect_dim.x-entity->radius)),
+						                    SampleFromDist1F32(&dist, R1(entity->radius, client_rect_dim.y-entity->radius)));
+						entity->vel = V2F32(SampleFromDist1F32(&dist, R1(-200.f, +200.f)),
+						                    SampleFromDist1F32(&dist, R1(-200.f, +200.f)));
+						entity->color = V4F32(SampleFromDist1F32(&dist, R1(0.5f, +1.f)),
+						                      SampleFromDist1F32(&dist, R1(0.3f, +1.f)),
+						                      SampleFromDist1F32(&dist, R1(0.1f, +1.f)),
+						                      SampleFromDist1F32(&dist, R1(0.5f,+1.f)));
+					}
+					UI_Spacer(UI_Em(2.f, 1.f));
+					if(UI_ButtonF("Clear All").clicked)
+					{
+						ArenaClear(state->name_chunk_arena);
+						state->first_free_name_chunk = 0;
+						ArenaClear(state->entities_arena);
+						state->entities_base = PushArray(state->entities_arena, Entity, 0);
+						state->entities_count = 0;
+						state->first_free_entity = 0;
+					}
+					UI_Spacer(UI_Em(1.f, 1.f));
+					UI_SliderF32(&gravity_t, R1(-1.f, 1.f), Str8Lit("Gravity"));
+					UI_Spacer(UI_Em(1.f, 1.f));
+					UI_SliderF32(&sim_dt_t, R1(0.f, 1.f), Str8Lit("Simulation Rate"));
+					UI_Spacer(UI_Em(1.f, 1.f));
+					if(UI_CheckF(diagnostics_panel_on, "Diagnostics").clicked)
+					{
+						diagnostics_panel_on ^= 1;
+					}
+					UI_Spacer(UI_Em(1.f, 1.f));
+				}
+			}
+		}
+#endif
+
+
     }
     UI_EndBuild();
     UI_Layout();
@@ -539,3 +627,140 @@ EntryPoint(CmdLine *cmdln)
   ScratchEnd(scratch);
  }
 }
+
+#if 0
+//- rjf: mouse entity tooltip
+if(mouse_entity != 0) UI_Tooltip
+{
+	Temp scratch = ScratchBegin(0, 0);
+	String8 entity_name = NameFromEntity(scratch.arena, mouse_entity);
+	UI_Label(entity_name);
+	ScratchEnd(scratch);
+}
+     
+//- rjf: build arena diagnostics panel
+if(diagnostics_panel_on)
+	UI_FixedPos(V2F32(30.f, 30.f))
+	UI_PrefWidth(UI_Em(60.f, 1.f))
+	UI_PrefHeight(UI_Em(40.f, 1.f))
+	UI_CornerRadius(UI_TopFontSize()*0.2f)
+{
+	UI_SetNextChildLayoutAxis(Axis2_X);
+	UI_Box *panel_box = UI_BoxMakeF(UI_BoxFlag_Clickable|UI_BoxFlag_Floating|UI_BoxFlag_DrawBorder|UI_BoxFlag_DrawDropShadow|UI_BoxFlag_DrawBackground, "panel");
+	UI_Parent(panel_box) UI_WidthFill UI_PrefHeight(UI_Em(3.f, 1.f)) UI_Padding(UI_Em(2.f, 1.f))
+	{
+		UI_Column UI_Padding(UI_Em(2.f, 1.f))
+		{
+			struct
+			{
+				Arena *arena;
+				String8 name;
+				void *free_list_top;
+			}
+			arenas[] =
+			{
+				{ state->arena, Str8Lit("arena"), 0},
+				{ state->name_chunk_arena, Str8Lit("name_chunk_arena"), state->first_free_name_chunk},
+				{ state->entities_arena, Str8Lit("entities_arena"), state->first_free_entity},
+			};
+			for(U64 idx = 0; idx < ArrayCount(arenas); idx += 1)
+			{
+				Arena *arena = arenas[idx].arena;
+				String8 name = arenas[idx].name;
+				void *free_list_top = arenas[idx].free_list_top;
+				UI_LabelF("%S (%I64d GiB reserved, %I64d KiB committed)",
+				          name,
+				          arena->size/Gigabytes(1),
+				          ArenaPos(arena)/Kilobytes(1));
+				{
+					UI_SetNextFlags(UI_BoxFlag_DrawBackground|UI_BoxFlag_DrawBorder);
+					UI_SetNextBackgroundColor(V4F32(0.3f, 0.6f, 0.9f, 0.5f));
+					UI_Box *box = UI_BoxMakeF(0, "");
+					ArenaFreeListDrawData *draw_data = PushArray(UI_FrameArena(), ArenaFreeListDrawData, 1);
+					draw_data->arena = arena;
+					draw_data->free_list_top = free_list_top;
+					UI_BoxEquipCustomDrawFunction(box, ArenaFreeListDraw, draw_data);
+				}
+			}
+		}
+	}
+	UI_Signal signal = UI_SignalFromBox(panel_box);
+}
+     
+//- rjf: build menu
+UI_WidthFill UI_HeightFill
+	UI_Row UI_Padding(UI_Pct(1, 0))
+	UI_Column
+{
+	UI_Spacer(UI_Pct(1, 0));
+	UI_PrefHeight(UI_Em(3, 1))
+		UI_CornerRadius(UI_TopFontSize()*0.2f)
+		UI_TextAlign(UI_TextAlignment_Center)
+	{
+		Entity *edit_entity = EntityFromHandle(state->edit_entity);
+       
+		//- rjf: entity editor
+		if(edit_entity != 0)
+		{
+			Temp scratch = ScratchBegin(0, 0);
+			String8 entity_name = NameFromEntity(scratch.arena, edit_entity);
+			UI_LabelF("Editing \"%S\"", entity_name);
+			UI_Spacer(UI_Em(1.f, 1.f));
+			UI_Focus(1) UI_LineEditF(&state->cursor, &state->mark, sizeof(state->name_edit_buffer), state->name_edit_buffer, &state->name_edit_size, "Entity Name");
+			EntityEquipName(state, edit_entity, Str8(state->name_edit_buffer, state->name_edit_size));
+			UI_Spacer(UI_Em(1.f, 1.f));
+			if(UI_ButtonF("Delete").clicked)
+			{
+				EntityRelease(state, edit_entity);
+				state->edit_entity = HandleZero();
+			}
+			UI_Spacer(UI_Em(1.f, 1.f));
+			if(UI_ButtonF("Close").clicked)
+			{
+				state->edit_entity = HandleZero();
+			}
+			UI_Spacer(UI_Em(1.f, 1.f));
+			ScratchEnd(scratch);
+		}
+       
+		//- rjf: main menu
+		else
+		{
+			if(UI_ButtonF("Spawn Entity").clicked)
+			{
+				Entity *entity = EntityAlloc(state);
+				EntityEquipName(state, entity, Str8Lit("Entity"));
+				entity->radius = SampleFromDist1F32(&dist, R1(10.f, 50.f));
+				entity->pos = V2F32(SampleFromDist1F32(&dist, R1(entity->radius, client_rect_dim.x-entity->radius)),
+				                    SampleFromDist1F32(&dist, R1(entity->radius, client_rect_dim.y-entity->radius)));
+				entity->vel = V2F32(SampleFromDist1F32(&dist, R1(-200.f, +200.f)),
+				                    SampleFromDist1F32(&dist, R1(-200.f, +200.f)));
+				entity->color = V4F32(SampleFromDist1F32(&dist, R1(0.5f, +1.f)),
+				                      SampleFromDist1F32(&dist, R1(0.3f, +1.f)),
+				                      SampleFromDist1F32(&dist, R1(0.1f, +1.f)),
+				                      SampleFromDist1F32(&dist, R1(0.5f,+1.f)));
+			}
+			UI_Spacer(UI_Em(1.f, 1.f));
+			if(UI_ButtonF("Clear All").clicked)
+			{
+				ArenaClear(state->name_chunk_arena);
+				state->first_free_name_chunk = 0;
+				ArenaClear(state->entities_arena);
+				state->entities_base = PushArray(state->entities_arena, Entity, 0);
+				state->entities_count = 0;
+				state->first_free_entity = 0;
+			}
+			UI_Spacer(UI_Em(1.f, 1.f));
+			UI_SliderF32(&gravity_t, R1(-1.f, 1.f), Str8Lit("Gravity"));
+			UI_Spacer(UI_Em(1.f, 1.f));
+			UI_SliderF32(&sim_dt_t, R1(0.f, 1.f), Str8Lit("Simulation Rate"));
+			UI_Spacer(UI_Em(1.f, 1.f));
+			if(UI_CheckF(diagnostics_panel_on, "Diagnostics").clicked)
+			{
+				diagnostics_panel_on ^= 1;
+			}
+			UI_Spacer(UI_Em(1.f, 1.f));
+		}
+	}
+}
+#endif
