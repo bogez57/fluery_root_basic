@@ -1,5 +1,7 @@
 @echo off
 
+call C:\msvc\setup
+
 rem --- Unpack Arguments ------------------------------------------------------
 for %%a in (%*) do set "%%a=1"
 
