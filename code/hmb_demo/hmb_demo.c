@@ -198,9 +198,14 @@ function UI_CUSTOM_DRAW_FUNCTION(ArenaFreeListDraw)
 ////////////////////////////////
 //~ rjf: Entry Points
 
+UI_Key ctx_menu_key;
+
 function void
 EntryPoint(CmdLine *cmdln)
 {
+ ctx_menu_key = UI_KeyFromString(UI_KeyZero(), Str8Lit("_ctx_menu_"));
+
+
  //- rjf: initialize dependency layers
  OS_InitReceipt os_init = OS_Init();
  OS_InitGfxReceipt os_init_gfx = OS_InitGfx(os_init);
@@ -271,7 +276,7 @@ EntryPoint(CmdLine *cmdln)
     //- rjf: build UI
     UI_BeginBuild(window, &events);
     OS_SetCursor(OS_CursorKind_Null);
-    UI_FontSize(12.f)
+    UI_FontSize(10.f)
     {
 		//Tutorial 1
 #if 0
@@ -335,7 +340,7 @@ EntryPoint(CmdLine *cmdln)
 		}
 #endif
 
-#if 1
+#if 0
 		//A bit confused on what FixedPos does? Doesn't seem to change anything with window?
 		UI_FixedPos(V2F32(30.f, 30.f)) UI_PrefWidth(UI_Pct(0.8f, 1.f)) UI_PrefHeight(UI_Em(40.f, 1.f)) {
 			UI_SetNextChildLayoutAxis(Axis2_X);//All next functions need to be set before next UI_BoxMake function I think
@@ -355,6 +360,69 @@ EntryPoint(CmdLine *cmdln)
 			}
 		}
 #endif
+
+#if 0
+		UI_FixedPos(V2F32(30.f, 30.f)) UI_WidthFill UI_PrefHeight(UI_Em(2.5f, 1.f)) {
+			UI_SetNextChildLayoutAxis(Axis2_X);//All next functions need to be set before next UI_BoxMake function I think
+			UI_SetNextBackgroundColor(V4F32(0.3f, 0.2f, 0.2f, 0.9f));//Individual background color
+			UI_Box* menu_bar = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "menu_bar");//Background color gets used by this box. Now background color will default back to whatever default is (grey in this case I think)
+
+			UI_Parent(menu_bar) UI_PrefWidth(UI_Pct(.06f, 0.f)){
+				UI_ButtonF("File");
+
+				UI_Spacer(UI_Pixels(5.f, 1.f));
+				UI_ButtonF("Edit");
+
+				UI_Spacer(UI_Pixels(5.f, 1.f));
+				UI_SetNextPrefWidth(UI_Pct(.08, .0f));
+				UI_ButtonF("Preferences");
+
+				UI_SetNextBackgroundColor(V4F32(0.3f, 0.9f, 0.2f, 0.9f));//Note that this color won't be reflected in the "Help" button because I think Spacer consumes it since it still creates a box, just an empty box. 
+				UI_SetNextPrefWidth(UI_Pct(.9, .0f));//Will still apply to "Help" button despite spacer being in-between due to implelmentation detail of UI_Spacer (sets it own pref sizes internally).
+				UI_Spacer(UI_Pixels(5.f, 1.f));
+				UI_ButtonF("Help");
+			}
+		}
+#endif
+
+		UI_FixedPos(V2F32(30.f, 30.f)) UI_WidthFill UI_PrefHeight(UI_Em(2.5f, 1.f)) {
+			UI_SetNextChildLayoutAxis(Axis2_X);//All next functions need to be set before next UI_BoxMake function I think
+			UI_SetNextBackgroundColor(V4F32(0.3f, 0.2f, 0.2f, 0.9f));//Individual background color
+			UI_Box* menu_bar = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "menu_bar");//Background color gets used by this box. Now background color will default back to whatever default is (grey in this case I think)
+
+			UI_Parent(menu_bar) UI_PrefWidth(UI_TextDim(1.f)) {//Will size everything by text dimensions. If you look at rad debugger another option has been added to this macro for padding which is good
+
+				UI_CtxMenu(ctx_menu_key) UI_WidthFill UI_PrefHeight(UI_Pct(.2f, 0.f)) UI_BackgroundColor(V4F32(0.9f, 0.9f, 0.2f, 0.9f)) {
+					UI_ButtonF("File menu");
+				}
+
+				UI_Signal File_signal = UI_ButtonF("File");
+				if(File_signal.clicked) {
+					if(UI_CtxMenuIsOpen(ctx_menu_key)) {
+						UI_CloseCtxMenu();
+					}
+					else {
+						UI_OpenCtxMenu(File_signal.box->key, V2F32(0.f, 0.f), ctx_menu_key);
+					}
+				}
+
+				UI_Spacer(UI_Pixels(5.f, 1.f));
+				UI_ButtonF("Edit");
+
+				UI_Spacer(UI_Pixels(5.f, 1.f));
+				UI_ButtonF("Preferences");
+
+				UI_Spacer(UI_Pixels(5.f, 1.f));
+				UI_ButtonF("Help");
+
+
+			}
+
+			UI_SetNextBackgroundColor(V4F32(0.3f, 0.4f, 0.2f, 0.45f));//Individual background color
+			UI_SetNextPrefHeight(UI_Pct(.5f, 1.f));
+			UI_Box* main_panel = UI_BoxMakeF(UI_BoxFlag_DrawBackground | UI_BoxFlag_DrawOverlay, "main_panel");//Background color gets used by this box. Now background color will default back to whatever default is (grey in this case I think)
+		}
+
 
 		//Fluery's original stuff
 #if 0
