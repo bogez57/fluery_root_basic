@@ -399,7 +399,7 @@ EntryPoint(CmdLine *cmdln)
 
 				//Pop up context menu if file is clicked
 				UI_Signal File_signal = UI_ButtonF("File");
-				if(File_signal.pressed) {
+				if(File_signal.clicked) {//Theres a difference between clicked and pressed that I'm trying to figure out. I think clicked has to do with the mouse cursor actually hovering over the object your clicking on whereas pressed might mean the item is the active item and can still be pressed if you press you mouse (like if item was selected by a hot key or something not involving the cursor?)
 					if(UI_CtxMenuIsOpen(ctx_menu_key)) {
 						UI_CloseCtxMenu();
 					}
@@ -425,10 +425,15 @@ EntryPoint(CmdLine *cmdln)
 
 			UI_Parent(main_panel_container) UI_PrefWidth(UI_Pct(.5f, 0.f)) UI_HeightFill {
 				UI_SetNextBackgroundColor(V4F32(0.1f, 0.8f, 0.2f, 0.45f));
-				UI_Box* left_panel = UI_BoxMakeF(UI_BoxFlag_DrawBackground | UI_BoxFlag_Clickable | UI_BoxFlag_DrawHotEffects, "left_panel");
+				UI_Box* left_panel = UI_BoxMakeF(UI_BoxFlag_DrawBackground | UI_BoxFlag_Clickable, "left_panel");
 
 				UI_SetNextBackgroundColor(V4F32(0.98f, 0.1f, 0.8f, 0.45f));
 				UI_Box* right_panel = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "right_panel");
+
+				if(UI_SignalFromBox(left_panel).dragging) {//dragging is essentially holding it seems
+					UI_SetNextBackgroundColor(V4F32(0.28f, 0.1f, 0.7f, 0.55f));
+					UI_Box* inside = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "inside");
+				}
 			}
 		}
 #endif
