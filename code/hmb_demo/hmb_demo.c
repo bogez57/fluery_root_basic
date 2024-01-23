@@ -385,19 +385,21 @@ EntryPoint(CmdLine *cmdln)
 		}
 #endif
 
+#if 1
 		UI_FixedPos(V2F32(30.f, 30.f)) UI_WidthFill UI_PrefHeight(UI_Em(2.5f, 1.f)) {
 			UI_SetNextChildLayoutAxis(Axis2_X);//All next functions need to be set before next UI_BoxMake function I think
 			UI_SetNextBackgroundColor(V4F32(0.3f, 0.2f, 0.2f, 0.9f));//Individual background color
 			UI_Box* menu_bar = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "menu_bar");//Background color gets used by this box. Now background color will default back to whatever default is (grey in this case I think)
 
 			UI_Parent(menu_bar) UI_PrefWidth(UI_TextDim(1.f)) {//Will size everything by text dimensions. If you look at rad debugger another option has been added to this macro for padding which is good
-
+				//Create context menu that can popup if File option is clicked
 				UI_CtxMenu(ctx_menu_key) UI_WidthFill UI_PrefHeight(UI_Pct(.2f, 0.f)) UI_BackgroundColor(V4F32(0.9f, 0.9f, 0.2f, 0.9f)) {
 					UI_ButtonF("File menu");
 				}
 
+				//Pop up context menu if file is clicked
 				UI_Signal File_signal = UI_ButtonF("File");
-				if(File_signal.clicked) {
+				if(File_signal.pressed) {
 					if(UI_CtxMenuIsOpen(ctx_menu_key)) {
 						UI_CloseCtxMenu();
 					}
@@ -414,14 +416,22 @@ EntryPoint(CmdLine *cmdln)
 
 				UI_Spacer(UI_Pixels(5.f, 1.f));
 				UI_ButtonF("Help");
-
-
 			}
 
+			UI_SetNextChildLayoutAxis(Axis2_X);//All next functions need to be set before next UI_BoxMake function I think
 			UI_SetNextBackgroundColor(V4F32(0.3f, 0.4f, 0.2f, 0.45f));//Individual background color
 			UI_SetNextPrefHeight(UI_Pct(.5f, 1.f));
-			UI_Box* main_panel = UI_BoxMakeF(UI_BoxFlag_DrawBackground | UI_BoxFlag_DrawOverlay, "main_panel");//Background color gets used by this box. Now background color will default back to whatever default is (grey in this case I think)
+			UI_Box* main_panel_container = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "main_panel");//Background color gets used by this box. Now background color will default back to whatever default is (grey in this case I think)
+
+			UI_Parent(main_panel_container) UI_PrefWidth(UI_Pct(.5f, 0.f)) UI_HeightFill {
+				UI_SetNextBackgroundColor(V4F32(0.1f, 0.8f, 0.2f, 0.45f));
+				UI_Box* left_panel = UI_BoxMakeF(UI_BoxFlag_DrawBackground | UI_BoxFlag_Clickable | UI_BoxFlag_DrawHotEffects, "left_panel");
+
+				UI_SetNextBackgroundColor(V4F32(0.98f, 0.1f, 0.8f, 0.45f));
+				UI_Box* right_panel = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "right_panel");
+			}
 		}
+#endif
 
 
 		//Fluery's original stuff
