@@ -970,7 +970,7 @@ root_function void
 UI_BoxEquipDisplayString(UI_Box *box, String8 string)
 {
  box->string = PushStr8Copy(UI_FrameArena(), string);
- box->flags |= UI_BoxFlag_DisableStringHashPart;
+ box->flags |= UI_BoxFlag_DisableIDString;
 }
 
 root_function void
@@ -1247,7 +1247,7 @@ UI_SignalFromBox(UI_Box *box)
   {
    UI_LayoutRoot(box, Axis2_X);
   }
-  if(box->flags & UI_BoxFlag_OverflowY)
+  if(box->flags & UI_BoxFlag_AllowOverflowY)
   {
    UI_LayoutRoot(box, Axis2_Y);
   }
@@ -1302,7 +1302,7 @@ root_function String8
 UI_DisplayStringFromBox(UI_Box *box)
 {
  String8 result = box->string;
- if(!(box->flags & UI_BoxFlag_DisableStringHashPart))
+ if(!(box->flags & UI_BoxFlag_DisableIDString))
  {
   result = UI_DisplayPartFromBoxString(result);
  }

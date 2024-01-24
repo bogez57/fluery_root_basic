@@ -102,7 +102,7 @@ UI_Check(B32 checked, String8 string)
   {
    UI_SetNextPrefWidth(check_size);
    UI_SetNextPrefHeight(check_size);
-   UI_BoxFlags check_area_flags = UI_BoxFlag_DrawBackground|UI_BoxFlag_DisableTextTruncate;
+   UI_BoxFlags check_area_flags = UI_BoxFlag_DrawBackground|UI_BoxFlag_DisableTextTrunc;
    if(checked)
    {
     check_area_flags |= UI_BoxFlag_DrawText;
@@ -184,7 +184,7 @@ UI_Expander(B32 expanded, String8 string)
  UI_SetNextFont(UI_IconFont());
  UI_SetNextHoverCursor(OS_CursorKind_Hand);
  UI_SetNextTextAlign(UI_TextAlignment_Center);
- UI_Box *box = UI_BoxMake(UI_BoxFlag_DrawText|UI_BoxFlag_Clickable|UI_BoxFlag_DisableTextTruncate, string);
+ UI_Box *box = UI_BoxMake(UI_BoxFlag_DrawText|UI_BoxFlag_Clickable|UI_BoxFlag_DisableTextTrunc, string);
  UI_BoxEquipDisplayString(box, ui_g_icon_kind_string_table[expanded ? UI_IconKind_DownCaret : UI_IconKind_RightCaret]);
  UI_Signal sig = UI_SignalFromBox(box);
  return sig;
@@ -328,7 +328,7 @@ UI_LineEdit(TxtPt *cursor, TxtPt *mark, U64 buffer_size, U8 *buffer, U64 *string
   {
    UI_Spacer(UI_Pct(1, 0));
   }
-  edit_string_box = UI_BoxMake(UI_BoxFlag_DrawText|UI_BoxFlag_DisableTextTruncate, Str8Lit("editstr"));
+  edit_string_box = UI_BoxMake(UI_BoxFlag_DrawText|UI_BoxFlag_DisableTextTrunc, Str8Lit("editstr"));
   UI_BoxEquipDisplayString(edit_string_box, edit_string);
   if(align == UI_TextAlignment_Center)
   {

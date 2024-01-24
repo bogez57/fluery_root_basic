@@ -113,7 +113,7 @@ UI_Draw(void)
    String8 display_string = UI_DisplayStringFromBox(box);
    String8 trailer = Str8Lit("...");
    B32 truncated = 0;
-   if(!(box->flags & UI_BoxFlag_DisableTextTruncate))
+   if(!(box->flags & UI_BoxFlag_DisableTextTrunc))
    {
     F32 trailer_advance = F_AdvanceFromFontSizeString(box->ext_text->font_tag, box->ext_text->font_size, trailer);
     F32 max_size_for_string = box->calc_size.x - box->ext_text->text_edge_padding*2;

@@ -45,43 +45,70 @@ typedef enum UI_TextAlignment
 }
 UI_TextAlignment;
 
-typedef U32 UI_BoxFlags;
-enum
-{
- // rjf: interaction
- UI_BoxFlag_Disabled              = (1<<0),
- UI_BoxFlag_MouseClickable        = (1<<1),
- UI_BoxFlag_KeyboardClickable     = (1<<2),
- UI_BoxFlag_FocusHot              = (1<<3),
- UI_BoxFlag_FocusActive           = (1<<4),
- UI_BoxFlag_FocusHotDisabled      = (1<<5),
- UI_BoxFlag_FocusActiveDisabled   = (1<<6),
- UI_BoxFlag_ViewScroll            = (1<<7),
- 
- // rjf: layout
- UI_BoxFlag_FloatingX             = (1<<8),//Floating means the box won't be a part of the base layout and will instead 'float' above it. So if you want a panel popping up that isn't necessarily tied to the current base layout then you can just float it above the base layout, not really connected to anything
- UI_BoxFlag_FloatingY             = (1<<9),
- UI_BoxFlag_AllowOverflowX             = (1<<10),
- UI_BoxFlag_OverflowY             = (1<<11),
- 
- // rjf: appearance
- UI_BoxFlag_Clip                  = (1<<12),
- UI_BoxFlag_DisableTextTruncate   = (1<<13),
- UI_BoxFlag_DisableStringHashPart = (1<<14),
- UI_BoxFlag_DrawDropShadow        = (1<<15),
- UI_BoxFlag_DrawText              = (1<<16),
- UI_BoxFlag_DrawBorder            = (1<<17),
- UI_BoxFlag_DrawOverlay           = (1<<18),
- UI_BoxFlag_DrawBackground        = (1<<19),
- UI_BoxFlag_DrawHotEffects        = (1<<20),
- UI_BoxFlag_DrawActiveEffects     = (1<<21),
- UI_BoxFlag_DrawBucket            = (1<<22),
- UI_BoxFlag_DrawCustomFunction    = (1<<23),
- 
- // rjf: helpers
- UI_BoxFlag_Floating              = UI_BoxFlag_FloatingX|UI_BoxFlag_FloatingY,
- UI_BoxFlag_Clickable             = UI_BoxFlag_MouseClickable|UI_BoxFlag_KeyboardClickable,
-};
+
+typedef U64 UI_BoxFlags;
+//{
+//- rjf: interaction
+# define UI_BoxFlag_MouseClickable            (UI_BoxFlags)(1ull<<0)
+# define UI_BoxFlag_KeyboardClickable         (UI_BoxFlags)(1ull<<1)
+# define UI_BoxFlag_ClickToFocus              (UI_BoxFlags)(1ull<<2)
+# define UI_BoxFlag_Scroll                    (UI_BoxFlags)(1ull<<3)
+# define UI_BoxFlag_ViewScroll                (UI_BoxFlags)(1ull<<4)
+# define UI_BoxFlag_ViewClamp                 (UI_BoxFlags)(1ull<<5)
+# define UI_BoxFlag_FocusHot                  (UI_BoxFlags)(1ull<<6)
+# define UI_BoxFlag_FocusActive               (UI_BoxFlags)(1ull<<7)
+# define UI_BoxFlag_FocusHotDisabled          (UI_BoxFlags)(1ull<<8)
+# define UI_BoxFlag_FocusActiveDisabled       (UI_BoxFlags)(1ull<<9)
+# define UI_BoxFlag_DefaultFocusNavX          (UI_BoxFlags)(1ull<<10)
+# define UI_BoxFlag_DefaultFocusNavY          (UI_BoxFlags)(1ull<<11)
+# define UI_BoxFlag_DefaultFocusEdit          (UI_BoxFlags)(1ull<<12)
+# define UI_BoxFlag_FocusNavSkip              (UI_BoxFlags)(1ull<<13)
+# define UI_BoxFlag_Disabled                  (UI_BoxFlags)(1ull<<14)
+
+//- rjf: layout
+# define UI_BoxFlag_FloatingX                 (UI_BoxFlags)(1ull<<15)
+# define UI_BoxFlag_FloatingY                 (UI_BoxFlags)(1ull<<16)
+# define UI_BoxFlag_FixedWidth                (UI_BoxFlags)(1ull<<17)
+# define UI_BoxFlag_FixedHeight               (UI_BoxFlags)(1ull<<18)
+# define UI_BoxFlag_AllowOverflowX            (UI_BoxFlags)(1ull<<19)
+# define UI_BoxFlag_AllowOverflowY            (UI_BoxFlags)(1ull<<20)
+# define UI_BoxFlag_SkipViewOffX              (UI_BoxFlags)(1ull<<21)
+# define UI_BoxFlag_SkipViewOffY              (UI_BoxFlags)(1ull<<22)
+
+//- rjf: appearance / animation
+# define UI_BoxFlag_DrawDropShadow            (UI_BoxFlags)(1ull<<23)
+# define UI_BoxFlag_DrawBackgroundBlur        (UI_BoxFlags)(1ull<<24)
+# define UI_BoxFlag_DrawBackground            (UI_BoxFlags)(1ull<<25)
+# define UI_BoxFlag_DrawBorder                (UI_BoxFlags)(1ull<<26)
+# define UI_BoxFlag_DrawSideTop               (UI_BoxFlags)(1ull<<27)
+# define UI_BoxFlag_DrawSideBottom            (UI_BoxFlags)(1ull<<28)
+# define UI_BoxFlag_DrawSideLeft              (UI_BoxFlags)(1ull<<29)
+# define UI_BoxFlag_DrawSideRight             (UI_BoxFlags)(1ull<<30)
+# define UI_BoxFlag_DrawText                  (UI_BoxFlags)(1ull<<31)
+# define UI_BoxFlag_DrawTextFastpathCodepoint (UI_BoxFlags)(1ull<<32)
+# define UI_BoxFlag_DrawHotEffects            (UI_BoxFlags)(1ull<<33)
+# define UI_BoxFlag_DrawActiveEffects         (UI_BoxFlags)(1ull<<34)
+# define UI_BoxFlag_DrawOverlay               (UI_BoxFlags)(1ull<<35)
+# define UI_BoxFlag_DrawBucket                (UI_BoxFlags)(1ull<<36)
+# define UI_BoxFlag_Clip                      (UI_BoxFlags)(1ull<<37)
+# define UI_BoxFlag_AnimatePosX               (UI_BoxFlags)(1ull<<38)
+# define UI_BoxFlag_AnimatePosY               (UI_BoxFlags)(1ull<<39)
+# define UI_BoxFlag_DisableTextTrunc          (UI_BoxFlags)(1ull<<40)
+# define UI_BoxFlag_DisableIDString           (UI_BoxFlags)(1ull<<41)
+# define UI_BoxFlag_DisableFocusViz           (UI_BoxFlags)(1ull<<42)
+# define UI_BoxFlag_RequireFocusBackground    (UI_BoxFlags)(1ull<<43)
+# define UI_BoxFlag_HasDisplayString          (UI_BoxFlags)(1ull<<44)
+# define UI_BoxFlag_RoundChildrenByParent     (UI_BoxFlags)(1ull<<45)
+# define UI_BoxFlag_DrawCustomFunction        (UI_BoxFlags)(1ull<<46)
+
+//- rjf: bundles
+# define UI_BoxFlag_Clickable          (UI_BoxFlag_MouseClickable|UI_BoxFlag_KeyboardClickable)
+# define UI_BoxFlag_DefaultFocusNav    (UI_BoxFlag_DefaultFocusNavX|UI_BoxFlag_DefaultFocusNavY|UI_BoxFlag_DefaultFocusEdit)
+# define UI_BoxFlag_Floating           (UI_BoxFlag_FloatingX|UI_BoxFlag_FloatingY)
+# define UI_BoxFlag_FixedSize          (UI_BoxFlag_FixedWidth|UI_BoxFlag_FixedHeight)
+# define UI_BoxFlag_AllowOverflow      (UI_BoxFlag_AllowOverflowX|UI_BoxFlag_AllowOverflowY)
+# define UI_BoxFlag_AnimatePos         (UI_BoxFlag_AnimatePosX|UI_BoxFlag_AnimatePosY)
+//}
 
 typedef void UI_BoxCustomDrawFunctionType(struct UI_Box *box);
 #define UI_CUSTOM_DRAW_FUNCTION(name) void name(struct UI_Box *box)
