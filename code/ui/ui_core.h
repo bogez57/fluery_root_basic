@@ -59,9 +59,9 @@ enum
  UI_BoxFlag_ViewScroll            = (1<<7),
  
  // rjf: layout
- UI_BoxFlag_FloatingX             = (1<<8),
+ UI_BoxFlag_FloatingX             = (1<<8),//Floating means the box won't be a part of the base layout and will instead 'float' above it. So if you want a panel popping up that isn't necessarily tied to the current base layout then you can just float it above the base layout, not really connected to anything
  UI_BoxFlag_FloatingY             = (1<<9),
- UI_BoxFlag_OverflowX             = (1<<10),
+ UI_BoxFlag_AllowOverflowX             = (1<<10),
  UI_BoxFlag_OverflowY             = (1<<11),
  
  // rjf: appearance

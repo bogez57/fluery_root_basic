@@ -454,7 +454,7 @@ UI_SolveSizeViolations(UI_Box *root, Axis2 axis)
  // the total budget we have to fix the sizes up
  F32 taken_space = 0;
  F32 total_fixup_budget = 0;
- if(!(root->flags & (UI_BoxFlag_OverflowX<<axis)))
+ if(!(root->flags & (UI_BoxFlag_AllowOverflowX<<axis)))
  {
   for(UI_Box *child = root->first; !UI_BoxIsNil(child); child = child->next)
   {
@@ -475,7 +475,7 @@ UI_SolveSizeViolations(UI_Box *root, Axis2 axis)
  }
  
  //- rjf: fixup all children as much as possible
- if(!(root->flags & (UI_BoxFlag_OverflowX<<axis)))
+ if(!(root->flags & (UI_BoxFlag_AllowOverflowX<<axis)))
  {
   F32 violation = taken_space - available_space;
   if(violation > 0 && total_fixup_budget > 0)
@@ -1243,7 +1243,7 @@ UI_SignalFromBox(UI_Box *box)
  if(box->flags & UI_BoxFlag_ViewScroll && mouse_is_over)
  {
   // rjf: layout pre-emptively for this subtree
-  if(box->flags & UI_BoxFlag_OverflowX)
+  if(box->flags & UI_BoxFlag_AllowOverflowX)
   {
    UI_LayoutRoot(box, Axis2_X);
   }

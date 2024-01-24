@@ -385,7 +385,7 @@ EntryPoint(CmdLine *cmdln)
 		}
 #endif
 
-#if 1
+#if 0
 		UI_FixedPos(V2F32(30.f, 30.f)) UI_WidthFill UI_PrefHeight(UI_Em(2.5f, 1.f)) {
 			UI_SetNextChildLayoutAxis(Axis2_X);//All next functions need to be set before next UI_BoxMake function I think
 			UI_SetNextBackgroundColor(V4F32(0.3f, 0.2f, 0.2f, 0.9f));//Individual background color
@@ -438,9 +438,55 @@ EntryPoint(CmdLine *cmdln)
 		}
 #endif
 
+#if 0
+		UI_FixedPos(V2F32(30.f, 30.f)) UI_WidthFill UI_HeightFill {
+			UI_SetNextChildLayoutAxis(Axis2_X);
+			UI_SetNextBackgroundColor(V4F32(0.3f, 0.2f, 0.2f, 0.9f));
+			UI_Box* containter = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "container");
+
+			UI_Parent(containter) UI_PrefWidth(UI_Pct(.5f, 0.f)) UI_PrefHeight(UI_Pct(.1f, 0.f)) {//Will size everything by text dimensions. If you look at rad debugger another option has been added to this macro for padding which is good
+				UI_SetNextBackgroundColor(V4F32(0.89f, 0.2f, 0.2f, 0.9f));
+				UI_Box* panel = UI_BoxMakeF(UI_BoxFlag_DrawBackground | UI_BoxFlag_Clickable | UI_BoxFlag_AllowOverflowX, "panel");//Now children will leak outside panel space if necessary
+
+				//Create context menu that can popup if File option is clicked
+				UI_CtxMenu(ctx_menu_key) UI_Parent(panel) UI_PrefWidth(UI_Pct(1.2f, 0.f)) UI_PrefHeight(UI_Pct(.5f, 0.f)) UI_BackgroundColor(V4F32(0.9f, 0.9f, 0.2f, 0.9f)) {
+					UI_ButtonF("File menu");
+				}
+
+				UI_Signal panel_sig = UI_SignalFromBox(panel);
+				if(panel_sig.clicked) {
+					if(UI_CtxMenuIsOpen(ctx_menu_key)) {
+						UI_CloseCtxMenu();
+					}
+					else {
+						UI_OpenCtxMenu(panel_sig.box->key, V2F32(0.f, 0.f), ctx_menu_key);
+					}
+				}
+
+			}
+		}
+#endif
+
+		UI_FixedPos(V2F32(30.f, 30.f)) UI_WidthFill UI_HeightFill {
+			UI_SetNextChildLayoutAxis(Axis2_X);
+			UI_SetNextBackgroundColor(V4F32(0.3f, 0.2f, 0.2f, 0.9f));
+			UI_Box* containter = UI_BoxMakeF(UI_BoxFlag_DrawBackground, "container");
+
+			UI_Parent(containter) UI_PrefWidth(UI_Pct(.5f, 0.f)) UI_PrefHeight(UI_Pct(.1f, 0.f)) {//Will size everything by text dimensions. If you look at rad debugger another option has been added to this macro for padding which is good
+				UI_SetNextBackgroundColor(V4F32(0.89f, 0.2f, 0.2f, 0.9f));
+				UI_Box* panel = UI_BoxMakeF(UI_BoxFlag_DrawBackground | UI_BoxFlag_Clickable | UI_BoxFlag_AllowOverflowX, "panel");//Now children will leak outside panel space if necessary
+
+				//Create context menu that can popup if File option is clicked
+				UI_Parent(panel) UI_PrefWidth(UI_Pct(1.2f, 0.f)) UI_PrefHeight(UI_Pct(.5f, 0.f)) UI_BackgroundColor(V4F32(0.9f, 0.9f, 0.2f, 0.53f)) {//Will extend past end of parent on x
+					UI_ButtonF("File menu");
+				}
+
+			}
+		}
+
 
 		//Fluery's original stuff
-#if 0
+#if 1
 		//- rjf: mouse entity tooltip
 		if(mouse_entity != 0) UI_Tooltip
 		{
