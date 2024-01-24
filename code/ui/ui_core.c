@@ -336,47 +336,356 @@ UI_LoadDragData(U64 needed_size)
  return ui_state->drag_data;
 }
 
+
+#if 0
+internal void
+	ui_calc_sizes_standalone__in_place_rec(UI_Box *root, Axis2 axis)
+{
+	ProfBeginFunction();
+  
+	switch(root->pref_size[axis].kind)
+	{
+		default:{}break;
+		case UI_SizeKind_Pixels:
+		{
+			root->fixed_size.v[axis] = root->pref_size[axis].value;
+		}break;
+    
+		case UI_SizeKind_TextContent:
+		{
+			F32 padding = root->pref_size[axis].value;
+			F32 text_size = root->display_string_runs.dim.x;
+			root->fixed_size.v[axis] = padding + text_size;
+		}break;
+	}
+  
+	//- rjf: recurse
+	for(UI_Box *child = root->first; !ui_box_is_nil(child); child = child->next)
+	{
+		ui_calc_sizes_standalone__in_place_rec(child, axis);
+	}
+  
+	ProfEnd();
+}
+
+internal void
+	ui_calc_sizes_upwards_dependent__in_place_rec(UI_Box *root, Axis2 axis)
+{
+	ProfBeginFunction();
+  
+	//- rjf: solve for all kinds that are upwards-dependent
+	switch(root->pref_size[axis].kind)
+	{
+		default: break;
+    
+			// rjf: if root has a parent percentage, figure out its size
+		case UI_SizeKind_ParentPct:
+		{
+			// rjf: find parent that has a fixed size
+			UI_Box *fixed_parent = &ui_g_nil_box;
+			for(UI_Box *p = root->parent; !ui_box_is_nil(p); p = p->parent)
+			{
+				if(p->flags & (UI_BoxFlag_FixedWidth<<axis) ||
+					p->pref_size[axis].kind == UI_SizeKind_Pixels ||
+					p->pref_size[axis].kind == UI_SizeKind_TextContent ||
+					p->pref_size[axis].kind == UI_SizeKind_ParentPct)
+				{
+					fixed_parent = p;
+					break;
+				}
+			}
+      
+			// rjf: figure out root's size on this axis
+			F32 size = fixed_parent->fixed_size.v[axis] * root->pref_size[axis].value;
+      
+			// rjf: mutate root to have this size
+			root->fixed_size.v[axis] = size;
+		}break;
+	}
+  
+	//- rjf: recurse
+	for(UI_Box *child = root->first; !ui_box_is_nil(child); child = child->next)
+	{
+		ui_calc_sizes_upwards_dependent__in_place_rec(child, axis);
+	}
+  
+	ProfEnd();
+}
+
+internal void
+	ui_calc_sizes_downwards_dependent__in_place_rec(UI_Box *root, Axis2 axis)
+{
+	ProfBeginFunction();
+  
+	//- rjf: recurse first. we may depend on children that have
+	// the same property
+	for(UI_Box *child = root->first; !ui_box_is_nil(child); child = child->next)
+	{
+		ui_calc_sizes_downwards_dependent__in_place_rec(child, axis);
+	}
+  
+	//- rjf: solve for all kinds that are downwards-dependent
+	switch(root->pref_size[axis].kind)
+	{
+		default: break;
+    
+			// rjf: sum children
+		case UI_SizeKind_ChildrenSum:
+		{
+			F32 sum = 0;
+			for(UI_Box *child = root->first; !ui_box_is_nil(child); child = child->next)
+			{
+				if(!(child->flags & (UI_BoxFlag_FloatingX<<axis)))
+				{
+					if(axis == root->child_layout_axis)
+					{
+						sum += child->fixed_size.v[axis];
+					}
+					else
+					{
+						sum = Max(sum, child->fixed_size.v[axis]);
+					}
+				}
+			}
+      
+			// rjf: figure out root's size on this axis
+			root->fixed_size.v[axis] = sum;
+		}break;
+	}
+  
+	ProfEnd();
+}
+
+internal void
+	ui_layout_enforce_constraints__in_place_rec(UI_Box *root, Axis2 axis)
+{
+	ProfBeginFunction();
+	Temp scratch = scratch_begin(0, 0);
+  
+	// NOTE(rjf): The "layout axis" is the direction in which children
+	// of some node are intended to be laid out.
+  
+	//- rjf: fixup children sizes (if we're solving along the *non-layout* axis)
+	if(axis != root->child_layout_axis && !(root->flags & (UI_BoxFlag_AllowOverflowX << axis)))
+	{
+		F32 allowed_size = root->fixed_size.v[axis];
+		for(UI_Box *child = root->first; !ui_box_is_nil(child); child = child->next)
+		{
+			if(!(child->flags & (UI_BoxFlag_FloatingX<<axis)))
+			{
+				F32 child_size = child->fixed_size.v[axis];
+				F32 violation = child_size - allowed_size;
+				F32 max_fixup = child_size;
+				F32 fixup = Clamp(0, violation, max_fixup);
+				if(fixup > 0)
+				{
+					child->fixed_size.v[axis] -= fixup;
+				}
+			}
+		}
+    
+	}
+  
+	//- rjf: fixup children sizes (in the direction of the layout axis)
+	if(axis == root->child_layout_axis && !(root->flags & (UI_BoxFlag_AllowOverflowX << axis)))
+	{
+		// rjf: figure out total allowed size & total size
+		F32 total_allowed_size = root->fixed_size.v[axis];
+		F32 total_size = 0;
+		F32 total_weighted_size = 0;
+		for(UI_Box *child = root->first; !ui_box_is_nil(child); child = child->next)
+		{
+			if(!(child->flags & (UI_BoxFlag_FloatingX<<axis)))
+			{
+				total_size += child->fixed_size.v[axis];
+				total_weighted_size += child->fixed_size.v[axis] * (1-child->pref_size[axis].strictness);
+			}
+		}
+    
+		// rjf: if we have a violation, we need to subtract some amount from all children
+		F32 violation = total_size - total_allowed_size;
+		if(violation > 0)
+		{
+			// rjf: figure out how much we can take in totality
+			F32 child_fixup_sum = 0;
+			F32 *child_fixups = push_array(scratch.arena, F32, root->child_count);
+			{
+				U64 child_idx = 0;
+				for(UI_Box *child = root->first; !ui_box_is_nil(child); child = child->next, child_idx += 1)
+				{
+					if(!(child->flags & (UI_BoxFlag_FloatingX<<axis)))
+					{
+						F32 fixup_size_this_child = child->fixed_size.v[axis] * (1-child->pref_size[axis].strictness);
+						fixup_size_this_child = ClampBot(0, fixup_size_this_child);
+						child_fixups[child_idx] = fixup_size_this_child;
+						child_fixup_sum += fixup_size_this_child;
+					}
+				}
+			}
+      
+			// rjf: fixup child sizes
+			{
+				U64 child_idx = 0;
+				for(UI_Box *child = root->first; !ui_box_is_nil(child); child = child->next, child_idx += 1)
+				{
+					if(!(child->flags & (UI_BoxFlag_FloatingX<<axis)))
+					{
+						F32 fixup_pct = (violation / total_weighted_size);
+						fixup_pct = Clamp(0, fixup_pct, 1);
+						child->fixed_size.v[axis] -= child_fixups[child_idx] * fixup_pct;
+						child->fixed_size.v[axis] = child->fixed_size.v[axis];
+					}
+				}
+			}
+		}
+    
+	}
+  
+	//- rjf: fixup upwards-relative sizes
+	if(root->flags & (UI_BoxFlag_AllowOverflowX << axis))
+	{
+		for(UI_Box *child = root->first; !ui_box_is_nil(child); child = child->next)
+		{
+			if(child->pref_size[axis].kind == UI_SizeKind_ParentPct)
+			{
+				child->fixed_size.v[axis] = root->fixed_size.v[axis] * child->pref_size[axis].value;
+			}
+		}
+	}
+  
+	//- rjf: recurse
+	for(UI_Box *child = root->first; !ui_box_is_nil(child); child = child->next)
+	{
+		ui_layout_enforce_constraints__in_place_rec(child, axis);
+	}
+  
+	scratch_end(scratch);
+	ProfEnd();
+}
+
+internal void
+	ui_layout_position__in_place_rec(UI_Box *root, Axis2 axis)
+{
+	ProfBeginFunction();
+	F32 layout_position = 0;
+  
+	//- rjf: lay out children
+	F32 bounds = 0;
+	for(UI_Box *child = root->first; !ui_box_is_nil(child); child = child->next)
+	{
+		// rjf: grab original position
+		F32 original_position = Min(child->rect.p0.v[axis], child->rect.p1.v[axis]);
+    
+		// rjf: calculate fixed position & size
+		if(!(child->flags & (UI_BoxFlag_FloatingX<<axis)))
+		{
+			child->fixed_position.v[axis] = layout_position;
+			if(root->child_layout_axis == axis)
+			{
+				layout_position += child->fixed_size.v[axis];
+				bounds += child->fixed_size.v[axis];
+			}
+			else
+			{
+				bounds = Max(bounds, child->fixed_size.v[axis]);
+			}
+		}
+    
+		// rjf: determine final rect for child, given fixed_position & size
+		if(child->flags & (UI_BoxFlag_AnimatePosX<<axis))
+		{
+			if(child->first_touched_build_index == child->last_touched_build_index)
+			{
+				child->fixed_position_animated = child->fixed_position;
+			}
+			child->rect.p0.v[axis] = root->rect.p0.v[axis] + child->fixed_position_animated.v[axis] - !(child->flags&(UI_BoxFlag_SkipViewOffX<<axis))*root->view_off.v[axis];
+		}
+		else
+		{
+			child->rect.p0.v[axis] = root->rect.p0.v[axis] + child->fixed_position.v[axis] - !(child->flags&(UI_BoxFlag_SkipViewOffX<<axis))*root->view_off.v[axis];
+		}
+		child->rect.p1.v[axis] = child->rect.p0.v[axis] + child->fixed_size.v[axis];
+		child->rect.p0.x = floorf(child->rect.p0.x);
+		child->rect.p0.y = floorf(child->rect.p0.y);
+		child->rect.p1.x = floorf(child->rect.p1.x);
+		child->rect.p1.y = floorf(child->rect.p1.y);
+    
+		// rjf: grab new position
+		F32 new_position = Min(child->rect.p0.v[axis], child->rect.p1.v[axis]);
+    
+		// rjf: store position delta
+		child->position_delta.v[axis] = new_position - original_position;
+	}
+  
+	//- rjf: store view bounds
+	{
+		root->view_bounds.v[axis] = bounds;
+	}
+  
+	//- rjf: recurse
+	for(UI_Box *child = root->first; !ui_box_is_nil(child); child = child->next)
+	{
+		ui_layout_position__in_place_rec(child, axis);
+	}
+  
+	ProfEnd();
+}
+
+internal void
+	ui_layout_root(UI_Box *root, Axis2 axis)
+{
+	ProfBegin("ui layout pass (%s)", axis == Axis2_X ? "x" : "y");
+	ui_calc_sizes_standalone__in_place_rec(root, axis);
+	ui_calc_sizes_upwards_dependent__in_place_rec(root, axis);
+	ui_calc_sizes_downwards_dependent__in_place_rec(root, axis);
+	ui_layout_enforce_constraints__in_place_rec(root, axis);
+	ui_layout_position__in_place_rec(root, axis);
+	ProfEnd();
+}
+#endif
+
+
 ////////////////////////////////
 //~ rjf: Layout Passes
 
 root_function void
 UI_SolveIndependentSizes(UI_Box *root, Axis2 axis)
 {
- switch(root->pref_size[axis].kind)
- {
-  default:break;
-  case UI_SizeKind_Pixels:
-  {
-   root->calc_size.v[axis] = root->pref_size[axis].value;
-   root->calc_size.v[axis] = FloorF32(root->calc_size.v[axis]);
-  }break;
-  case UI_SizeKind_TextDim:
-  {
-   String8 display_string = UI_DisplayStringFromBox(root);
-   switch(axis)
-   {
-    case Axis2_X:
-    {
-     root->calc_size.v[axis] = F_AdvanceFromFontSizeString(root->ext_text->font_tag,
-                                                           root->ext_text->font_size,
-                                                           display_string);
-     root->calc_size.v[axis] += root->ext_text->text_edge_padding*2.f;
-     root->calc_size.v[axis] = CeilF32(root->calc_size.v[axis]);
-    }break;
+	switch(root->pref_size[axis].kind)
+	{
+		default:{}break;
+		case UI_SizeKind_Pixels:
+		{
+			root->fixed_size.v[axis] = root->pref_size[axis].value;
+		}break;
     
-    case Axis2_Y:
-    {
-     F_Metrics metrics = F_MetricsFromTag(root->ext_text->font_tag, root->ext_text->font_size);
-     root->calc_size.v[axis] = metrics.line_gap + metrics.ascent + metrics.descent;
-     root->calc_size.v[axis] = FloorF32(root->calc_size.v[axis]);
-    }break;
-   }
-  }break;
- }
- for(UI_Box *child = root->first; !UI_BoxIsNil(child); child = child->next)
- {
-  UI_SolveIndependentSizes(child, axis);
- }
+		case UI_SizeKind_TextContent:
+		{
+			String8 display_string = UI_DisplayStringFromBox(root);
+			switch(axis)
+			{
+				case Axis2_X:
+				{
+					root->fixed_size.v[axis] = F_AdvanceFromFontSizeString(root->ext_text->font_tag, root->ext_text->font_size, display_string);
+					root->fixed_size.v[axis] += root->ext_text->text_edge_padding*2.f;
+					root->fixed_size.v[axis] = CeilF32(root->fixed_size.v[axis]);
+				}break;
+    
+				case Axis2_Y:
+				{
+					F_Metrics metrics = F_MetricsFromTag(root->ext_text->font_tag, root->ext_text->font_size);
+					root->fixed_size.v[axis] = metrics.line_gap + metrics.ascent + metrics.descent;
+					root->fixed_size.v[axis] = FloorF32(root->fixed_size.v[axis]);
+				}break;
+			}
+		}break;
+	}
+  
+	//- rjf: recurse
+	for(UI_Box *child = root->first; !UI_BoxIsNil(child); child = child->next)
+	{
+		UI_SolveIndependentSizes(child, axis);
+	}
 }
 
 root_function void
@@ -398,8 +707,8 @@ UI_SolveUpwardDependentSizes(UI_Box *root, Axis2 axis)
    }
    if(!UI_BoxIsNil(ancestor))
    {
-    root->calc_size.v[axis] = ancestor->calc_size.v[axis] * root->pref_size[axis].value;
-    root->calc_size.v[axis] = FloorF32(root->calc_size.v[axis]);
+    root->fixed_size.v[axis] = ancestor->fixed_size.v[axis] * root->pref_size[axis].value;
+    root->fixed_size.v[axis] = FloorF32(root->fixed_size.v[axis]);
    }
   }break;
  }
@@ -427,19 +736,19 @@ UI_SolveDownwardDependentSizes(UI_Box *root, Axis2 axis)
     {
      for(UI_Box *child = root->first; !UI_BoxIsNil(child); child = child->next)
      {
-      value += child->calc_size.v[axis];
+      value += child->fixed_size.v[axis];
      }
     }
     else
     {
      for(UI_Box *child = root->first; !UI_BoxIsNil(child); child = child->next)
      {
-      value = Max(value, child->calc_size.v[axis]);
+      value = Max(value, child->fixed_size.v[axis]);
      }
     }
    }
-   root->calc_size.v[axis] = value;
-   root->calc_size.v[axis] = FloorF32(root->calc_size.v[axis]);
+   root->fixed_size.v[axis] = value;
+   root->fixed_size.v[axis] = FloorF32(root->fixed_size.v[axis]);
   }break;
  }
 }
@@ -448,7 +757,7 @@ root_function void
 UI_SolveSizeViolations(UI_Box *root, Axis2 axis)
 {
  //- rjf: determine the maximum available space
- F32 available_space = root->calc_size.v[axis];
+ F32 available_space = root->fixed_size.v[axis];
  
  //- rjf: determine the size taken by all of the children's preferred sizes, &
  // the total budget we have to fix the sizes up
@@ -462,13 +771,13 @@ UI_SolveSizeViolations(UI_Box *root, Axis2 axis)
    {
     if(axis == root->child_layout_axis)
     {
-     taken_space += child->calc_size.v[axis];
+     taken_space += child->fixed_size.v[axis];
     }
     else
     {
-     taken_space = Max(taken_space, child->calc_size.v[axis]);
+     taken_space = Max(taken_space, child->fixed_size.v[axis]);
     }
-    F32 fixup_budget_this_child = child->calc_size.v[axis] * (1 - child->pref_size[axis].strictness);
+    F32 fixup_budget_this_child = child->fixed_size.v[axis] * (1 - child->pref_size[axis].strictness);
     total_fixup_budget += fixup_budget_this_child;
    }
   }
@@ -484,7 +793,7 @@ UI_SolveSizeViolations(UI_Box *root, Axis2 axis)
    {
     if(!(child->flags & (UI_BoxFlag_FloatingX<<axis)))
     {
-     F32 fixup_budget_this_child = child->calc_size.v[axis] * (1 - child->pref_size[axis].strictness);
+     F32 fixup_budget_this_child = child->fixed_size.v[axis] * (1 - child->pref_size[axis].strictness);
      F32 fixup_size_this_child = 0;
      if(axis == root->child_layout_axis)
      {
@@ -492,11 +801,11 @@ UI_SolveSizeViolations(UI_Box *root, Axis2 axis)
      }
      else
      {
-      fixup_size_this_child = child->calc_size.v[axis] - available_space;
+      fixup_size_this_child = child->fixed_size.v[axis] - available_space;
      }
      fixup_size_this_child = Clamp(0, fixup_size_this_child, fixup_budget_this_child);
-     child->calc_size.v[axis] -= fixup_size_this_child;
-     child->calc_size.v[axis] = FloorF32(child->calc_size.v[axis]);
+     child->fixed_size.v[axis] -= fixup_size_this_child;
+     child->fixed_size.v[axis] = FloorF32(child->fixed_size.v[axis]);
     }
    }
   }
@@ -512,7 +821,7 @@ UI_SolveSizeViolations(UI_Box *root, Axis2 axis)
     if(!(child->flags & (UI_BoxFlag_FloatingX<<axis)))
     {
      child->calc_rel_pos.v[axis] = p;
-     p += child->calc_size.v[axis];
+     p += child->fixed_size.v[axis];
     }
    }
   }
@@ -530,7 +839,7 @@ UI_SolveSizeViolations(UI_Box *root, Axis2 axis)
   {
    Rng2F32 last_rel_rect = child->rel_rect;
    child->rel_rect.p0.v[axis] = child->calc_rel_pos.v[axis];
-   child->rel_rect.p1.v[axis] = child->rel_rect.p0.v[axis] + child->calc_size.v[axis];
+   child->rel_rect.p1.v[axis] = child->rel_rect.p0.v[axis] + child->fixed_size.v[axis];
    Vec2F32 last_corner_01 = V2F32(last_rel_rect.x0, last_rel_rect.y1);
    Vec2F32 last_corner_10 = V2F32(last_rel_rect.x1, last_rel_rect.y0);
    Vec2F32 this_corner_01 = V2F32(child->rel_rect.x0, child->rel_rect.y1);
@@ -540,7 +849,7 @@ UI_SolveSizeViolations(UI_Box *root, Axis2 axis)
    child->rel_corner_delta[Corner_10].v[axis] = this_corner_10.v[axis] - last_corner_10.v[axis];
    child->rel_corner_delta[Corner_11].v[axis] = child->rel_rect.p1.v[axis] - last_rel_rect.p1.v[axis];
    child->rect.p0.v[axis] = root->rect.p0.v[axis] + child->rel_rect.p0.v[axis] - root->view_off.v[axis];
-   child->rect.p1.v[axis] = child->rect.p0.v[axis] + child->calc_size.v[axis];
+   child->rect.p1.v[axis] = child->rect.p0.v[axis] + child->fixed_size.v[axis];
    if(!(child->flags & (UI_BoxFlag_FloatingX<<axis)))
    {
     child->rect.p0.v[axis] = FloorF32(child->rect.p0.v[axis]);
@@ -576,8 +885,8 @@ UI_Layout(void)
   UI_Box *root = ui_state->tooltip_root;
   root->calc_rel_pos.x = mouse.x + UI_TopFontSize() * 2.f;
   root->calc_rel_pos.y = mouse.y;
-  root->calc_rel_pos.x = ClampTop(root->calc_rel_pos.x, client_dim.x - root->calc_size.x);
-  root->calc_rel_pos.y = ClampTop(root->calc_rel_pos.y, client_dim.y - root->calc_size.y);
+  root->calc_rel_pos.x = ClampTop(root->calc_rel_pos.x, client_dim.x - root->fixed_size.x);
+  root->calc_rel_pos.y = ClampTop(root->calc_rel_pos.y, client_dim.y - root->fixed_size.y);
   root->calc_rel_pos.x = ClampBot(root->calc_rel_pos.x, 0);
   root->calc_rel_pos.y = ClampBot(root->calc_rel_pos.y, 0);
  }
@@ -597,8 +906,8 @@ UI_Layout(void)
   UI_Box *root = ui_state->ctx_menu_root;
   root->calc_rel_pos.x = ctx_menu_p.x;
   root->calc_rel_pos.y = ctx_menu_p.y;
-  root->calc_rel_pos.x = ClampTop(root->calc_rel_pos.x, client_dim.x - root->calc_size.x);
-  root->calc_rel_pos.y = ClampTop(root->calc_rel_pos.y, client_dim.y - root->calc_size.y);
+  root->calc_rel_pos.x = ClampTop(root->calc_rel_pos.x, client_dim.x - root->fixed_size.x);
+  root->calc_rel_pos.y = ClampTop(root->calc_rel_pos.y, client_dim.y - root->fixed_size.y);
   root->calc_rel_pos.x = ClampBot(root->calc_rel_pos.x, 0);
   root->calc_rel_pos.y = ClampBot(root->calc_rel_pos.y, 0);
   root->rect.y1 = root->rect.y0 + (root->rect.y1 - root->rect.y0) * ui_state->ctx_menu_t;

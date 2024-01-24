@@ -116,7 +116,7 @@ UI_Draw(void)
    if(!(box->flags & UI_BoxFlag_DisableTextTrunc))
    {
     F32 trailer_advance = F_AdvanceFromFontSizeString(box->ext_text->font_tag, box->ext_text->font_size, trailer);
-    F32 max_size_for_string = box->calc_size.x - box->ext_text->text_edge_padding*2;
+    F32 max_size_for_string = box->fixed_size.x - box->ext_text->text_edge_padding*2;
     if(trailer_advance > max_size_for_string)
     {
      display_string = Str8Lit("");

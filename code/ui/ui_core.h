@@ -18,7 +18,7 @@ struct UI_Key
 typedef enum UI_SizeKind
 {
  UI_SizeKind_Pixels,
- UI_SizeKind_TextDim,
+ UI_SizeKind_TextContent,
  UI_SizeKind_Pct,
  UI_SizeKind_SizeByChildren,
  UI_SizeKind_COUNT
@@ -179,7 +179,7 @@ struct UI_Box
  UI_BoxCustomDrawExt       *ext_custom_draw;
  
  // rjf: post-size-determination data
- Vec2F32 calc_size;
+ Vec2F32 fixed_size;
  Vec2F32 calc_rel_pos;
  
  // rjf: post-layout data
@@ -342,7 +342,7 @@ root_function UI_BoxRec UI_BoxRecurseDepthFirst(UI_Box *box, UI_Box *stopper, Me
 //- rjf: sizes
 root_function UI_Size UI_SizeMake(UI_SizeKind kind, F32 value, F32 strictness);
 #define UI_Pixels(v, strictness)      UI_SizeMake(UI_SizeKind_Pixels, (v), (strictness))
-#define UI_TextDim(strictness)        UI_SizeMake(UI_SizeKind_TextDim, (0), (strictness))
+#define UI_TextDim(strictness)        UI_SizeMake(UI_SizeKind_TextContent, (0), (strictness))
 #define UI_SizeByChildren(strictness) UI_SizeMake(UI_SizeKind_SizeByChildren, (0), (strictness))
 #define UI_Pct(v, strictness)         UI_SizeMake(UI_SizeKind_Pct, (v), (strictness))
 #define UI_Em(v, strictness)          UI_SizeMake(UI_SizeKind_Pixels, (v) * UI_TopFontSize(), (strictness))
