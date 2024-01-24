@@ -45,7 +45,7 @@ typedef enum UI_TextAlignment
 }
 UI_TextAlignment;
 
-
+//Defining box flags this way gives more room to add more and more flags
 typedef U64 UI_BoxFlags;
 //{
 //- rjf: interaction
