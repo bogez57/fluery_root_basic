@@ -691,66 +691,81 @@ UI_SolveIndependentSizes(UI_Box *root, Axis2 axis)
 root_function void
 UI_SolveUpwardDependentSizes(UI_Box *root, Axis2 axis)
 {
- switch(root->pref_size[axis].kind)
- {
-  default:break;
-  case UI_SizeKind_Pct:
-  {
-   UI_Box *ancestor = &ui_g_nil_box;
-   for(UI_Box *p = root->parent; !UI_BoxIsNil(p); p = p->parent)
-   {
-    if(p->pref_size[axis].kind != UI_SizeKind_SizeByChildren)
-    {
-     ancestor = p;
-     break;
-    }
-   }
-   if(!UI_BoxIsNil(ancestor))
-   {
-    root->fixed_size.v[axis] = ancestor->fixed_size.v[axis] * root->pref_size[axis].value;
-    root->fixed_size.v[axis] = FloorF32(root->fixed_size.v[axis]);
-   }
-  }break;
- }
- for(UI_Box *child = root->first; !UI_BoxIsNil(child); child = child->next)
- {
-  UI_SolveUpwardDependentSizes(child, axis);
- }
+	//- rjf: solve for all kinds that are upwards-dependent
+	switch(root->pref_size[axis].kind)
+	{
+		default: break;
+    
+			// rjf: if root has a parent percentage, figure out its size
+		case UI_SizeKind_ParentPct:
+		{
+			// rjf: find parent that has a fixed size
+			UI_Box *fixed_parent = &ui_g_nil_box;
+			for(UI_Box *p = root->parent; !UI_BoxIsNil(p); p = p->parent)
+			{
+				if(//p->flags & (UI_BoxFlag_FixedWidth<<axis) ||  -- If you add fixedwidth box flag this will be uncommented
+				   p->pref_size[axis].kind == UI_SizeKind_Pixels ||
+				   p->pref_size[axis].kind == UI_SizeKind_TextContent ||
+				   p->pref_size[axis].kind == UI_SizeKind_ParentPct)
+				{
+					fixed_parent = p;
+					break;
+				}
+			}
+      
+			// rjf: figure out root's size on this axis
+			F32 size = fixed_parent->fixed_size.v[axis] * root->pref_size[axis].value;
+      
+			// rjf: mutate root to have this size
+			root->fixed_size.v[axis] = size;
+		}break;
+	}
+  
+	//- rjf: recurse
+	for(UI_Box *child = root->first; !UI_BoxIsNil(child); child = child->next)
+	{
+		UI_SolveUpwardDependentSizes(child, axis);
+	}
 }
 
 root_function void
 UI_SolveDownwardDependentSizes(UI_Box *root, Axis2 axis)
 {
- for(UI_Box *child = root->first; !UI_BoxIsNil(child); child = child->next)
- {
-  UI_SolveDownwardDependentSizes(child, axis);
- }
- switch(root->pref_size[axis].kind)
- {
-  default:break;
-  case UI_SizeKind_SizeByChildren:
-  {
-   F32 value = 0;
-   {
-    if(axis == root->child_layout_axis)
-    {
-     for(UI_Box *child = root->first; !UI_BoxIsNil(child); child = child->next)
-     {
-      value += child->fixed_size.v[axis];
-     }
-    }
-    else
-    {
-     for(UI_Box *child = root->first; !UI_BoxIsNil(child); child = child->next)
-     {
-      value = Max(value, child->fixed_size.v[axis]);
-     }
-    }
-   }
-   root->fixed_size.v[axis] = value;
-   root->fixed_size.v[axis] = FloorF32(root->fixed_size.v[axis]);
-  }break;
- }
+	//- rjf: recurse first. we may depend on children that have
+	// the same property
+	for(UI_Box *child = root->first; !UI_BoxIsNil(child); child = child->next)
+	{
+		UI_SolveDownwardDependentSizes(child, axis);
+	}
+  
+	//- rjf: solve for all kinds that are downwards-dependent
+	switch(root->pref_size[axis].kind)
+	{
+		default: break;
+    
+			// rjf: sum children
+		case UI_SizeKind_ChildrenSum:
+		{
+			F32 sum = 0;
+			for(UI_Box *child = root->first; !UI_BoxIsNil(child); child = child->next)
+			{
+				if(!(child->flags & (UI_BoxFlag_FloatingX<<axis)))
+				{
+					if(axis == root->child_layout_axis)
+					{
+						sum += child->fixed_size.v[axis];
+					}
+					else
+					{
+						sum = Max(sum, child->fixed_size.v[axis]);
+					}
+				}
+			}
+      
+			// rjf: figure out root's size on this axis
+			root->fixed_size.v[axis] = sum;
+		}break;
+	}
 }
 
 root_function void

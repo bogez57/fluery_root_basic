@@ -19,8 +19,8 @@ typedef enum UI_SizeKind
 {
  UI_SizeKind_Pixels,
  UI_SizeKind_TextContent,
- UI_SizeKind_Pct,
- UI_SizeKind_SizeByChildren,
+ UI_SizeKind_ParentPct,
+ UI_SizeKind_ChildrenSum,
  UI_SizeKind_COUNT
 }
 UI_SizeKind;
@@ -343,8 +343,8 @@ root_function UI_BoxRec UI_BoxRecurseDepthFirst(UI_Box *box, UI_Box *stopper, Me
 root_function UI_Size UI_SizeMake(UI_SizeKind kind, F32 value, F32 strictness);
 #define UI_Pixels(v, strictness)      UI_SizeMake(UI_SizeKind_Pixels, (v), (strictness))
 #define UI_TextDim(strictness)        UI_SizeMake(UI_SizeKind_TextContent, (0), (strictness))
-#define UI_SizeByChildren(strictness) UI_SizeMake(UI_SizeKind_SizeByChildren, (0), (strictness))
-#define UI_Pct(v, strictness)         UI_SizeMake(UI_SizeKind_Pct, (v), (strictness))
+#define UI_SizeByChildren(strictness) UI_SizeMake(UI_SizeKind_ChildrenSum, (0), (strictness))
+#define UI_Pct(v, strictness)         UI_SizeMake(UI_SizeKind_ParentPct, (v), (strictness))
 #define UI_Em(v, strictness)          UI_SizeMake(UI_SizeKind_Pixels, (v) * UI_TopFontSize(), (strictness))
 
 ////////////////////////////////
