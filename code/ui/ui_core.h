@@ -252,6 +252,75 @@ struct UI_CursorVizData
  F32 velocity;
 };
 
+#if 0
+
+typedef struct UI_State UI_State;
+struct UI_State
+{
+	//- rjf: main arena
+	Arena *arena;
+  
+	//- rjf: build arenas
+	Arena *build_arenas[2];
+	U64 build_index;
+  
+	//- rjf: box cache
+	UI_Box *first_free_box;
+	U64 box_table_size;
+	UI_BoxHashSlot *box_table;
+  
+	//- rjf: build phase output
+	UI_Box *root;
+	UI_Box *tooltip_root;
+	UI_Box *ctx_menu_root;
+	UI_Key default_nav_root_key;
+	U64 build_box_count;
+	U64 last_build_box_count;
+	B32 ctx_menu_touched_this_frame;
+	B32 is_animating;
+  
+	//- rjf: build parameters
+	UI_IconInfo icon_info;
+	OS_Handle window;
+	OS_EventList *events;
+	UI_NavActionList *nav_actions;
+	Vec2F32 mouse;
+	F32 animation_dt;
+	B32 external_focus_commit;
+  
+	//- rjf: user interaction state
+	UI_Key hot_box_key;
+	UI_Key active_box_key[Side_COUNT];
+	UI_Key clipboard_copy_key;
+	F32 time_since_last_click[Side_COUNT];
+	UI_Key last_click_key[Side_COUNT];
+	Vec2F32 drag_start_mouse;
+	Arena *drag_state_arena;
+	String8 drag_state_data;
+  
+	//- rjf: context menu state
+	UI_Key ctx_menu_anchor_key;
+	UI_Key next_ctx_menu_anchor_key;
+	Vec2F32 ctx_menu_anchor_box_last_pos;
+	Vec2F32 ctx_menu_anchor_off;
+	B32 ctx_menu_open;
+	B32 next_ctx_menu_open;
+	F32 ctx_menu_open_t;
+	UI_Key ctx_menu_key;
+  
+	//- rjf: build phase focus masks
+	B32 focus_hot_is_set;
+	B32 focus_hot_is_possible;
+	B32 focus_active_is_set;
+	B32 focus_active_is_possible;
+  
+	//- rjf: build phase stacks
+	UI_StackDecls;
+};
+
+#endif
+
+
 typedef struct UI_FocusVizData UI_FocusVizData;
 struct UI_FocusVizData
 {
