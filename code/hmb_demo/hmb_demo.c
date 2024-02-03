@@ -385,7 +385,7 @@ EntryPoint(CmdLine *cmdln)
 		}
 #endif
 
-#if 0
+#if 1
 		UI_FixedPos(V2F32(30.f, 30.f)) UI_WidthFill UI_PrefHeight(UI_Em(2.5f, 1.f)) {
 			UI_SetNextChildLayoutAxis(Axis2_X);//All next functions need to be set before next UI_BoxMake function I think
 			UI_SetNextBackgroundColor(V4F32(0.3f, 0.2f, 0.2f, 0.9f));//Individual background color
@@ -399,7 +399,7 @@ EntryPoint(CmdLine *cmdln)
 
 				//Pop up context menu if file is clicked
 				UI_Signal File_signal = UI_ButtonF("File");
-				if(File_signal.clicked) {//Theres a difference between clicked and pressed that I'm trying to figure out. I think clicked has to do with the mouse cursor actually hovering over the object your clicking on whereas pressed might mean the item is the active item and can still be pressed if you press you mouse (like if item was selected by a hot key or something not involving the cursor?)
+				if(File_signal.pressed) {//Theres a difference between clicked and pressed. Clicked means user has both pressed and released the mouse button while pressed only factors in initial pressing down of mouse button
 					if(UI_CtxMenuIsOpen(ctx_menu_key)) {
 						UI_CloseCtxMenu();
 					}
@@ -467,6 +467,7 @@ EntryPoint(CmdLine *cmdln)
 		}
 #endif
 
+		#if 0
 		UI_FixedPos(V2F32(30.f, 30.f)) UI_WidthFill UI_HeightFill {
 			UI_SetNextChildLayoutAxis(Axis2_X);
 			UI_SetNextBackgroundColor(V4F32(0.3f, 0.2f, 0.2f, 0.9f));
@@ -483,10 +484,11 @@ EntryPoint(CmdLine *cmdln)
 
 			}
 		}
+		#endif
 
 
 		//Fluery's original stuff
-#if 1
+#if 0
 		//- rjf: mouse entity tooltip
 		if(mouse_entity != 0) UI_Tooltip
 		{
